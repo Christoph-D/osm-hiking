@@ -21,10 +21,10 @@ function getInitialMapPosition() {
     try {
       return JSON.parse(saved)
     } catch {
-      return { center: [51.505, -0.09], zoom: 13 }
+      return { center: [50.0, 10.0], zoom: 5 }
     }
   }
-  return { center: [51.505, -0.09], zoom: 13 }
+  return { center: [50.0, 10.0], zoom: 5 }
 }
 
 function MapPositionSaver() {
