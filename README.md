@@ -1,78 +1,168 @@
 # OSM Hiking Route Planner
 
-A fully client-side web application for planning hiking routes using OpenStreetMap data.
+A fully client-side web application for planning hiking routes using
+OpenStreetMap data. Create custom hiking routes that automatically snap to
+trails and footpaths, view elevation profiles, and export routes as GPX files.
 
 ## Features
 
-- **Client-side routing**: All route calculation happens in your browser
+- **Client-side routing**: All route calculation happens in your browser - no
+  external routing API needed
 - **Path snapping**: Routes automatically follow hiking trails and footpaths
-- **Interactive map**: Click or tap to add waypoints
-- **GPX export**: Download your route for use with GPS devices
-- **Offline caching**: Downloaded map data is cached for faster re-use
-- **Real-time stats**: See distance and waypoint count as you plan
+  from OpenStreetMap
+- **Interactive waypoints**: Click to add, drag to adjust, double-click to
+  remove waypoints
+- **Elevation profiles**: View detailed elevation data with gain/loss statistics
+  and interactive hover
+- **GPX export**: Download your route for use with GPS devices and hiking apps
+- **Real-time stats**: See distance, waypoint count, and elevation data as you
+  plan
 
 ## How It Works
 
-1. **Load map data**: When you first view an area, the app downloads hiking path data from Overpass API
-2. **Build routing graph**: Path data is converted into a network of nodes and edges
-3. **Click to route**: Each click finds the nearest path and routes from your last waypoint
-4. **A* pathfinding**: Uses efficient A* algorithm for routing between points
-5. **Cache**: Downloaded data is stored in IndexedDB for offline re-use
+1. **Load map data**: Zoom in to your hiking area (zoom level 13+) and click
+   "Reload Data" to download hiking paths from Overpass API
+2. **Build routing graph**: Path data is converted into a network of nodes and
+   edges for efficient routing
+3. **Click to route**: Each click finds the nearest path and routes from your
+   last waypoint using A\* pathfinding
+4. **Fetch elevations**: Route elevation data is fetched from Open-Elevation API
+   and displayed as an interactive profile
 
 ## Tech Stack
 
-- **React 18** + TypeScript + Vite
-- **Leaflet** + React-Leaflet for mapping
-- **Overpass API** for OSM data download
-- **ngraph.path** for A* pathfinding
+- **React 18** + TypeScript for UI
+- **Vite** for fast development and optimized builds
+- **Leaflet** + React-Leaflet for interactive mapping
+- **Overpass API** for downloading OpenStreetMap hiking path data
+- **ngraph.path** for A\* pathfinding algorithm
 - **Turf.js** for geospatial calculations
-- **Dexie.js** for IndexedDB caching
-- **togpx** for GPX export
+- **Open-Elevation API** for elevation data
 - **Zustand** for state management
 - **Tailwind CSS** for styling
 
 ## Getting Started
 
-```bash
-# Install dependencies
-npm install
+### Prerequisites
 
-# Run development server
+- Node.js 18+ and npm
+
+### Installation
+
+```bash
+git clone $REPO
+cd osm-hiking
+npm install
+```
+
+### Development
+
+```bash
+# Start development server with hot module replacement
 npm run dev
 
-# Build for production
+# The app will be available at http://localhost:5173
+```
+
+### Production Build
+
+```bash
+# Build for production (TypeScript compilation + Vite build)
 npm run build
 
-# Preview production build
+# The optimized files will be in the dist/ directory
+```
+
+### Preview Production Build
+
+```bash
+# Build and preview the production build locally
+npm run build
 npm run preview
 ```
 
 ## Usage
 
-1. Pan the map to your desired hiking area
-2. Wait for "Loading map data..." to complete
-3. Click on the map to place your first waypoint
-4. Continue clicking to extend your route (it will snap to paths)
-5. View distance and waypoint count in the control panel
-6. Export your route as GPX when done
+1. **Pan and zoom** the map to your desired hiking area
+2. **Zoom in** to at least zoom level 13 (required for data loading)
+3. **Click "Load Hiking Paths"** to download hiking path data for the current
+   view
+   - A green dashed border shows the loaded region
+   - Gray overlay indicates areas where data isn't loaded
+4. **Click on the map** to place your first waypoint (will snap to nearest
+   trail)
+5. **Continue clicking** to extend your route along hiking paths
+6. **Drag waypoints** to adjust the route
+7. **Double-click waypoints** to remove them
+8. **View elevation profile** below the map (appears after route is created)
+   - Hover over the profile to see elevation at specific points
+   - View total elevation gain/loss and min/max elevation
+9. **Export as GPX** when done for use with GPS devices
 
-## Path Types
+## Supported Path Types
 
-The app prioritizes hiking-friendly paths:
-- Footpaths and trails (preferred)
-- Bridleways
-- Cycleways
-- Tracks
-- Steps (weighted higher due to difficulty)
+The router prioritizes hiking-friendly paths from OpenStreetMap. Routes avoid
+roads and prioritize natural trails when available.
 
-## Notes
+## Project Structure
 
-- Routes are calculated entirely client-side - no external routing API needed
-- First load in a new area requires downloading OSM data (~5-10 seconds)
-- Data is cached for 7 days for offline re-use
-- Routing works best in areas with well-mapped hiking trails
-- If no path is found, try clicking closer to a visible trail
+```text
+src/
+├── components/          # React components
+│   ├── MapContainer.tsx    # Main map and routing logic
+│   ├── Controls.tsx        # Map controls UI
+│   └── ElevationProfile.tsx # Elevation chart component
+├── services/            # Core routing and data services
+│   ├── overpass.ts         # Fetch OSM data from Overpass API
+│   ├── graphBuilder.ts     # Build routing graph from OSM data
+│   ├── router.ts           # A* pathfinding implementation
+│   ├── elevation.ts        # Elevation data fetching and processing
+│   └── gpxExport.ts        # GPX file generation
+├── store/              # Zustand state management
+│   └── useRouteStore.ts    # Route state (waypoints, segments, elevation)
+├── types/              # TypeScript type definitions
+└── utils/              # Utility functions and configuration
+```
+
+## Key Algorithms
+
+- **A\* Pathfinding**: Efficient routing between waypoints using `ngraph.path`
+- **Haversine Distance**: Calculate distances along paths for accurate metrics
+- **Path Subdivision**: Equally space points along routes for consistent
+  elevation sampling
+- **Nearest Node Search**: Snap user clicks to nearby trail nodes within search
+  radius
+
+## API Dependencies
+
+- **Overpass API**: Downloads OpenStreetMap hiking path data for specified
+  bounding boxes
+- **Open-Elevation API**: Provides elevation data for route coordinates (batch
+  processing up to 100 points per request)
+
+Both APIs are free and require no authentication.
+
+## Limitations
+
+- Requires zoom level 13+ to load data (prevents excessive data downloads)
+- Routing works best in areas with well-mapped hiking trails in OpenStreetMap
+- Loading a new area requires downloading OSM data (~5-10 seconds depending on
+  area size)
+- Elevation data depends on Open-Elevation API availability and may be
+  inaccurate
+
+## Tips
+
+- If no path is found, try clicking closer to a visible trail line on the map
+- Drag waypoints to fine-tune your route
+- Use the green dashed border to see which area has loaded data
+- Reload data if you pan to a new area outside the loaded region
 
 ## License
 
-MIT
+AGPL-3.0
+
+## Acknowledgments
+
+- Map data from [OpenStreetMap](https://www.openstreetmap.org/) contributors
+- Elevation data from [Open-Elevation](https://open-elevation.com/)
