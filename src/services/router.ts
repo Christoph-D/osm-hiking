@@ -10,6 +10,11 @@ export class Router {
     this.graph = graph
   }
 
+  // Get a node by ID
+  getNode(nodeId: string) {
+    return this.graph.nodes.get(nodeId)
+  }
+
   // Find the nearest node to a clicked point
   findNearestNode(lat: number, lon: number, maxDistance: number = 100): string | null {
     let nearestId: string | null = null

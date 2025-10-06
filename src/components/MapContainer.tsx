@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { MapContainer as LeafletMapContainer, TileLayer, Polyline, Marker, useMap, useMapEvents } from 'react-leaflet'
+import { LeafletEvent } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import '../utils/leafletIcons'
 import { useRouteStore } from '../store/useRouteStore'
@@ -68,7 +69,9 @@ function RouteLayer() {
   const [isDataLoaded, setIsDataLoaded] = useState(false)
   const [lastWaypoint, setLastWaypoint] = useState<string | null>(null)
   const [loadedBbox, setLoadedBbox] = useState<{ south: number; west: number; north: number; east: number } | null>(null)
-  const { route, addSegment, clearRoute, setLoading, setError } = useRouteStore()
+  const waypointNodeIds = useRef<string[]>([])
+  const isProcessingMarkerClick = useRef(false)
+  const { route, addSegment, updateWaypoint, deleteWaypoint, clearRoute, setLoading, setError } = useRouteStore()
 
   // Load OSM data when map moves
   const loadData = async (force = false) => {
@@ -113,6 +116,7 @@ function RouteLayer() {
       if (loadedBbox) {
         clearRoute()
         setLastWaypoint(null)
+        waypointNodeIds.current = []
       }
 
       // Check cache first
@@ -145,6 +149,12 @@ function RouteLayer() {
   // Handle map clicks
   useMapEvents({
     click(e) {
+      // Ignore clicks that are from marker interactions
+      if (isProcessingMarkerClick.current) {
+        isProcessingMarkerClick.current = false
+        return
+      }
+
       if (!router || !isDataLoaded) {
         setError('Map data not loaded yet. Please wait...')
         return
@@ -164,10 +174,18 @@ function RouteLayer() {
 
       setError(null)
 
+      // Get the actual node coordinates
+      const node = router.getNode(nodeId)
+      if (!node) {
+        setError('Invalid node selected.')
+        return
+      }
+
       // First waypoint - just mark it
       if (!lastWaypoint) {
         setLastWaypoint(nodeId)
-        addSegment({ coordinates: [[lng, lat]], distance: 0 }, [lng, lat])
+        waypointNodeIds.current = [nodeId]
+        addSegment({ coordinates: [[node.lon, node.lat]], distance: 0 }, [node.lon, node.lat])
         return
       }
 
@@ -179,7 +197,8 @@ function RouteLayer() {
         return
       }
 
-      addSegment(segment, [lng, lat])
+      waypointNodeIds.current.push(nodeId)
+      addSegment(segment, [node.lon, node.lat])
       setLastWaypoint(nodeId)
     },
 
@@ -199,18 +218,123 @@ function RouteLayer() {
     },
   })
 
-  if (!route) return null
+  const handleMarkerDrag = (index: number, event: LeafletEvent) => {
+    if (!router) return
 
-  // Flatten all coordinates for rendering
-  const allCoordinates = route.segments.flatMap(s =>
-    s.coordinates.map(([lon, lat]) => [lat, lon] as [number, number])
-  )
+    const marker = event.target
+    const { lat, lng } = marker.getLatLng()
+
+    // Find nearest node to new position
+    const nodeId = router.findNearestNode(lat, lng, 500)
+    if (!nodeId) return
+
+    const node = router.getNode(nodeId)
+    if (!node) return
+
+    // Snap marker to the node
+    marker.setLatLng([node.lat, node.lon])
+
+    // Update the waypoint node ID
+    waypointNodeIds.current[index] = nodeId
+
+    // Recalculate all segments
+    const newSegments: typeof route.segments = []
+    let totalDistance = 0
+
+    for (let i = 0; i < waypointNodeIds.current.length; i++) {
+      if (i === 0) {
+        // First waypoint - just a marker
+        const firstNode = router.getNode(waypointNodeIds.current[i])
+        if (firstNode) {
+          newSegments.push({ coordinates: [[firstNode.lon, firstNode.lat]], distance: 0 })
+        }
+      } else {
+        // Route from previous waypoint
+        const segment = router.route(waypointNodeIds.current[i - 1], waypointNodeIds.current[i])
+        if (segment) {
+          newSegments.push(segment)
+          totalDistance += segment.distance
+        }
+      }
+    }
+
+    // Update the last waypoint reference
+    setLastWaypoint(waypointNodeIds.current[waypointNodeIds.current.length - 1])
+
+    // Update the route store
+    updateWaypoint(index, [node.lon, node.lat], newSegments, totalDistance)
+  }
+
+  const handleMarkerClick = (event: LeafletEvent) => {
+    // Mark that we're processing a marker click to prevent map click handler
+    isProcessingMarkerClick.current = true
+    event.originalEvent?.stopPropagation()
+  }
+
+  const handleMarkerDoubleClick = (index: number, event: LeafletEvent) => {
+    if (!router) return
+
+    // Mark that we're processing a marker click to prevent map click handler
+    isProcessingMarkerClick.current = true
+    event.originalEvent?.stopPropagation()
+
+    // Remove this waypoint from the node IDs list
+    waypointNodeIds.current.splice(index, 1)
+
+    // If no waypoints left, clear everything
+    if (waypointNodeIds.current.length === 0) {
+      clearRoute()
+      setLastWaypoint(null)
+      return
+    }
+
+    // Recalculate all segments
+    const newSegments: typeof route.segments = []
+    let totalDistance = 0
+
+    for (let i = 0; i < waypointNodeIds.current.length; i++) {
+      if (i === 0) {
+        // First waypoint - just a marker
+        const firstNode = router.getNode(waypointNodeIds.current[i])
+        if (firstNode) {
+          newSegments.push({ coordinates: [[firstNode.lon, firstNode.lat]], distance: 0 })
+        }
+      } else {
+        // Route from previous waypoint
+        const segment = router.route(waypointNodeIds.current[i - 1], waypointNodeIds.current[i])
+        if (segment) {
+          newSegments.push(segment)
+          totalDistance += segment.distance
+        }
+      }
+    }
+
+    // Update the last waypoint reference
+    setLastWaypoint(waypointNodeIds.current[waypointNodeIds.current.length - 1])
+
+    // Update the route store
+    deleteWaypoint(index, newSegments, totalDistance)
+  }
+
+  if (!route) return null
 
   return (
     <>
-      <Polyline positions={allCoordinates} color="blue" weight={4} opacity={0.7} />
+      {route.segments.map((segment, i) => {
+        const positions = segment.coordinates.map(([lon, lat]) => [lat, lon] as [number, number])
+        return <Polyline key={i} positions={positions} color="blue" weight={4} opacity={0.7} />
+      })}
       {route.waypoints.map(([lon, lat], i) => (
-        <Marker key={i} position={[lat, lon]} />
+        <Marker
+          key={i}
+          position={[lat, lon]}
+          draggable={true}
+          eventHandlers={{
+            click: handleMarkerClick,
+            dragend: (e) => handleMarkerDrag(i, e),
+            dblclick: (e) => handleMarkerDoubleClick(i, e)
+          }}
+        />
       ))}
       <Controls onLoadData={() => loadData(true)} isDataLoaded={isDataLoaded} zoom={map.getZoom()} />
     </>
