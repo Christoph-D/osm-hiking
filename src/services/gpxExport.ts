@@ -1,8 +1,14 @@
 import { Route } from '../types'
+import { fetchElevations } from './elevation'
 
-function createGPX(coordinates: [number, number][], metadata: { name: string; desc: string; creator: string }): string {
+function createGPX(coordinates: [number, number][], metadata: { name: string; desc: string; creator: string }, elevations?: number[]): string {
   const trackPoints = coordinates
-    .map(([lon, lat]) => `      <trkpt lat="${lat}" lon="${lon}"></trkpt>`)
+    .map(([lon, lat], i) => {
+      const eleTag = elevations && elevations[i] !== undefined
+        ? `<ele>${elevations[i].toFixed(1)}</ele>`
+        : ''
+      return `      <trkpt lat="${lat}" lon="${lon}">${eleTag}</trkpt>`
+    })
     .join('\n')
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -20,7 +26,7 @@ ${trackPoints}
 </gpx>`
 }
 
-export function exportRouteAsGPX(route: Route, filename: string = 'hiking-route.gpx'): void {
+export async function exportRouteAsGPX(route: Route, filename: string = 'hiking-route.gpx'): Promise<void> {
   // Flatten all segments into a single line
   const allCoordinates: [number, number][] = []
 
@@ -28,12 +34,20 @@ export function exportRouteAsGPX(route: Route, filename: string = 'hiking-route.
     allCoordinates.push(...segment.coordinates)
   })
 
+  // Fetch elevations for all coordinates
+  let elevations: number[] | undefined
+  try {
+    elevations = await fetchElevations(allCoordinates)
+  } catch (error) {
+    console.warn('Failed to fetch elevations for GPX export, continuing without elevation data:', error)
+  }
+
   // Convert to GPX
   const gpx = createGPX(allCoordinates, {
     creator: 'OSM Hiking Route Planner',
     name: 'Hiking Route',
     desc: `Total distance: ${(route.totalDistance / 1000).toFixed(2)} km`,
-  })
+  }, elevations)
 
   // Download
   const blob = new Blob([gpx], { type: 'application/gpx+xml' })

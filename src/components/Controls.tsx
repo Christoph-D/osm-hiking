@@ -24,9 +24,13 @@ export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom, mapBoun
     }
   }, [])
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (route) {
-      exportRouteAsGPX(route)
+      try {
+        await exportRouteAsGPX(route)
+      } catch (error) {
+        console.error('Failed to export GPX:', error)
+      }
     }
   }
 
