@@ -128,8 +128,8 @@ function RouteLayer() {
           }
         }
 
-        // Subdivide the path into 100 equally spaced points
-        const numPoints = 100
+        // Subdivide the path into equally spaced points
+        const numPoints = 70
         const equallySpacedCoords = subdividePathEqually(allCoordinates, numPoints)
 
         // Fetch elevations for all equally spaced points
