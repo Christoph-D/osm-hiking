@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { DomEvent } from 'leaflet'
 import { ElevationPoint, ElevationStats } from '../types'
 import { useRouteStore } from '../store/useRouteStore'
 
@@ -10,6 +11,16 @@ interface ElevationProfileProps {
 
 export function ElevationProfile({ elevationProfile, elevationStats, isLoading }: ElevationProfileProps) {
   const [isExpanded, setIsExpanded] = useState(true)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (container) {
+      // Disable all map interactions on this element
+      DomEvent.disableClickPropagation(container)
+      DomEvent.disableScrollPropagation(container)
+    }
+  }, [])
 
   if (!isExpanded) {
     return (
@@ -25,7 +36,10 @@ export function ElevationProfile({ elevationProfile, elevationStats, isLoading }
   }
 
   return (
-    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] bg-white rounded-lg shadow-lg p-4 max-w-fit">
+    <div
+      ref={containerRef}
+      className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] bg-white rounded-lg shadow-lg p-4 max-w-fit"
+    >
       <div className="flex justify-between items-center mb-3">
         <h3 className="font-bold text-lg">Elevation Profile</h3>
         <button

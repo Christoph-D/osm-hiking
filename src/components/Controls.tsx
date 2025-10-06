@@ -1,3 +1,5 @@
+import { useRef, useEffect } from 'react'
+import { DomEvent } from 'leaflet'
 import { useRouteStore } from '../store/useRouteStore'
 import { exportRouteAsGPX } from '../services/gpxExport'
 
@@ -10,6 +12,16 @@ interface ControlsProps {
 
 export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom }: ControlsProps) {
   const { route, isLoading, error } = useRouteStore()
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (container) {
+      // Disable all map interactions on this element
+      DomEvent.disableClickPropagation(container)
+      DomEvent.disableScrollPropagation(container)
+    }
+  }, [])
 
   const handleExport = () => {
     if (route) {
@@ -26,7 +38,7 @@ export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom }: Contr
   }
 
   return (
-    <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+    <div ref={containerRef} className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
       <div className="bg-white rounded-lg shadow-lg p-4 min-w-[200px]">
         <h3 className="font-bold text-lg mb-2">Route Planner</h3>
 
