@@ -1,9 +1,10 @@
 import { create } from 'zustand'
-import { Route, RouteSegment } from '../types'
+import { Route, RouteSegment, ElevationPoint, ElevationStats } from '../types'
 
 interface RouteState {
   route: Route | null
   isLoading: boolean
+  isLoadingElevation: boolean
   error: string | null
 
   addSegment: (segment: RouteSegment, waypoint: [number, number]) => void
@@ -11,12 +12,15 @@ interface RouteState {
   deleteWaypoint: (index: number, segments: RouteSegment[], totalDistance: number) => void
   clearRoute: () => void
   setLoading: (loading: boolean) => void
+  setLoadingElevation: (loading: boolean) => void
   setError: (error: string | null) => void
+  setElevationData: (profile: ElevationPoint[], stats: ElevationStats) => void
 }
 
 export const useRouteStore = create<RouteState>((set) => ({
   route: null,
   isLoading: false,
+  isLoadingElevation: false,
   error: null,
 
   addSegment: (segment, waypoint) => set((state) => {
@@ -26,6 +30,9 @@ export const useRouteStore = create<RouteState>((set) => ({
         segments: [...currentRoute.segments, segment],
         waypoints: [...currentRoute.waypoints, waypoint],
         totalDistance: currentRoute.totalDistance + segment.distance,
+        // Clear elevation data when route changes
+        elevationProfile: undefined,
+        elevationStats: undefined,
       },
     }
   }),
@@ -39,6 +46,9 @@ export const useRouteStore = create<RouteState>((set) => ({
         segments,
         waypoints: newWaypoints,
         totalDistance,
+        // Clear elevation data when route changes
+        elevationProfile: undefined,
+        elevationStats: undefined,
       },
     }
   }),
@@ -58,11 +68,26 @@ export const useRouteStore = create<RouteState>((set) => ({
         segments,
         waypoints: newWaypoints,
         totalDistance,
+        // Clear elevation data when route changes
+        elevationProfile: undefined,
+        elevationStats: undefined,
       },
     }
   }),
 
   clearRoute: () => set({ route: null, error: null }),
   setLoading: (loading) => set({ isLoading: loading }),
+  setLoadingElevation: (loading) => set({ isLoadingElevation: loading }),
   setError: (error) => set({ error }),
+
+  setElevationData: (profile, stats) => set((state) => {
+    if (!state.route) return state
+    return {
+      route: {
+        ...state.route,
+        elevationProfile: profile,
+        elevationStats: stats,
+      },
+    }
+  }),
 }))

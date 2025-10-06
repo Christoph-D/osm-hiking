@@ -9,6 +9,9 @@ import { buildRoutingGraph } from '../services/graphBuilder'
 import { Router } from '../services/router'
 import { getCachedRegion, setCachedRegion } from '../services/cache'
 import { Controls } from './Controls'
+import { ElevationProfile } from './ElevationProfile'
+import { fetchElevations, subdividePathEqually, calculateDistances, calculateElevationStats } from '../services/elevation'
+import { ElevationPoint } from '../types'
 
 const MAP_POSITION_KEY = 'osm-hiking-map-position'
 
@@ -71,7 +74,71 @@ function RouteLayer() {
   const [loadedBbox, setLoadedBbox] = useState<{ south: number; west: number; north: number; east: number } | null>(null)
   const waypointNodeIds = useRef<string[]>([])
   const isProcessingMarkerClick = useRef(false)
-  const { route, addSegment, updateWaypoint, deleteWaypoint, clearRoute, setLoading, setError } = useRouteStore()
+  const { route, addSegment, updateWaypoint, deleteWaypoint, clearRoute, setLoading, setError, setLoadingElevation, setElevationData, isLoadingElevation } = useRouteStore()
+
+  // Fetch elevation data when route changes
+  useEffect(() => {
+    if (!route || route.waypoints.length < 2) {
+      return
+    }
+
+    // Don't refetch if we already have elevation data
+    if (route.elevationProfile) {
+      return
+    }
+
+    const fetchElevationData = async () => {
+      try {
+        setLoadingElevation(true)
+
+        // Collect all coordinates from all segments
+        const allCoordinates: [number, number][] = []
+        for (const segment of route.segments) {
+          allCoordinates.push(...segment.coordinates)
+        }
+
+        // Remove duplicates (waypoints appear in multiple segments)
+        const uniqueCoords: [number, number][] = []
+        const seen = new Set<string>()
+        for (const coord of allCoordinates) {
+          const key = `${coord[0].toFixed(6)},${coord[1].toFixed(6)}`
+          if (!seen.has(key)) {
+            seen.add(key)
+            uniqueCoords.push(coord)
+          }
+        }
+
+        // Subdivide the path into 100 equally spaced points
+        const equallySpacedCoords = subdividePathEqually(uniqueCoords, 100)
+
+        // Fetch elevations for all equally spaced points
+        const elevations = await fetchElevations(equallySpacedCoords)
+
+        // Calculate distances for the equally spaced points
+        const distances = calculateDistances(equallySpacedCoords)
+
+        // Build elevation profile
+        const elevationProfile: ElevationPoint[] = equallySpacedCoords.map((coord, i) => ({
+          distance: distances[i],
+          elevation: elevations[i],
+          lon: coord[0],
+          lat: coord[1],
+        }))
+
+        // Calculate stats
+        const elevationStats = calculateElevationStats(elevations)
+
+        // Update store
+        setElevationData(elevationProfile, elevationStats)
+      } catch (error) {
+        console.error('Failed to fetch elevation data:', error)
+      } finally {
+        setLoadingElevation(false)
+      }
+    }
+
+    fetchElevationData()
+  }, [route?.segments, route?.elevationProfile, setLoadingElevation, setElevationData])
 
   // Load OSM data when map moves
   const loadData = async (force = false) => {
@@ -337,6 +404,13 @@ function RouteLayer() {
         />
       ))}
       <Controls onLoadData={() => loadData(true)} isDataLoaded={isDataLoaded} zoom={map.getZoom()} />
+      {route.elevationProfile && route.elevationStats && (
+        <ElevationProfile
+          elevationProfile={route.elevationProfile}
+          elevationStats={route.elevationStats}
+          isLoading={isLoadingElevation}
+        />
+      )}
     </>
   )
 }
