@@ -1,5 +1,24 @@
-import togpx from 'togpx'
 import { Route } from '../types'
+
+function createGPX(coordinates: [number, number][], metadata: { name: string; desc: string; creator: string }): string {
+  const trackPoints = coordinates
+    .map(([lon, lat]) => `      <trkpt lat="${lat}" lon="${lon}"></trkpt>`)
+    .join('\n')
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="${metadata.creator}" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>${metadata.name}</name>
+    <desc>${metadata.desc}</desc>
+  </metadata>
+  <trk>
+    <name>${metadata.name}</name>
+    <trkseg>
+${trackPoints}
+    </trkseg>
+  </trk>
+</gpx>`
+}
 
 export function exportRouteAsGPX(route: Route, filename: string = 'hiking-route.gpx'): void {
   // Flatten all segments into a single line
@@ -9,31 +28,11 @@ export function exportRouteAsGPX(route: Route, filename: string = 'hiking-route.
     allCoordinates.push(...segment.coordinates)
   })
 
-  // Create GeoJSON Feature
-  const geojson = {
-    type: 'FeatureCollection',
-    features: [
-      {
-        type: 'Feature',
-        properties: {
-          name: 'Hiking Route',
-          distance: route.totalDistance,
-        },
-        geometry: {
-          type: 'LineString',
-          coordinates: allCoordinates,
-        },
-      },
-    ],
-  }
-
   // Convert to GPX
-  const gpx = togpx(geojson, {
+  const gpx = createGPX(allCoordinates, {
     creator: 'OSM Hiking Route Planner',
-    metadata: {
-      name: 'Hiking Route',
-      desc: `Total distance: ${(route.totalDistance / 1000).toFixed(2)} km`,
-    },
+    name: 'Hiking Route',
+    desc: `Total distance: ${(route.totalDistance / 1000).toFixed(2)} km`,
   })
 
   // Download

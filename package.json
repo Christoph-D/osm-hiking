@@ -17,7 +17,6 @@
     "ngraph.path": "^1.4.1",
     "ngraph.graph": "^20.0.1",
     "osmtogeojson": "^3.0.0-beta.5",
-    "togpx": "^0.5.4",
     "zustand": "^5.0.2",
     "dexie": "^4.0.11"
   },
