@@ -10,10 +10,20 @@ export interface RoutingGraph {
 const HIGHWAY_WEIGHTS: Record<string, number> = {
   path: 1.0,
   footway: 1.0,
+  pedestrian: 1.0,
   bridleway: 1.2,
-  track: 1.5,
   cycleway: 1.3,
-  steps: 2.0,
+  track: 1.5,
+  steps: 1.5,
+  living_street: 1.4,
+  service: 1.5,
+  residential: 1.6,
+  unclassified: 1.7,
+  road: 1.7,
+  tertiary: 1.8,
+  tertiary_link: 1.8,
+  secondary: 2.0,
+  secondary_link: 2.0,
 }
 
 export function buildRoutingGraph(osmData: OSMData): RoutingGraph {

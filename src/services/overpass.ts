@@ -8,7 +8,7 @@ export async function fetchOSMData(
   const query = `
     [out:json][timeout:25];
     (
-      way["highway"~"^(path|footway|track|bridleway|cycleway|steps)$"](${bbox.south},${bbox.west},${bbox.north},${bbox.east});
+      way["highway"~"^(path|footway|track|bridleway|cycleway|steps|residential|unclassified|tertiary|tertiary_link|secondary|secondary_link|service|pedestrian|living_street|road)$"](${bbox.south},${bbox.west},${bbox.north},${bbox.east});
     );
     out body;
     >;
