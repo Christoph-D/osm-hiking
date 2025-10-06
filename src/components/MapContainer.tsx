@@ -380,7 +380,7 @@ function RouteLayer() {
       })
 
       if (zoom < 13 && isDataLoaded) {
-        setError('Zoom in to at least level 13 to load hiking paths')
+        setError('Zoom in more to load hiking paths')
       }
     },
   })

@@ -46,7 +46,7 @@ export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom, mapBoun
       // Only show confirmation if route would be cleared
       if (!allWaypointsFit) {
         const confirmed = window.confirm(
-          'Reloading data will clear your current route because some waypoints are outside the visible area. Continue?'
+          'Reloading hiking paths will clear your current route because some waypoints are outside the visible area. Continue?'
         )
         if (!confirmed) {
           return
@@ -63,7 +63,7 @@ export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom, mapBoun
 
         {isLoading && (
           <div className="text-sm text-gray-600 mb-2">
-            Loading map data...
+            Loading hiking paths...
           </div>
         )}
 
@@ -85,12 +85,14 @@ export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom, mapBoun
         )}
 
         <div className="mb-3">
-          <p className="text-xs text-gray-600">
-            <strong>Zoom:</strong> {zoom.toFixed(1)} {zoom < 13 && '(zoom in to 13+)'}
-          </p>
+          {zoom < 13 && (
+            <p className="text-xs text-gray-600">
+              Please zoom in more to load hiking paths
+            </p>
+          )}
           {isDataLoaded && (
             <p className="text-xs text-green-600 mt-1">
-              ✓ Data loaded for this area
+              ✓ Hiking paths loaded for this area
             </p>
           )}
         </div>
@@ -101,7 +103,7 @@ export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom, mapBoun
             disabled={isLoading || zoom < 13}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium"
           >
-            Reload Data
+            Load Hiking Paths
           </button>
           <button
             onClick={handleExport}
@@ -121,7 +123,7 @@ export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom, mapBoun
 
         <div className="mt-3 pt-3 border-t border-gray-200">
           <p className="text-xs text-gray-600">
-            Zoom to level 13+, click "Reload Data", then click on the map to create waypoints.
+            Zoom in enough, click "Load Hiking Paths", then click on the map to create waypoints.
           </p>
         </div>
       </div>
