@@ -17,8 +17,7 @@
     "ngraph.path": "^1.4.1",
     "ngraph.graph": "^20.0.1",
     "osmtogeojson": "^3.0.0-beta.5",
-    "zustand": "^5.0.2",
-    "dexie": "^4.0.11"
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",

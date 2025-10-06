@@ -7,7 +7,6 @@ import { useRouteStore } from '../store/useRouteStore'
 import { fetchOSMData } from '../services/overpass'
 import { buildRoutingGraph } from '../services/graphBuilder'
 import { Router } from '../services/router'
-import { getCachedRegion, setCachedRegion } from '../services/cache'
 import { Controls } from './Controls'
 import { ElevationProfile } from './ElevationProfile'
 import { fetchElevations, subdividePathEqually, calculateDistances, calculateElevationStats } from '../services/elevation'
@@ -211,13 +210,7 @@ function RouteLayer() {
         }
       }
 
-      // Check cache first
-      let osmData = await getCachedRegion(bbox)
-
-      if (!osmData) {
-        osmData = await fetchOSMData(bbox)
-        await setCachedRegion(bbox, osmData)
-      }
+      const osmData = await fetchOSMData(bbox)
 
       const graph = buildRoutingGraph(osmData)
       console.log(`Loaded ${osmData.nodes.size} nodes, ${osmData.ways.length} ways`)
@@ -319,7 +312,7 @@ function RouteLayer() {
       }
 
       if (!router || !isDataLoaded) {
-        setError('Map data not loaded yet. Please wait...')
+        setError('Map data not loaded yet.')
         return
       }
 
