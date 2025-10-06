@@ -74,7 +74,14 @@ function RouteLayer() {
   const [loadedBbox, setLoadedBbox] = useState<{ south: number; west: number; north: number; east: number } | null>(null)
   const waypointNodeIds = useRef<string[]>([])
   const isProcessingMarkerClick = useRef(false)
-  const { route, addSegment, updateWaypoint, deleteWaypoint, clearRoute, setLoading, setError, setLoadingElevation, setElevationData, isLoadingElevation } = useRouteStore()
+  const { route, addSegment, updateWaypoint, deleteWaypoint, clearRoute: clearRouteStore, setLoading, setError, setLoadingElevation, setElevationData, isLoadingElevation } = useRouteStore()
+
+  // Wrap clearRoute to also clear local state
+  const clearRoute = () => {
+    clearRouteStore()
+    setLastWaypoint(null)
+    waypointNodeIds.current = []
+  }
 
   // Fetch elevation data when route changes
   useEffect(() => {
@@ -403,7 +410,7 @@ function RouteLayer() {
           }}
         />
       ))}
-      <Controls onLoadData={() => loadData(true)} isDataLoaded={isDataLoaded} zoom={map.getZoom()} />
+      <Controls onLoadData={() => loadData(true)} onClearRoute={clearRoute} isDataLoaded={isDataLoaded} zoom={map.getZoom()} />
       {route.elevationProfile && route.elevationStats && (
         <ElevationProfile
           elevationProfile={route.elevationProfile}

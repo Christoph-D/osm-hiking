@@ -3,12 +3,13 @@ import { exportRouteAsGPX } from '../services/gpxExport'
 
 interface ControlsProps {
   onLoadData: () => void
+  onClearRoute: () => void
   isDataLoaded: boolean
   zoom: number
 }
 
-export function Controls({ onLoadData, isDataLoaded, zoom }: ControlsProps) {
-  const { route, clearRoute, isLoading, error } = useRouteStore()
+export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom }: ControlsProps) {
+  const { route, isLoading, error } = useRouteStore()
 
   const handleExport = () => {
     if (route) {
@@ -17,7 +18,7 @@ export function Controls({ onLoadData, isDataLoaded, zoom }: ControlsProps) {
   }
 
   const handleClear = () => {
-    clearRoute()
+    onClearRoute()
   }
 
   const handleLoadData = () => {
