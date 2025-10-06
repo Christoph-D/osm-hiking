@@ -92,7 +92,7 @@ export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom, mapBoun
           )}
           {isDataLoaded && (
             <p className="text-xs text-green-600 mt-1">
-              ✓ Hiking paths loaded for this area
+              ✓ Hiking paths loaded
             </p>
           )}
         </div>

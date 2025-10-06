@@ -378,10 +378,6 @@ function RouteLayer() {
         north: bounds.getNorth(),
         east: bounds.getEast(),
       })
-
-      if (zoom < 13 && isDataLoaded) {
-        setError('Zoom in more to load hiking paths')
-      }
     },
   })
 
