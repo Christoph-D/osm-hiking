@@ -86,18 +86,26 @@ export class Router {
       return null
     }
 
+    // The ngraph.path library returns the path from toId to fromId (reversed)
+    // We need to reverse it to get fromId to toId
+    const firstNodeId = path[0].id as string
+    const lastNodeId = path[path.length - 1].id as string
+    const needsReverse = firstNodeId === toId && lastNodeId === fromId
+
+    const orderedPath = needsReverse ? [...path].reverse() : path
+
     const coordinates: [number, number][] = []
     let totalDistance = 0
 
-    for (let i = 0; i < path.length; i++) {
-      const nodeId = path[i].id as string
+    for (let i = 0; i < orderedPath.length; i++) {
+      const nodeId = orderedPath[i].id as string
       const node = this.graph.nodes.get(nodeId)
 
       if (node) {
         coordinates.push([node.lon, node.lat])
 
         if (i > 0) {
-          const prevNode = this.graph.nodes.get(path[i - 1].id as string)
+          const prevNode = this.graph.nodes.get(orderedPath[i - 1].id as string)
           if (prevNode) {
             totalDistance += distance(
               [prevNode.lon, prevNode.lat],

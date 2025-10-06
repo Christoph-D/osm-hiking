@@ -6,6 +6,7 @@ interface RouteState {
   isLoading: boolean
   isLoadingElevation: boolean
   error: string | null
+  hoveredElevationPoint: ElevationPoint | null
 
   addSegment: (segment: RouteSegment, waypoint: [number, number]) => void
   updateWaypoint: (index: number, waypoint: [number, number], segments: RouteSegment[], totalDistance: number) => void
@@ -15,6 +16,7 @@ interface RouteState {
   setLoadingElevation: (loading: boolean) => void
   setError: (error: string | null) => void
   setElevationData: (profile: ElevationPoint[], stats: ElevationStats) => void
+  setHoveredElevationPoint: (point: ElevationPoint | null) => void
 }
 
 export const useRouteStore = create<RouteState>((set) => ({
@@ -22,6 +24,7 @@ export const useRouteStore = create<RouteState>((set) => ({
   isLoading: false,
   isLoadingElevation: false,
   error: null,
+  hoveredElevationPoint: null,
 
   addSegment: (segment, waypoint) => set((state) => {
     const currentRoute = state.route || { segments: [], waypoints: [], totalDistance: 0 }
@@ -90,4 +93,6 @@ export const useRouteStore = create<RouteState>((set) => ({
       },
     }
   }),
+
+  setHoveredElevationPoint: (point) => set({ hoveredElevationPoint: point }),
 }))

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { MapContainer as LeafletMapContainer, TileLayer, Polyline, Marker, Rectangle, Polygon, useMap, useMapEvents } from 'react-leaflet'
+import { MapContainer as LeafletMapContainer, TileLayer, Polyline, Marker, Rectangle, Polygon, CircleMarker, useMap, useMapEvents } from 'react-leaflet'
 import { LeafletEvent } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import '../utils/leafletIcons'
@@ -76,7 +76,7 @@ function RouteLayer() {
   const waypointNodeIds = useRef<string[]>([])
   const preservedWaypoints = useRef<[number, number][]>([])
   const isProcessingMarkerClick = useRef(false)
-  const { route, addSegment, updateWaypoint, deleteWaypoint, clearRoute: clearRouteStore, setLoading, setError, setLoadingElevation, setElevationData, isLoadingElevation } = useRouteStore()
+  const { route, addSegment, updateWaypoint, deleteWaypoint, clearRoute: clearRouteStore, setLoading, setError, setLoadingElevation, setElevationData, isLoadingElevation, hoveredElevationPoint } = useRouteStore()
 
   // Wrap clearRoute to also clear local state
   const clearRoute = () => {
@@ -101,38 +101,56 @@ function RouteLayer() {
       try {
         setLoadingElevation(true)
 
-        // Collect all coordinates from all segments
+        // Collect all coordinates from all segments in order
+        // The first segment is just a single point (first waypoint), subsequent segments are routes
         const allCoordinates: [number, number][] = []
-        for (const segment of route.segments) {
-          allCoordinates.push(...segment.coordinates)
-        }
+        for (let i = 0; i < route.segments.length; i++) {
+          const segment = route.segments[i]
+          if (i === 0) {
+            // First segment: include all coordinates (usually just one point)
+            allCoordinates.push(...segment.coordinates)
+          } else {
+            // Check if this segment connects to the previous one
+            const prevLastCoord = allCoordinates[allCoordinates.length - 1]
+            const currFirstCoord = segment.coordinates[0]
+            const coordsMatch = prevLastCoord &&
+              Math.abs(prevLastCoord[0] - currFirstCoord[0]) < 0.000001 &&
+              Math.abs(prevLastCoord[1] - currFirstCoord[1]) < 0.000001
 
-        // Remove duplicates (waypoints appear in multiple segments)
-        const uniqueCoords: [number, number][] = []
-        const seen = new Set<string>()
-        for (const coord of allCoordinates) {
-          const key = `${coord[0].toFixed(6)},${coord[1].toFixed(6)}`
-          if (!seen.has(key)) {
-            seen.add(key)
-            uniqueCoords.push(coord)
+            if (coordsMatch) {
+              // Skip the first coordinate (it's the same as the last coordinate of the previous segment)
+              allCoordinates.push(...segment.coordinates.slice(1))
+            } else {
+              // Segments don't connect, include all coordinates
+              allCoordinates.push(...segment.coordinates)
+            }
           }
         }
 
         // Subdivide the path into 100 equally spaced points
-        const equallySpacedCoords = subdividePathEqually(uniqueCoords, 100)
+        const numPoints = 100
+        const equallySpacedCoords = subdividePathEqually(allCoordinates, numPoints)
 
         // Fetch elevations for all equally spaced points
         const elevations = await fetchElevations(equallySpacedCoords)
 
-        // Calculate distances for the equally spaced points
-        const distances = calculateDistances(equallySpacedCoords)
+        // Calculate cumulative distances along the original path
+        // We need this to properly map each subdivided point to its distance
+        const originalDistances = calculateDistances(allCoordinates)
+        const totalDistance = originalDistances[originalDistances.length - 1]
+        const spacing = totalDistance / (numPoints - 1)
+
+        // Assign theoretical distances to each subdivided point
+        // These match what the subdivision algorithm uses
+        const distances = Array.from({ length: numPoints }, (_, i) => i * spacing)
 
         // Build elevation profile
+        // Note: equallySpacedCoords are in [lon, lat] format
         const elevationProfile: ElevationPoint[] = equallySpacedCoords.map((coord, i) => ({
           distance: distances[i],
           elevation: elevations[i],
-          lon: coord[0],
-          lat: coord[1],
+          lat: coord[1],  // coord[1] is latitude
+          lon: coord[0],  // coord[0] is longitude
         }))
 
         // Calculate stats
@@ -520,6 +538,20 @@ function RouteLayer() {
             />
           ))}
         </>
+      )}
+
+      {/* Hover marker for elevation profile */}
+      {hoveredElevationPoint && (
+        <CircleMarker
+          center={[hoveredElevationPoint.lat, hoveredElevationPoint.lon]}
+          radius={8}
+          pathOptions={{
+            color: 'red',
+            fillColor: 'red',
+            fillOpacity: 0.8,
+            weight: 2
+          }}
+        />
       )}
 
       <Controls onLoadData={() => loadData()} onClearRoute={clearRoute} isDataLoaded={isDataLoaded} zoom={currentZoom} />

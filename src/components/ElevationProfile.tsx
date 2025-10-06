@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ElevationPoint, ElevationStats } from '../types'
+import { useRouteStore } from '../store/useRouteStore'
 
 interface ElevationProfileProps {
   elevationProfile: ElevationPoint[]
@@ -84,6 +85,7 @@ interface ElevationChartProps {
 
 function ElevationChart({ profile, stats }: ElevationChartProps) {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null)
+  const setHoveredElevationPoint = useRouteStore((state) => state.setHoveredElevationPoint)
 
   if (profile.length === 0) {
     return <div className="text-sm text-gray-600">No elevation data available</div>
@@ -141,7 +143,10 @@ function ElevationChart({ profile, stats }: ElevationChartProps) {
         height={height}
         viewBox={`0 0 ${width} ${height}`}
         className="overflow-visible"
-        onMouseLeave={() => setHoveredPoint(null)}
+        onMouseLeave={() => {
+          setHoveredPoint(null)
+          setHoveredElevationPoint(null)
+        }}
       >
         {/* Grid lines */}
         {yTicks.map((tick, i) => (
@@ -207,7 +212,10 @@ function ElevationChart({ profile, stats }: ElevationChartProps) {
                 height={chartHeight}
                 fill="transparent"
                 className="cursor-crosshair"
-                onMouseEnter={() => setHoveredPoint(i)}
+                onMouseEnter={() => {
+                  setHoveredPoint(i)
+                  setHoveredElevationPoint(point)
+                }}
               />
             </g>
           )
