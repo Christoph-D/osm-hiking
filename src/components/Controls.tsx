@@ -8,9 +8,10 @@ interface ControlsProps {
   onClearRoute: () => void
   isDataLoaded: boolean
   zoom: number
+  mapBounds: { south: number; west: number; north: number; east: number } | null
 }
 
-export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom }: ControlsProps) {
+export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom, mapBounds }: ControlsProps) {
   const { route, isLoading, error } = useRouteStore()
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -34,6 +35,24 @@ export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom }: Contr
   }
 
   const handleLoadData = () => {
+    // Check if there's an active route and if it would be cleared
+    if (route && route.waypoints.length > 0 && mapBounds) {
+      // Check if all waypoints fit in the new bounds
+      const allWaypointsFit = route.waypoints.every(([lon, lat]) =>
+        lat >= mapBounds.south && lat <= mapBounds.north &&
+        lon >= mapBounds.west && lon <= mapBounds.east
+      )
+
+      // Only show confirmation if route would be cleared
+      if (!allWaypointsFit) {
+        const confirmed = window.confirm(
+          'Reloading data will clear your current route because some waypoints are outside the visible area. Continue?'
+        )
+        if (!confirmed) {
+          return
+        }
+      }
+    }
     onLoadData()
   }
 

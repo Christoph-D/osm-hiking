@@ -73,6 +73,7 @@ function RouteLayer() {
   const [lastWaypoint, setLastWaypoint] = useState<string | null>(null)
   const [loadedBbox, setLoadedBbox] = useState<{ south: number; west: number; north: number; east: number } | null>(null)
   const [currentZoom, setCurrentZoom] = useState(map.getZoom())
+  const [currentBounds, setCurrentBounds] = useState<{ south: number; west: number; north: number; east: number } | null>(null)
   const waypointNodeIds = useRef<string[]>([])
   const preservedWaypoints = useRef<[number, number][]>([])
   const isProcessingMarkerClick = useRef(false)
@@ -297,7 +298,14 @@ function RouteLayer() {
   }
 
   useEffect(() => {
-    // Don't auto-load on mount - wait for user to zoom in
+    // Initialize current bounds on mount
+    const bounds = map.getBounds()
+    setCurrentBounds({
+      south: bounds.getSouth(),
+      west: bounds.getWest(),
+      north: bounds.getNorth(),
+      east: bounds.getEast(),
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -361,6 +369,16 @@ function RouteLayer() {
       // Update zoom level state and validate
       const zoom = map.getZoom()
       setCurrentZoom(zoom)
+
+      // Update current bounds
+      const bounds = map.getBounds()
+      setCurrentBounds({
+        south: bounds.getSouth(),
+        west: bounds.getWest(),
+        north: bounds.getNorth(),
+        east: bounds.getEast(),
+      })
+
       if (zoom < 13 && isDataLoaded) {
         setError('Zoom in to at least level 13 to load hiking paths')
       }
@@ -554,7 +572,7 @@ function RouteLayer() {
         />
       )}
 
-      <Controls onLoadData={() => loadData()} onClearRoute={clearRoute} isDataLoaded={isDataLoaded} zoom={currentZoom} />
+      <Controls onLoadData={() => loadData()} onClearRoute={clearRoute} isDataLoaded={isDataLoaded} zoom={currentZoom} mapBounds={currentBounds} />
       {route?.elevationProfile && route?.elevationStats && (
         <ElevationProfile
           elevationProfile={route.elevationProfile}
