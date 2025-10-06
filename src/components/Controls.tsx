@@ -70,7 +70,7 @@ export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom }: Contr
             disabled={isLoading || zoom < 13}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium"
           >
-            {isDataLoaded ? 'Reload Data' : 'Load Data'}
+            Reload Data
           </button>
           <button
             onClick={handleExport}
@@ -90,7 +90,7 @@ export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom }: Contr
 
         <div className="mt-3 pt-3 border-t border-gray-200">
           <p className="text-xs text-gray-600">
-            Zoom to level 13+, click "Load Data", then click on the map to create waypoints.
+            Zoom to level 13+, click "Reload Data", then click on the map to create waypoints.
           </p>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { MapContainer as LeafletMapContainer, TileLayer, Polyline, Marker, useMap, useMapEvents } from 'react-leaflet'
+import { MapContainer as LeafletMapContainer, TileLayer, Polyline, Marker, Rectangle, Polygon, useMap, useMapEvents } from 'react-leaflet'
 import { LeafletEvent } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import '../utils/leafletIcons'
@@ -11,7 +11,7 @@ import { getCachedRegion, setCachedRegion } from '../services/cache'
 import { Controls } from './Controls'
 import { ElevationProfile } from './ElevationProfile'
 import { fetchElevations, subdividePathEqually, calculateDistances, calculateElevationStats } from '../services/elevation'
-import { ElevationPoint } from '../types'
+import { ElevationPoint, RouteSegment } from '../types'
 
 const MAP_POSITION_KEY = 'osm-hiking-map-position'
 
@@ -72,7 +72,9 @@ function RouteLayer() {
   const [isDataLoaded, setIsDataLoaded] = useState(false)
   const [lastWaypoint, setLastWaypoint] = useState<string | null>(null)
   const [loadedBbox, setLoadedBbox] = useState<{ south: number; west: number; north: number; east: number } | null>(null)
+  const [currentZoom, setCurrentZoom] = useState(map.getZoom())
   const waypointNodeIds = useRef<string[]>([])
+  const preservedWaypoints = useRef<[number, number][]>([])
   const isProcessingMarkerClick = useRef(false)
   const { route, addSegment, updateWaypoint, deleteWaypoint, clearRoute: clearRouteStore, setLoading, setError, setLoadingElevation, setElevationData, isLoadingElevation } = useRouteStore()
 
@@ -81,6 +83,7 @@ function RouteLayer() {
     clearRouteStore()
     setLastWaypoint(null)
     waypointNodeIds.current = []
+    preservedWaypoints.current = []
   }
 
   // Fetch elevation data when route changes
@@ -147,8 +150,8 @@ function RouteLayer() {
     fetchElevationData()
   }, [route?.segments, route?.elevationProfile, setLoadingElevation, setElevationData])
 
-  // Load OSM data when map moves
-  const loadData = async (force = false) => {
+  // Load OSM data when user clicks "Reload Data"
+  const loadData = async () => {
     try {
       // Check zoom level - only load if zoomed in enough (zoom 13+)
       const zoom = map.getZoom()
@@ -171,26 +174,22 @@ function RouteLayer() {
         east: bounds.getEast(),
       }
 
-      // Check if we need to reload based on bbox change
-      if (!force && loadedBbox) {
-        const center = map.getCenter()
-        const isInLoadedBbox =
-          center.lat >= loadedBbox.south &&
-          center.lat <= loadedBbox.north &&
-          center.lng >= loadedBbox.west &&
-          center.lng <= loadedBbox.east
+      // Check if we have an existing route and preserve waypoints if they fit in new bbox
+      if (route && route.waypoints.length > 0) {
+        const allWaypointsFit = route.waypoints.every(([lon, lat]) =>
+          isPointInBbox(lon, lat, bbox)
+        )
 
-        if (isInLoadedBbox) {
-          setLoading(false)
-          return // Still in the loaded region
+        if (allWaypointsFit) {
+          // Preserve waypoints for recalculation after loading
+          preservedWaypoints.current = [...route.waypoints]
+          console.log('Preserving route with waypoints:', preservedWaypoints.current)
+        } else {
+          // Route doesn't fit in new bbox, clear it
+          clearRoute()
+          preservedWaypoints.current = []
+          console.log('Route does not fit in new bbox, clearing')
         }
-      }
-
-      // Clear route when loading new region
-      if (loadedBbox) {
-        clearRoute()
-        setLastWaypoint(null)
-        waypointNodeIds.current = []
       }
 
       // Check cache first
@@ -204,15 +203,79 @@ function RouteLayer() {
       const graph = buildRoutingGraph(osmData)
       console.log(`Loaded ${osmData.nodes.size} nodes, ${osmData.ways.length} ways`)
       console.log(`Built graph with ${graph.nodes.size} nodes`)
-      setRouter(new Router(graph))
+
+      const newRouter = new Router(graph)
+      setRouter(newRouter)
       setLoadedBbox(bbox)
       setIsDataLoaded(true)
+
+      // Recalculate route if we have preserved waypoints
+      if (preservedWaypoints.current.length > 0) {
+        console.log('Recalculating route with preserved waypoints')
+
+        // Map preserved waypoints to nearest nodes in new graph
+        const newNodeIds: string[] = []
+        for (const [lon, lat] of preservedWaypoints.current) {
+          const nodeId = newRouter.findNearestNode(lat, lon, 500)
+          if (!nodeId) {
+            console.log('Could not find node for preserved waypoint, clearing route')
+            clearRoute()
+            preservedWaypoints.current = []
+            return
+          }
+          newNodeIds.push(nodeId)
+        }
+
+        // Recalculate all segments
+        const newSegments: RouteSegment[] = []
+        let totalDistance = 0
+
+        for (let i = 0; i < newNodeIds.length; i++) {
+          if (i === 0) {
+            // First waypoint - just a marker
+            const firstNode = newRouter.getNode(newNodeIds[i])
+            if (firstNode) {
+              newSegments.push({ coordinates: [[firstNode.lon, firstNode.lat]], distance: 0 })
+            }
+          } else {
+            // Route from previous waypoint
+            const segment = newRouter.route(newNodeIds[i - 1], newNodeIds[i])
+            if (segment) {
+              newSegments.push(segment)
+              totalDistance += segment.distance
+            } else {
+              console.log('Could not route between preserved waypoints, clearing route')
+              clearRoute()
+              preservedWaypoints.current = []
+              return
+            }
+          }
+        }
+
+        // Update state with recalculated route
+        waypointNodeIds.current = newNodeIds
+        setLastWaypoint(newNodeIds[newNodeIds.length - 1])
+
+        // Clear the route first then rebuild it
+        clearRouteStore()
+        for (let i = 0; i < preservedWaypoints.current.length; i++) {
+          addSegment(newSegments[i], preservedWaypoints.current[i])
+        }
+
+        console.log('Route recalculated successfully')
+        preservedWaypoints.current = []
+      }
     } catch (error) {
       console.error('Failed to load OSM data:', error)
       setError('Failed to load map data. Please try again.')
     } finally {
       setLoading(false)
     }
+  }
+
+  // Helper function to check if a point is within a bounding box
+  const isPointInBbox = (lon: number, lat: number, bbox: { south: number; west: number; north: number; east: number }) => {
+    return lat >= bbox.south && lat <= bbox.north && lon >= bbox.west && lon <= bbox.east
   }
 
   useEffect(() => {
@@ -277,23 +340,17 @@ function RouteLayer() {
     },
 
     moveend() {
-      // Check zoom level and show message if needed
+      // Update zoom level state and validate
       const zoom = map.getZoom()
-      if (zoom < 13) {
+      setCurrentZoom(zoom)
+      if (zoom < 13 && isDataLoaded) {
         setError('Zoom in to at least level 13 to load hiking paths')
-        setIsDataLoaded(false)
-      } else if (!isDataLoaded || !loadedBbox) {
-        // Auto-load if zoomed in and no data loaded
-        loadData(false)
-      } else {
-        // Check if we need to reload data for new region
-        loadData(false)
       }
     },
   })
 
   const handleMarkerDrag = (index: number, event: LeafletEvent) => {
-    if (!router) return
+    if (!router || !route) return
 
     const marker = event.target
     const { lat, lng } = marker.getLatLng()
@@ -312,7 +369,7 @@ function RouteLayer() {
     waypointNodeIds.current[index] = nodeId
 
     // Recalculate all segments
-    const newSegments: typeof route.segments = []
+    const newSegments: RouteSegment[] = []
     let totalDistance = 0
 
     for (let i = 0; i < waypointNodeIds.current.length; i++) {
@@ -342,15 +399,21 @@ function RouteLayer() {
   const handleMarkerClick = (event: LeafletEvent) => {
     // Mark that we're processing a marker click to prevent map click handler
     isProcessingMarkerClick.current = true
-    event.originalEvent?.stopPropagation()
+    const origEvent = (event as any).originalEvent
+    if (origEvent) {
+      origEvent.stopPropagation()
+    }
   }
 
   const handleMarkerDoubleClick = (index: number, event: LeafletEvent) => {
-    if (!router) return
+    if (!router || !route) return
 
     // Mark that we're processing a marker click to prevent map click handler
     isProcessingMarkerClick.current = true
-    event.originalEvent?.stopPropagation()
+    const origEvent = (event as any).originalEvent
+    if (origEvent) {
+      origEvent.stopPropagation()
+    }
 
     // Remove this waypoint from the node IDs list
     waypointNodeIds.current.splice(index, 1)
@@ -363,7 +426,7 @@ function RouteLayer() {
     }
 
     // Recalculate all segments
-    const newSegments: typeof route.segments = []
+    const newSegments: RouteSegment[] = []
     let totalDistance = 0
 
     for (let i = 0; i < waypointNodeIds.current.length; i++) {
@@ -390,28 +453,77 @@ function RouteLayer() {
     deleteWaypoint(index, newSegments, totalDistance)
   }
 
-  if (!route) return null
-
   return (
     <>
-      {route.segments.map((segment, i) => {
-        const positions = segment.coordinates.map(([lon, lat]) => [lat, lon] as [number, number])
-        return <Polyline key={i} positions={positions} color="blue" weight={4} opacity={0.7} />
-      })}
-      {route.waypoints.map(([lon, lat], i) => (
-        <Marker
-          key={i}
-          position={[lat, lon]}
-          draggable={true}
-          eventHandlers={{
-            click: handleMarkerClick,
-            dragend: (e) => handleMarkerDrag(i, e),
-            dblclick: (e) => handleMarkerDoubleClick(i, e)
-          }}
-        />
-      ))}
-      <Controls onLoadData={() => loadData(true)} onClearRoute={clearRoute} isDataLoaded={isDataLoaded} zoom={map.getZoom()} />
-      {route.elevationProfile && route.elevationStats && (
+      {/* Show loaded bounding box with gray overlay outside */}
+      {loadedBbox && (
+        <>
+          {/* Gray overlay with hole for loaded region */}
+          <Polygon
+            positions={[
+              // Outer ring: covers the whole world
+              [
+                [-90, -180],
+                [90, -180],
+                [90, 180],
+                [-90, 180],
+                [-90, -180]
+              ],
+              // Inner ring (hole): the loaded bounding box
+              [
+                [loadedBbox.south, loadedBbox.west],
+                [loadedBbox.north, loadedBbox.west],
+                [loadedBbox.north, loadedBbox.east],
+                [loadedBbox.south, loadedBbox.east],
+                [loadedBbox.south, loadedBbox.west]
+              ]
+            ]}
+            pathOptions={{
+              color: 'transparent',
+              fillColor: 'gray',
+              fillOpacity: 0.4,
+              weight: 0
+            }}
+          />
+          {/* Green border around loaded region */}
+          <Rectangle
+            bounds={[
+              [loadedBbox.south, loadedBbox.west],
+              [loadedBbox.north, loadedBbox.east]
+            ]}
+            pathOptions={{
+              color: 'green',
+              weight: 2,
+              fillOpacity: 0,
+              dashArray: '5, 5'
+            }}
+          />
+        </>
+      )}
+
+      {route && (
+        <>
+          {route.segments.map((segment, i) => {
+            const positions = segment.coordinates.map(([lon, lat]) => [lat, lon] as [number, number])
+            return <Polyline key={i} positions={positions} color="blue" weight={4} opacity={0.7} />
+          })}
+          {route.waypoints.map(([lon, lat], i) => (
+            <Marker
+              key={i}
+              position={[lat, lon]}
+              draggable={true}
+              eventHandlers={{
+                click: handleMarkerClick,
+                dragend: (e) => handleMarkerDrag(i, e),
+                dblclick: (e) => handleMarkerDoubleClick(i, e)
+              }}
+            />
+          ))}
+        </>
+      )}
+
+      <Controls onLoadData={() => loadData()} onClearRoute={clearRoute} isDataLoaded={isDataLoaded} zoom={currentZoom} />
+      {route?.elevationProfile && route?.elevationStats && (
         <ElevationProfile
           elevationProfile={route.elevationProfile}
           elevationStats={route.elevationStats}
