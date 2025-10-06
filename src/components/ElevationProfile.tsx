@@ -85,6 +85,8 @@ interface ElevationChartProps {
 
 function ElevationChart({ profile, stats }: ElevationChartProps) {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null)
+  const [hoverX, setHoverX] = useState<number>(0)
+  const [svgRef, setSvgRef] = useState<SVGSVGElement | null>(null)
   const setHoveredElevationPoint = useRouteStore((state) => state.setHoveredElevationPoint)
 
   if (profile.length === 0) {
@@ -139,10 +141,17 @@ function ElevationChart({ profile, stats }: ElevationChartProps) {
   return (
     <div className="relative">
       <svg
+        ref={setSvgRef}
         width="100%"
         height={height}
         viewBox={`0 0 ${width} ${height}`}
         className="overflow-visible"
+        onMouseMove={(e) => {
+          if (svgRef) {
+            const rect = svgRef.getBoundingClientRect()
+            setHoverX(e.clientX - rect.left)
+          }
+        }}
         onMouseLeave={() => {
           setHoveredPoint(null)
           setHoveredElevationPoint(null)
@@ -242,7 +251,7 @@ function ElevationChart({ profile, stats }: ElevationChartProps) {
         <div
           className="absolute bg-white border border-gray-300 rounded px-3 py-2 shadow-lg text-xs pointer-events-none"
           style={{
-            left: `${(profile[hoveredPoint].distance / maxDistance) * 100}%`,
+            left: `${hoverX}px`,
             top: '10px',
             transform: 'translateX(-50%)',
           }}
