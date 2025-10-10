@@ -141,8 +141,7 @@ export function Controls({
 
         <div className="mt-3 pt-3 border-t border-gray-200">
           <p className="text-xs text-gray-600">
-            Zoom in enough, click &quot;Load Hiking Paths&quot;, then click on
-            the map to create waypoints.
+            Zoom in enough, then click on the map to create waypoints.
           </p>
         </div>
       </div>
