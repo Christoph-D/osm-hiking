@@ -50,14 +50,6 @@ trails and footpaths, view elevation profiles, and export routes as GPX files.
 
 - Node.js 18+ and npm
 
-### Installation
-
-```bash
-git clone $REPO
-cd osm-hiking
-npm install
-```
-
 ### Development
 
 ```bash
@@ -82,6 +74,34 @@ npm run build
 # Build and preview the production build locally
 npm run build
 npm run preview
+```
+
+## Development Workflow
+
+### Code Quality Tools
+
+The project uses ESLint and Prettier to maintain code quality and consistency:
+
+```bash
+# Run linter
+npm run lint
+
+# Run linter and auto-fix issues
+npm run lint:fix
+
+# Format code with Prettier
+npm run format
+
+# Check if code is formatted correctly
+npm run format:check
+```
+
+### Git Hooks
+
+After cloning the repository, set up the git precommit hook for linting and formatting:
+
+```bash
+npm run prepare
 ```
 
 ## Usage
