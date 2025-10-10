@@ -103,6 +103,7 @@ function RouteLayer() {
   const waypointNodeIds = useRef<string[]>([])
   const preservedWaypoints = useRef<[number, number][]>([])
   const isProcessingMarkerClick = useRef(false)
+  const pendingClick = useRef<{ lat: number; lng: number } | null>(null)
   const {
     route,
     addSegment,
@@ -218,28 +219,34 @@ function RouteLayer() {
   }, [route, setLoadingElevation, setElevationData])
 
   // Load OSM data when user clicks "Reload Data"
-  const loadData = async () => {
+  const loadData = async (
+    onSuccess?: (router: Router, treatAsFirstWaypoint: boolean) => void,
+    skipConfirmation = false
+  ) => {
     try {
       // Check zoom level - only load if zoomed in enough (zoom 13+)
-      const zoom = map.getZoom()
-      const MIN_ZOOM = 13
-
-      if (zoom < MIN_ZOOM) {
-        setError(`Zoom in to at least level ${MIN_ZOOM} to load hiking paths`)
+      if (!validateZoomLevel()) {
         setIsDataLoaded(false)
+        pendingClick.current = null
         return
+      }
+
+      // Get current bounding box
+      const bbox = getCurrentBbox()
+
+      // Check if loading would clear existing route and confirm with user
+      if (!skipConfirmation && wouldClearRoute(bbox)) {
+        const confirmed = window.confirm(
+          'Loading hiking paths for this area will clear your current route because some waypoints are outside the visible area. Continue?'
+        )
+        if (!confirmed) {
+          pendingClick.current = null
+          return
+        }
       }
 
       setLoading(true)
       setError(null)
-
-      const bounds = map.getBounds()
-      const bbox = {
-        south: bounds.getSouth(),
-        west: bounds.getWest(),
-        north: bounds.getNorth(),
-        east: bounds.getEast(),
-      }
 
       // Check if we have an existing route and preserve waypoints if they fit in new bbox
       if (route && route.waypoints.length > 0) {
@@ -275,20 +282,29 @@ function RouteLayer() {
       setLoadedBbox(bbox)
       setIsDataLoaded(true)
 
-      // Recalculate route if we have preserved waypoints
-      if (preservedWaypoints.current.length > 0) {
-        console.log('Recalculating route with preserved waypoints')
+      // Clear old waypoint references if we're not preserving waypoints
+      // This ensures lastWaypoint doesn't reference nodes from the old graph
+      if (preservedWaypoints.current.length === 0) {
+        setLastWaypoint(null)
+        waypointNodeIds.current = []
+      }
 
+      // Track if we successfully preserved waypoints
+      // We need to check this before clearing preservedWaypoints
+      const hadPreservedWaypoints = preservedWaypoints.current.length > 0
+
+      // Recalculate route if we have preserved waypoints
+      if (hadPreservedWaypoints) {
         // Map preserved waypoints to nearest nodes in new graph
         const newNodeIds: string[] = []
+
         for (const [lon, lat] of preservedWaypoints.current) {
           const nodeId = newRouter.findNearestNode(lat, lon, 500)
           if (!nodeId) {
-            console.log(
-              'Could not find node for preserved waypoint, clearing route'
-            )
             clearRoute()
             preservedWaypoints.current = []
+            waypointNodeIds.current = []
+            setLastWaypoint(null)
             return
           }
           newNodeIds.push(nodeId)
@@ -313,11 +329,10 @@ function RouteLayer() {
             if (segment) {
               newSegments.push(segment)
             } else {
-              console.log(
-                'Could not route between preserved waypoints, clearing route'
-              )
               clearRoute()
               preservedWaypoints.current = []
+              waypointNodeIds.current = []
+              setLastWaypoint(null)
               return
             }
           }
@@ -333,8 +348,13 @@ function RouteLayer() {
           addSegment(newSegments[i], preservedWaypoints.current[i])
         }
 
-        console.log('Route recalculated successfully')
         preservedWaypoints.current = []
+      }
+
+      // Call success callback if provided (even if route recalculation failed)
+      // Treat pending click as first waypoint only when we didn't preserve waypoints
+      if (onSuccess) {
+        onSuccess(newRouter, !hadPreservedWaypoints)
       }
     } catch (error) {
       console.error('Failed to load OSM data:', error)
@@ -345,8 +365,32 @@ function RouteLayer() {
           ? 'Failed to load map data. Try zooming in more and try again.'
           : 'Failed to load map data. Please try again.'
       setError(errorMessage)
+      pendingClick.current = null
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Helper function to validate zoom level
+  const validateZoomLevel = (): boolean => {
+    const zoom = map.getZoom()
+    const MIN_ZOOM = 13
+
+    if (zoom < MIN_ZOOM) {
+      setError(`Zoom in to at least level ${MIN_ZOOM} to load hiking paths`)
+      return false
+    }
+    return true
+  }
+
+  // Helper function to get current bounding box
+  const getCurrentBbox = () => {
+    const bounds = map.getBounds()
+    return {
+      south: bounds.getSouth(),
+      west: bounds.getWest(),
+      north: bounds.getNorth(),
+      east: bounds.getEast(),
     }
   }
 
@@ -364,14 +408,37 @@ function RouteLayer() {
     )
   }
 
+  // Helper function to check if loading new data would clear the existing route
+  const wouldClearRoute = (newBbox: {
+    south: number
+    west: number
+    north: number
+    east: number
+  }): boolean => {
+    if (!route || route.waypoints.length === 0) {
+      return false
+    }
+
+    // Check if all waypoints fit in the new bbox
+    const allWaypointsFit = route.waypoints.every(([lon, lat]) =>
+      isPointInBbox(lon, lat, newBbox)
+    )
+
+    return !allWaypointsFit
+  }
+
   // Helper function to check if a node exists on the current route
   // Returns the segment index + 1 where the node should be inserted as a waypoint, or null if not on route
-  const findNodeOnRoute = (nodeId: string): number | null => {
-    if (!route || !router || route.segments.length < 2) {
+  const findNodeOnRoute = (
+    nodeId: string,
+    routerToUse?: Router
+  ): number | null => {
+    const activeRouter = routerToUse || router
+    if (!route || !activeRouter || route.segments.length < 2) {
       return null
     }
 
-    const node = router.getNode(nodeId)
+    const node = activeRouter.getNode(nodeId)
     if (!node) return null
 
     // Check each segment (skip first segment which is just the starting waypoint marker)
@@ -406,6 +473,120 @@ function RouteLayer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Process a map click to add a waypoint
+  const processMapClick = (
+    lat: number,
+    lng: number,
+    skipDataCheck = false,
+    routerOverride?: Router,
+    treatAsFirstWaypoint = false
+  ) => {
+    // Use the provided router override (for auto-load callbacks) or the state router
+    const activeRouter = routerOverride || router
+
+    if (!skipDataCheck && (!router || !isDataLoaded)) {
+      setError('Map data not loaded yet.')
+      return
+    }
+
+    if (!activeRouter) {
+      setError('Map data not loaded yet.')
+      return
+    }
+
+    // Find nearest node with increased search radius
+    const nodeId = activeRouter.findNearestNode(lat, lng, 500)
+
+    if (!nodeId) {
+      setError('No path found nearby. Click closer to a hiking trail.')
+      return
+    }
+
+    setError(null)
+
+    // Get the actual node coordinates
+    const node = activeRouter.getNode(nodeId)
+    if (!node) {
+      setError('Invalid node selected.')
+      return
+    }
+
+    // First waypoint - just mark it
+    // treatAsFirstWaypoint flag allows us to override the lastWaypoint check
+    // This is needed when loading new data clears the old route
+    if (!lastWaypoint || treatAsFirstWaypoint) {
+      setLastWaypoint(nodeId)
+      waypointNodeIds.current = [nodeId]
+      addSegment({ coordinates: [[node.lon, node.lat]], distance: 0 }, [
+        node.lon,
+        node.lat,
+      ])
+      return
+    }
+
+    // Check if this node is on the existing route
+    const insertIndex = findNodeOnRoute(nodeId, activeRouter)
+
+    if (insertIndex !== null) {
+      // Node is on the route - insert it at the correct position
+      // Insert the node ID in the waypoint list
+      waypointNodeIds.current.splice(insertIndex, 0, nodeId)
+
+      // Recalculate all segments
+      const newSegments: RouteSegment[] = []
+      let totalDistance = 0
+
+      for (let i = 0; i < waypointNodeIds.current.length; i++) {
+        if (i === 0) {
+          // First waypoint - just a marker
+          const firstNode = activeRouter.getNode(waypointNodeIds.current[i])
+          if (firstNode) {
+            newSegments.push({
+              coordinates: [[firstNode.lon, firstNode.lat]],
+              distance: 0,
+            })
+          }
+        } else {
+          // Route from previous waypoint
+          const segment = activeRouter.route(
+            waypointNodeIds.current[i - 1],
+            waypointNodeIds.current[i]
+          )
+          if (segment) {
+            newSegments.push(segment)
+            totalDistance += segment.distance
+          }
+        }
+      }
+
+      // Update the last waypoint reference
+      setLastWaypoint(
+        waypointNodeIds.current[waypointNodeIds.current.length - 1]
+      )
+
+      // Update the route store
+      insertWaypoint(
+        insertIndex,
+        [node.lon, node.lat],
+        newSegments,
+        totalDistance
+      )
+      return
+    }
+
+    // Node is not on the route - add to the end (existing behavior)
+    const segment = activeRouter.route(lastWaypoint, nodeId)
+
+    if (!segment) {
+      setError('Could not find a route between these points.')
+      return
+    }
+
+    waypointNodeIds.current.push(nodeId)
+    addSegment(segment, [node.lon, node.lat])
+    setLastWaypoint(nodeId)
+  }
+
   // Handle map clicks
   useMapEvents({
     click(e) {
@@ -415,106 +596,40 @@ function RouteLayer() {
         return
       }
 
-      if (!router || !isDataLoaded) {
-        setError('Map data not loaded yet.')
-        return
-      }
-
       const { lat, lng } = e.latlng
-      console.log(`Clicked at: ${lat}, ${lng}`)
 
-      // Find nearest node with increased search radius
-      const nodeId = router.findNearestNode(lat, lng, 500)
-      console.log(`Found node: ${nodeId}`)
+      // Check if data needs to be loaded
+      const needsDataLoad =
+        !router ||
+        !isDataLoaded ||
+        (loadedBbox && !isPointInBbox(lng, lat, loadedBbox))
 
-      if (!nodeId) {
-        setError('No path found nearby. Click closer to a hiking trail.')
-        return
-      }
-
-      setError(null)
-
-      // Get the actual node coordinates
-      const node = router.getNode(nodeId)
-      if (!node) {
-        setError('Invalid node selected.')
-        return
-      }
-
-      // First waypoint - just mark it
-      if (!lastWaypoint) {
-        setLastWaypoint(nodeId)
-        waypointNodeIds.current = [nodeId]
-        addSegment({ coordinates: [[node.lon, node.lat]], distance: 0 }, [
-          node.lon,
-          node.lat,
-        ])
-        return
-      }
-
-      // Check if this node is on the existing route
-      const insertIndex = findNodeOnRoute(nodeId)
-
-      if (insertIndex !== null) {
-        // Node is on the route - insert it at the correct position
-        console.log(`Node is on route, inserting at index ${insertIndex}`)
-
-        // Insert the node ID in the waypoint list
-        waypointNodeIds.current.splice(insertIndex, 0, nodeId)
-
-        // Recalculate all segments
-        const newSegments: RouteSegment[] = []
-        let totalDistance = 0
-
-        for (let i = 0; i < waypointNodeIds.current.length; i++) {
-          if (i === 0) {
-            // First waypoint - just a marker
-            const firstNode = router.getNode(waypointNodeIds.current[i])
-            if (firstNode) {
-              newSegments.push({
-                coordinates: [[firstNode.lon, firstNode.lat]],
-                distance: 0,
-              })
-            }
-          } else {
-            // Route from previous waypoint
-            const segment = router.route(
-              waypointNodeIds.current[i - 1],
-              waypointNodeIds.current[i]
+      if (needsDataLoad) {
+        // Store pending click and load data
+        // loadData will handle zoom validation and route clearing confirmation
+        pendingClick.current = { lat, lng }
+        loadData((loadedRouter, treatAsFirstWaypoint) => {
+          // Process the pending click after data loads
+          if (pendingClick.current) {
+            const pendingLat = pendingClick.current.lat
+            const pendingLng = pendingClick.current.lng
+            pendingClick.current = null
+            // Skip data check since we just loaded the data, pass the loaded router,
+            // and treat as first waypoint if we didn't preserve the old route
+            processMapClick(
+              pendingLat,
+              pendingLng,
+              true,
+              loadedRouter,
+              treatAsFirstWaypoint
             )
-            if (segment) {
-              newSegments.push(segment)
-              totalDistance += segment.distance
-            }
           }
-        }
-
-        // Update the last waypoint reference
-        setLastWaypoint(
-          waypointNodeIds.current[waypointNodeIds.current.length - 1]
-        )
-
-        // Update the route store
-        insertWaypoint(
-          insertIndex,
-          [node.lon, node.lat],
-          newSegments,
-          totalDistance
-        )
+        })
         return
       }
 
-      // Node is not on the route - add to the end (existing behavior)
-      const segment = router.route(lastWaypoint, nodeId)
-
-      if (!segment) {
-        setError('Could not find a route between these points.')
-        return
-      }
-
-      waypointNodeIds.current.push(nodeId)
-      addSegment(segment, [node.lon, node.lat])
-      setLastWaypoint(nodeId)
+      // Process the click normally
+      processMapClick(lat, lng)
     },
 
     moveend() {
@@ -755,7 +870,7 @@ function RouteLayer() {
       )}
 
       <Controls
-        onLoadData={() => loadData()}
+        onLoadData={() => loadData(undefined, true)}
         onClearRoute={clearRoute}
         isDataLoaded={isDataLoaded}
         zoom={currentZoom}

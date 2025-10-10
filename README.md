@@ -4,7 +4,7 @@ A fully client-side web application for planning hiking routes using
 OpenStreetMap data. Create custom hiking routes that automatically snap to
 trails and footpaths, view elevation profiles, and export routes as GPX files.
 
-**Try it here: https://yozora.eu/osm-hiking/**
+**[Try it here](https://yozora.eu/osm-hiking/)**
 
 ## Features
 

@@ -50,7 +50,11 @@ function parseOSMData(osmResponse: OSMResponse): OSMData {
   const ways: OSMWay[] = []
 
   for (const element of osmResponse.elements) {
-    if (element.type === 'node' && element.lat !== undefined && element.lon !== undefined) {
+    if (
+      element.type === 'node' &&
+      element.lat !== undefined &&
+      element.lon !== undefined
+    ) {
       nodes.set(element.id.toString(), {
         id: element.id.toString(),
         lat: element.lat,
