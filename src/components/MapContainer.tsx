@@ -544,6 +544,9 @@ function RouteLayer() {
 
     // Update the route store
     deleteWaypoint(index, newSegments, totalDistance)
+
+    // Reset the marker click flag so subsequent map clicks work
+    isProcessingMarkerClick.current = false
   }
 
   return (
