@@ -1,50 +1,40 @@
 {
-    "name": "osm-hiking",
-    "build": {
-        "dockerfile": "Dockerfile"
-    },
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "anthropic.claude-code",
-                "Continue.continue",
-                "DavidAnson.vscode-markdownlint",
-                "eamodio.gitlens",
-                "esbenp.prettier-vscode",
-                "saoudrizwan.claude-dev",
-                "mrcrowl.easy-less",
-                "EditorConfig.EditorConfig",
-                "dbaeumer.vscode-eslint"
-            ],
-            "settings": {
-                "[markdown]": {
-                    "editor.defaultFormatter": "esbenp.prettier-vscode",
-                    "editor.unicodeHighlight.ambiguousCharacters": false,
-                    "editor.unicodeHighlight.invisibleCharacters": false,
-                    "diffEditor.ignoreTrimWhitespace": false,
-                    "editor.wordWrap": "on",
-                    "editor.quickSuggestions": {
-                        "comments": "off",
-                        "strings": "off",
-                        "other": "off"
-                    }
-                },
-                "prettier.proseWrap": "always",
-                "markdownlint.config": {
-                    "no-duplicate-heading": {
-                        "siblings_only": true
-                    }
-                },
-                "files.insertFinalNewline": true
-            }
-        }
-    },
-    "workspaceFolder": "/workspaces/osm-hiking",
-    "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/osm-hiking,type=bind,consistency=cached",
-    "remoteUser": "node",
-    "mounts": [
-        "source=bashhistory-osm-hiking,target=/commandhistory,type=volume",
-        "source=claude-code-config-osm-hiking,target=/home/node/claude-config,type=volume"
-    ],
-    "postCreateCommand": "bash .devcontainer/setup.sh"
+  "name": "osm-hiking",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "Continue.continue",
+        "DavidAnson.vscode-markdownlint",
+        "eamodio.gitlens",
+        "esbenp.prettier-vscode",
+        "saoudrizwan.claude-dev",
+        "dbaeumer.vscode-eslint"
+      ],
+      "settings": {
+        "[markdown]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "diffEditor.ignoreTrimWhitespace": false,
+          "editor.wordWrap": "on"
+        },
+        "prettier.proseWrap": "always",
+        "markdownlint.config": {
+          "no-duplicate-heading": {
+            "siblings_only": true
+          }
+        },
+        "files.insertFinalNewline": true
+      }
+    }
+  },
+  "workspaceFolder": "/workspaces/osm-hiking",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/osm-hiking,type=bind,consistency=cached",
+  "remoteUser": "node",
+  "mounts": [
+    "source=bashhistory-osm-hiking,target=/commandhistory,type=volume",
+    "source=claude-code-config-osm-hiking,target=/home/node/claude-config,type=volume"
+  ]
 }

@@ -18,5 +18,3 @@ ENV CLAUDE_CONFIG_DIR=/home/node/claude-config
 ENV PATH="$HOME/.local/bin:$PATH"
 
 WORKDIR /workspaces/osm-hiking
-
-EXPOSE 8000
