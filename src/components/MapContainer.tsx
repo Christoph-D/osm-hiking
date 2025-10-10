@@ -1,8 +1,10 @@
 import { useEffect, useState, useRef } from 'react'
 import { MapContainer as LeafletMapContainer, TileLayer, Polyline, Marker, Rectangle, Polygon, CircleMarker, useMap, useMapEvents } from 'react-leaflet'
 import { LeafletEvent } from 'leaflet'
+import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import '../utils/leafletIcons'
+import { createFlagIcon } from '../utils/leafletIcons'
 import { useRouteStore } from '../store/useRouteStore'
 import { fetchOSMData } from '../services/overpass'
 import { buildRoutingGraph } from '../services/graphBuilder'
@@ -532,18 +534,21 @@ function RouteLayer() {
             const positions = segment.coordinates.map(([lon, lat]) => [lat, lon] as [number, number])
             return <Polyline key={i} positions={positions} color="blue" weight={4} opacity={0.7} />
           })}
-          {route.waypoints.map(([lon, lat], i) => (
-            <Marker
-              key={i}
-              position={[lat, lon]}
-              draggable={true}
-              eventHandlers={{
+          {route.waypoints.map(([lon, lat], i) => {
+            const isLastWaypoint = i === route.waypoints.length - 1 && route.waypoints.length > 1
+            const markerProps: any = {
+              key: i,
+              position: [lat, lon],
+              draggable: true,
+              icon: isLastWaypoint ? createFlagIcon() : new L.Icon.Default(),
+              eventHandlers: {
                 click: handleMarkerClick,
-                dragend: (e) => handleMarkerDrag(i, e),
-                dblclick: (e) => handleMarkerDoubleClick(i, e)
-              }}
-            />
-          ))}
+                dragend: (e: LeafletEvent) => handleMarkerDrag(i, e),
+                dblclick: (e: LeafletEvent) => handleMarkerDoubleClick(i, e)
+              }
+            }
+            return <Marker {...markerProps} />
+          })}
         </>
       )}
 
