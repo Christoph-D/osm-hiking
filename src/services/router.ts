@@ -67,7 +67,7 @@ export class Router {
 
   // Route between two nodes
   route(fromId: string, toId: string): RouteSegment | null {
-    const self = this
+    const graph = this.graph
     const pathFinder = aStar(this.graph.graph, {
       distance(_fromNode, _toNode, link) {
         return link.data || 0
@@ -75,8 +75,8 @@ export class Router {
       heuristic(fromNode, toNode) {
         const from = fromNode.id as string
         const to = toNode.id as string
-        const fromData = self.graph.nodes.get(from)
-        const toData = self.graph.nodes.get(to)
+        const fromData = graph.nodes.get(from)
+        const toData = graph.nodes.get(to)
 
         if (!fromData || !toData) return 0
 

@@ -215,12 +215,7 @@ function RouteLayer() {
     }
 
     fetchElevationData()
-  }, [
-    route?.segments,
-    route?.elevationProfile,
-    setLoadingElevation,
-    setElevationData,
-  ])
+  }, [route, setLoadingElevation, setElevationData])
 
   // Load OSM data when user clicks "Reload Data"
   const loadData = async () => {
@@ -301,7 +296,6 @@ function RouteLayer() {
 
         // Recalculate all segments
         const newSegments: RouteSegment[] = []
-        let totalDistance = 0
 
         for (let i = 0; i < newNodeIds.length; i++) {
           if (i === 0) {
@@ -318,7 +312,6 @@ function RouteLayer() {
             const segment = newRouter.route(newNodeIds[i - 1], newNodeIds[i])
             if (segment) {
               newSegments.push(segment)
-              totalDistance += segment.distance
             } else {
               console.log(
                 'Could not route between preserved waypoints, clearing route'
@@ -596,7 +589,8 @@ function RouteLayer() {
   const handleMarkerClick = (event: LeafletEvent) => {
     // Mark that we're processing a marker click to prevent map click handler
     isProcessingMarkerClick.current = true
-    const origEvent = (event as any).originalEvent
+    const origEvent = (event as LeafletEvent & { originalEvent?: Event })
+      .originalEvent
     if (origEvent) {
       origEvent.stopPropagation()
     }
@@ -607,7 +601,8 @@ function RouteLayer() {
 
     // Mark that we're processing a marker click to prevent map click handler
     isProcessingMarkerClick.current = true
-    const origEvent = (event as any).originalEvent
+    const origEvent = (event as LeafletEvent & { originalEvent?: Event })
+      .originalEvent
     if (origEvent) {
       origEvent.stopPropagation()
     }
@@ -726,19 +721,21 @@ function RouteLayer() {
           {route.waypoints.map(([lon, lat], i) => {
             const isLastWaypoint =
               i === route.waypoints.length - 1 && route.waypoints.length > 1
-            const markerProps: any = {
-              key: i,
-              position: [lat, lon],
-              draggable: true,
-              icon: isLastWaypoint ? createFlagIcon() : new L.Icon.Default(),
-              eventHandlers: {
-                click: handleMarkerClick,
-                dragend: (e: LeafletEvent) => handleMarkerDrag(i, e),
-                dblclick: (e: LeafletEvent) => handleMarkerDoubleClick(i, e),
-                contextmenu: (e: LeafletEvent) => handleMarkerDoubleClick(i, e),
-              },
-            }
-            return <Marker {...markerProps} />
+            return (
+              <Marker
+                key={i}
+                position={[lat, lon]}
+                draggable={true}
+                icon={isLastWaypoint ? createFlagIcon() : new L.Icon.Default()}
+                eventHandlers={{
+                  click: handleMarkerClick,
+                  dragend: (e: LeafletEvent) => handleMarkerDrag(i, e),
+                  dblclick: (e: LeafletEvent) => handleMarkerDoubleClick(i, e),
+                  contextmenu: (e: LeafletEvent) =>
+                    handleMarkerDoubleClick(i, e),
+                }}
+              />
+            )
           })}
         </>
       )}

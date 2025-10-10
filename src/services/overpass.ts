@@ -34,18 +34,29 @@ export async function fetchOSMData(bbox: {
   return parseOSMData(data)
 }
 
-function parseOSMData(osmResponse: any): OSMData {
+interface OSMResponse {
+  elements: Array<{
+    type: string
+    id: number
+    lat?: number
+    lon?: number
+    nodes?: number[]
+    tags?: Record<string, string>
+  }>
+}
+
+function parseOSMData(osmResponse: OSMResponse): OSMData {
   const nodes = new Map<string, OSMNode>()
   const ways: OSMWay[] = []
 
   for (const element of osmResponse.elements) {
-    if (element.type === 'node') {
+    if (element.type === 'node' && element.lat !== undefined && element.lon !== undefined) {
       nodes.set(element.id.toString(), {
         id: element.id.toString(),
         lat: element.lat,
         lon: element.lon,
       })
-    } else if (element.type === 'way') {
+    } else if (element.type === 'way' && element.nodes) {
       ways.push({
         id: element.id.toString(),
         nodes: element.nodes.map((n: number) => n.toString()),
