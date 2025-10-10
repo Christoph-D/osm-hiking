@@ -281,7 +281,12 @@ function RouteLayer() {
       }
     } catch (error) {
       console.error('Failed to load OSM data:', error)
-      setError('Failed to load map data. Please try again.')
+      const currentZoom = map.getZoom()
+      const maxZoom = map.getMaxZoom()
+      const errorMessage = currentZoom < maxZoom
+        ? 'Failed to load map data. Try zooming in more and try again.'
+        : 'Failed to load map data. Please try again.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
