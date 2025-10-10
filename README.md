@@ -6,7 +6,8 @@ trails and footpaths, view elevation profiles, and export routes as GPX files.
 
 **[Try it here](https://yozora.eu/osm-hiking/)**
 
-> **Note:** Most of the code was AI-generated and hasn't been thoroughly reviewed, so code quality may be suboptimal in places.
+> **Note:** Most of the code was AI-generated and hasn't been thoroughly
+> reviewed, so code quality may be suboptimal in places.
 
 ## Features
 
@@ -25,14 +26,19 @@ trails and footpaths, view elevation profiles, and export routes as GPX files.
 
 ## How It Works
 
-1. **Load map data**: Zoom in to your hiking area (zoom level 13+) and click
-   "Reload Data" to download hiking paths from Overpass API
-2. **Build routing graph**: Path data is converted into a network of nodes and
-   edges for efficient routing
-3. **Click to route**: Each click finds the nearest path and routes from your
-   last waypoint using A\* pathfinding
-4. **Fetch elevations**: Route elevation data is fetched from Open-Elevation API
-   and displayed as an interactive profile
+1. **Pan and zoom** the map to your desired hiking area (zoom in until the
+   warning about the zoom level disappears)
+2. **Click on the map** to place waypoints
+   - Your first click loads hiking path data for the visible area
+   - Waypoints automatically snap to nearby trails
+   - A green dashed border shows the loaded area
+3. **Continue clicking** to build your route
+   - The route follows hiking paths between waypoints
+   - Click on an existing route to insert waypoints in the middle
+4. **Adjust your route** by dragging waypoints or removing them
+   (double/right-click)
+5. **View elevation profile** below the map with gain/loss stats
+6. **Export as GPX** when done for use with GPS devices and hiking apps
 
 ## Tech Stack
 
@@ -50,11 +56,15 @@ trails and footpaths, view elevation profiles, and export routes as GPX files.
 
 ### Option 1: Development Container (Recommended)
 
-For the best experience, use the included devcontainer configuration with all dependencies pre-configured:
+For the best experience, use the included devcontainer configuration with all
+dependencies pre-configured:
 
-1. Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) for VS Code
+1. Install the
+   [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+   for VS Code
 2. Open this project in VS Code
-3. Click "Reopen in Container" when prompted (or use Command Palette: "Dev Containers: Reopen in Container")
+3. Click "Reopen in Container" when prompted (or use Command Palette: "Dev
+   Containers: Reopen in Container")
 4. Start the development server:
 
 ```bash
@@ -107,7 +117,9 @@ This starts Vite's development server with:
 
 ### Code Quality
 
-The project uses ESLint and Prettier to maintain code quality and consistency. Git hooks automatically run these checks before commits, but you can also run them manually:
+The project uses ESLint and Prettier to maintain code quality and consistency.
+Git hooks automatically run these checks before commits, but you can also run
+them manually:
 
 ```bash
 # Lint your code
@@ -134,26 +146,6 @@ npm run preview
 ```
 
 The optimized production files will be in the `dist/` directory.
-
-## Usage
-
-1. **Pan and zoom** the map to your desired hiking area
-2. **Zoom in** to at least zoom level 13 (required for data loading)
-3. **Click "Load Hiking Paths"** to download hiking path data for the current
-   view
-   - A green dashed border shows the loaded region
-   - Gray overlay indicates areas where data isn't loaded
-4. **Click on the map** to place your first waypoint (will snap to nearest
-   trail)
-5. **Continue clicking** to extend your route along hiking paths
-   - Clicking on an existing route segment automatically inserts the waypoint at
-     the correct position
-6. **Drag waypoints** to adjust the route
-7. **Double or right-click waypoints** to remove them
-8. **View elevation profile** below the map (appears after route is created)
-   - Hover over the profile to see elevation at specific points
-   - View total elevation gain/loss and min/max elevation
-9. **Export as GPX** when done for use with GPS devices
 
 ## Supported Path Types
 
@@ -214,7 +206,8 @@ Both APIs are free and require no authentication.
   the end
 - Drag waypoints to fine-tune your route
 - Use the green dashed border to see which area has loaded data
-- Reload data if you pan to a new area outside the loaded region
+- Data automatically loads when you click to place a waypoint in a new area
+  outside the loaded region
 
 ## License
 
