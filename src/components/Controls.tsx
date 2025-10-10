@@ -8,6 +8,7 @@ interface ControlsProps {
   onLoadData: () => void
   onClearRoute: () => void
   isDataLoaded: boolean
+  isCurrentViewLoaded: boolean
   zoom: number
   mapBounds: { south: number; west: number; north: number; east: number } | null
 }
@@ -16,6 +17,7 @@ export function Controls({
   onLoadData,
   onClearRoute,
   isDataLoaded,
+  isCurrentViewLoaded,
   zoom,
   mapBounds,
 }: ControlsProps) {
@@ -116,7 +118,7 @@ export function Controls({
         <div className="flex flex-col gap-2">
           <button
             onClick={handleLoadData}
-            disabled={isLoading || zoom < MIN_ZOOM}
+            disabled={isLoading || zoom < MIN_ZOOM || isCurrentViewLoaded}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium"
           >
             Load Hiking Paths

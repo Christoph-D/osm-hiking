@@ -87,6 +87,7 @@ function RouteLayer() {
   const map = useMap()
   const [router, setRouter] = useState<Router | null>(null)
   const [isDataLoaded, setIsDataLoaded] = useState(false)
+  const [isCurrentViewLoaded, setIsCurrentViewLoaded] = useState(false)
   const [lastWaypoint, setLastWaypoint] = useState<string | null>(null)
   const [loadedBbox, setLoadedBbox] = useState<{
     south: number
@@ -282,6 +283,7 @@ function RouteLayer() {
       setRouter(newRouter)
       setLoadedBbox(bbox)
       setIsDataLoaded(true)
+      setIsCurrentViewLoaded(true)
 
       // Clear old waypoint references if we're not preserving waypoints
       // This ensures lastWaypoint doesn't reference nodes from the old graph
@@ -645,6 +647,9 @@ function RouteLayer() {
         north: bounds.getNorth(),
         east: bounds.getEast(),
       })
+
+      // Mark that the view has changed, so button can be re-enabled
+      setIsCurrentViewLoaded(false)
     },
   })
 
@@ -873,6 +878,7 @@ function RouteLayer() {
         onLoadData={() => loadData(undefined, true)}
         onClearRoute={clearRoute}
         isDataLoaded={isDataLoaded}
+        isCurrentViewLoaded={isCurrentViewLoaded}
         zoom={currentZoom}
         mapBounds={currentBounds}
       />
