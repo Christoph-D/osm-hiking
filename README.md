@@ -6,6 +6,8 @@ trails and footpaths, view elevation profiles, and export routes as GPX files.
 
 **[Try it here](https://yozora.eu/osm-hiking/)**
 
+> **Note:** Most of the code was AI-generated and hasn't been thoroughly reviewed, so code quality may be suboptimal in places.
+
 ## Features
 
 - **Client-side routing**: All route calculation happens in your browser - no
