@@ -544,7 +544,8 @@ function RouteLayer() {
               eventHandlers: {
                 click: handleMarkerClick,
                 dragend: (e: LeafletEvent) => handleMarkerDrag(i, e),
-                dblclick: (e: LeafletEvent) => handleMarkerDoubleClick(i, e)
+                dblclick: (e: LeafletEvent) => handleMarkerDoubleClick(i, e),
+                contextmenu: (e: LeafletEvent) => handleMarkerDoubleClick(i, e)
               }
             }
             return <Marker {...markerProps} />
