@@ -28,6 +28,7 @@ import {
   calculateElevationStats,
 } from '../services/elevation'
 import { ElevationPoint, RouteSegment } from '../types'
+import { MIN_ZOOM } from '../constants/map'
 
 const MAP_POSITION_KEY = 'osm-hiking-map-position'
 
@@ -374,7 +375,6 @@ function RouteLayer() {
   // Helper function to validate zoom level
   const validateZoomLevel = (): boolean => {
     const zoom = map.getZoom()
-    const MIN_ZOOM = 13
 
     if (zoom < MIN_ZOOM) {
       setError(`Zoom in to at least level ${MIN_ZOOM} to load hiking paths`)

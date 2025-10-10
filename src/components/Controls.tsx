@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react'
 import { DomEvent } from 'leaflet'
 import { useRouteStore } from '../store/useRouteStore'
 import { exportRouteAsGPX } from '../services/gpxExport'
+import { MIN_ZOOM } from '../constants/map'
 
 interface ControlsProps {
   onLoadData: () => void
@@ -102,7 +103,7 @@ export function Controls({
         )}
 
         <div className="mb-3">
-          {zoom < 13 && (
+          {zoom < MIN_ZOOM && (
             <p className="text-xs text-gray-600">
               Please zoom in more to load hiking paths
             </p>
@@ -115,7 +116,7 @@ export function Controls({
         <div className="flex flex-col gap-2">
           <button
             onClick={handleLoadData}
-            disabled={isLoading || zoom < 13}
+            disabled={isLoading || zoom < MIN_ZOOM}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium"
           >
             Load Hiking Paths
