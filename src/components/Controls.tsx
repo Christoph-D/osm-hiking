@@ -11,7 +11,13 @@ interface ControlsProps {
   mapBounds: { south: number; west: number; north: number; east: number } | null
 }
 
-export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom, mapBounds }: ControlsProps) {
+export function Controls({
+  onLoadData,
+  onClearRoute,
+  isDataLoaded,
+  zoom,
+  mapBounds,
+}: ControlsProps) {
   const { route, isLoading, error } = useRouteStore()
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -42,9 +48,12 @@ export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom, mapBoun
     // Check if there's an active route and if it would be cleared
     if (route && route.waypoints.length > 0 && mapBounds) {
       // Check if all waypoints fit in the new bounds
-      const allWaypointsFit = route.waypoints.every(([lon, lat]) =>
-        lat >= mapBounds.south && lat <= mapBounds.north &&
-        lon >= mapBounds.west && lon <= mapBounds.east
+      const allWaypointsFit = route.waypoints.every(
+        ([lon, lat]) =>
+          lat >= mapBounds.south &&
+          lat <= mapBounds.north &&
+          lon >= mapBounds.west &&
+          lon <= mapBounds.east
       )
 
       // Only show confirmation if route would be cleared
@@ -61,7 +70,10 @@ export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom, mapBoun
   }
 
   return (
-    <div ref={containerRef} className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+    <div
+      ref={containerRef}
+      className="absolute top-4 right-4 z-[1000] flex flex-col gap-2"
+    >
       <div className="bg-white rounded-lg shadow-lg p-4 min-w-[200px]">
         <h3 className="font-bold text-lg mb-2">Route Planner</h3>
 
@@ -80,7 +92,8 @@ export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom, mapBoun
         {route && (
           <div className="mb-3">
             <p className="text-sm text-gray-700">
-              <strong>Distance:</strong> {(route.totalDistance / 1000).toFixed(2)} km
+              <strong>Distance:</strong>{' '}
+              {(route.totalDistance / 1000).toFixed(2)} km
             </p>
             <p className="text-sm text-gray-700">
               <strong>Waypoints:</strong> {route.waypoints.length}
@@ -95,9 +108,7 @@ export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom, mapBoun
             </p>
           )}
           {isDataLoaded && (
-            <p className="text-xs text-green-600 mt-1">
-              ✓ Hiking paths loaded
-            </p>
+            <p className="text-xs text-green-600 mt-1">✓ Hiking paths loaded</p>
           )}
         </div>
 
@@ -127,7 +138,8 @@ export function Controls({ onLoadData, onClearRoute, isDataLoaded, zoom, mapBoun
 
         <div className="mt-3 pt-3 border-t border-gray-200">
           <p className="text-xs text-gray-600">
-            Zoom in enough, click "Load Hiking Paths", then click on the map to create waypoints.
+            Zoom in enough, click "Load Hiking Paths", then click on the map to
+            create waypoints.
           </p>
         </div>
       </div>

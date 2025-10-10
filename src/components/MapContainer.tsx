@@ -1,5 +1,15 @@
 import { useEffect, useState, useRef } from 'react'
-import { MapContainer as LeafletMapContainer, TileLayer, Polyline, Marker, Rectangle, Polygon, CircleMarker, useMap, useMapEvents } from 'react-leaflet'
+import {
+  MapContainer as LeafletMapContainer,
+  TileLayer,
+  Polyline,
+  Marker,
+  Rectangle,
+  Polygon,
+  CircleMarker,
+  useMap,
+  useMapEvents,
+} from 'react-leaflet'
 import { LeafletEvent } from 'leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -11,7 +21,12 @@ import { buildRoutingGraph } from '../services/graphBuilder'
 import { Router } from '../services/router'
 import { Controls } from './Controls'
 import { ElevationProfile } from './ElevationProfile'
-import { fetchElevations, subdividePathEqually, calculateDistances, calculateElevationStats } from '../services/elevation'
+import {
+  fetchElevations,
+  subdividePathEqually,
+  calculateDistances,
+  calculateElevationStats,
+} from '../services/elevation'
 import { ElevationPoint, RouteSegment } from '../types'
 
 const MAP_POSITION_KEY = 'osm-hiking-map-position'
@@ -72,13 +87,36 @@ function RouteLayer() {
   const [router, setRouter] = useState<Router | null>(null)
   const [isDataLoaded, setIsDataLoaded] = useState(false)
   const [lastWaypoint, setLastWaypoint] = useState<string | null>(null)
-  const [loadedBbox, setLoadedBbox] = useState<{ south: number; west: number; north: number; east: number } | null>(null)
+  const [loadedBbox, setLoadedBbox] = useState<{
+    south: number
+    west: number
+    north: number
+    east: number
+  } | null>(null)
   const [currentZoom, setCurrentZoom] = useState(map.getZoom())
-  const [currentBounds, setCurrentBounds] = useState<{ south: number; west: number; north: number; east: number } | null>(null)
+  const [currentBounds, setCurrentBounds] = useState<{
+    south: number
+    west: number
+    north: number
+    east: number
+  } | null>(null)
   const waypointNodeIds = useRef<string[]>([])
   const preservedWaypoints = useRef<[number, number][]>([])
   const isProcessingMarkerClick = useRef(false)
-  const { route, addSegment, insertWaypoint, updateWaypoint, deleteWaypoint, clearRoute: clearRouteStore, setLoading, setError, setLoadingElevation, setElevationData, isLoadingElevation, hoveredElevationPoint } = useRouteStore()
+  const {
+    route,
+    addSegment,
+    insertWaypoint,
+    updateWaypoint,
+    deleteWaypoint,
+    clearRoute: clearRouteStore,
+    setLoading,
+    setError,
+    setLoadingElevation,
+    setElevationData,
+    isLoadingElevation,
+    hoveredElevationPoint,
+  } = useRouteStore()
 
   // Wrap clearRoute to also clear local state
   const clearRoute = () => {
@@ -115,7 +153,8 @@ function RouteLayer() {
             // Check if this segment connects to the previous one
             const prevLastCoord = allCoordinates[allCoordinates.length - 1]
             const currFirstCoord = segment.coordinates[0]
-            const coordsMatch = prevLastCoord &&
+            const coordsMatch =
+              prevLastCoord &&
               Math.abs(prevLastCoord[0] - currFirstCoord[0]) < 0.000001 &&
               Math.abs(prevLastCoord[1] - currFirstCoord[1]) < 0.000001
 
@@ -131,7 +170,10 @@ function RouteLayer() {
 
         // Subdivide the path into equally spaced points
         const numPoints = 70
-        const equallySpacedCoords = subdividePathEqually(allCoordinates, numPoints)
+        const equallySpacedCoords = subdividePathEqually(
+          allCoordinates,
+          numPoints
+        )
 
         // Fetch elevations for all equally spaced points
         const elevations = await fetchElevations(equallySpacedCoords)
@@ -144,16 +186,21 @@ function RouteLayer() {
 
         // Assign theoretical distances to each subdivided point
         // These match what the subdivision algorithm uses
-        const distances = Array.from({ length: numPoints }, (_, i) => i * spacing)
+        const distances = Array.from(
+          { length: numPoints },
+          (_, i) => i * spacing
+        )
 
         // Build elevation profile
         // Note: equallySpacedCoords are in [lon, lat] format
-        const elevationProfile: ElevationPoint[] = equallySpacedCoords.map((coord, i) => ({
-          distance: distances[i],
-          elevation: elevations[i],
-          lat: coord[1],  // coord[1] is latitude
-          lon: coord[0],  // coord[0] is longitude
-        }))
+        const elevationProfile: ElevationPoint[] = equallySpacedCoords.map(
+          (coord, i) => ({
+            distance: distances[i],
+            elevation: elevations[i],
+            lat: coord[1], // coord[1] is latitude
+            lon: coord[0], // coord[0] is longitude
+          })
+        )
 
         // Calculate stats
         const elevationStats = calculateElevationStats(elevations)
@@ -168,7 +215,12 @@ function RouteLayer() {
     }
 
     fetchElevationData()
-  }, [route?.segments, route?.elevationProfile, setLoadingElevation, setElevationData])
+  }, [
+    route?.segments,
+    route?.elevationProfile,
+    setLoadingElevation,
+    setElevationData,
+  ])
 
   // Load OSM data when user clicks "Reload Data"
   const loadData = async () => {
@@ -203,7 +255,10 @@ function RouteLayer() {
         if (allWaypointsFit) {
           // Preserve waypoints for recalculation after loading
           preservedWaypoints.current = [...route.waypoints]
-          console.log('Preserving route with waypoints:', preservedWaypoints.current)
+          console.log(
+            'Preserving route with waypoints:',
+            preservedWaypoints.current
+          )
         } else {
           // Route doesn't fit in new bbox, clear it
           clearRoute()
@@ -215,7 +270,9 @@ function RouteLayer() {
       const osmData = await fetchOSMData(bbox)
 
       const graph = buildRoutingGraph(osmData)
-      console.log(`Loaded ${osmData.nodes.size} nodes, ${osmData.ways.length} ways`)
+      console.log(
+        `Loaded ${osmData.nodes.size} nodes, ${osmData.ways.length} ways`
+      )
       console.log(`Built graph with ${graph.nodes.size} nodes`)
 
       const newRouter = new Router(graph)
@@ -232,7 +289,9 @@ function RouteLayer() {
         for (const [lon, lat] of preservedWaypoints.current) {
           const nodeId = newRouter.findNearestNode(lat, lon, 500)
           if (!nodeId) {
-            console.log('Could not find node for preserved waypoint, clearing route')
+            console.log(
+              'Could not find node for preserved waypoint, clearing route'
+            )
             clearRoute()
             preservedWaypoints.current = []
             return
@@ -249,7 +308,10 @@ function RouteLayer() {
             // First waypoint - just a marker
             const firstNode = newRouter.getNode(newNodeIds[i])
             if (firstNode) {
-              newSegments.push({ coordinates: [[firstNode.lon, firstNode.lat]], distance: 0 })
+              newSegments.push({
+                coordinates: [[firstNode.lon, firstNode.lat]],
+                distance: 0,
+              })
             }
           } else {
             // Route from previous waypoint
@@ -258,7 +320,9 @@ function RouteLayer() {
               newSegments.push(segment)
               totalDistance += segment.distance
             } else {
-              console.log('Could not route between preserved waypoints, clearing route')
+              console.log(
+                'Could not route between preserved waypoints, clearing route'
+              )
               clearRoute()
               preservedWaypoints.current = []
               return
@@ -283,9 +347,10 @@ function RouteLayer() {
       console.error('Failed to load OSM data:', error)
       const currentZoom = map.getZoom()
       const maxZoom = map.getMaxZoom()
-      const errorMessage = currentZoom < maxZoom
-        ? 'Failed to load map data. Try zooming in more and try again.'
-        : 'Failed to load map data. Please try again.'
+      const errorMessage =
+        currentZoom < maxZoom
+          ? 'Failed to load map data. Try zooming in more and try again.'
+          : 'Failed to load map data. Please try again.'
       setError(errorMessage)
     } finally {
       setLoading(false)
@@ -293,8 +358,17 @@ function RouteLayer() {
   }
 
   // Helper function to check if a point is within a bounding box
-  const isPointInBbox = (lon: number, lat: number, bbox: { south: number; west: number; north: number; east: number }) => {
-    return lat >= bbox.south && lat <= bbox.north && lon >= bbox.west && lon <= bbox.east
+  const isPointInBbox = (
+    lon: number,
+    lat: number,
+    bbox: { south: number; west: number; north: number; east: number }
+  ) => {
+    return (
+      lat >= bbox.south &&
+      lat <= bbox.north &&
+      lon >= bbox.west &&
+      lon <= bbox.east
+    )
   }
 
   // Helper function to check if a node exists on the current route
@@ -313,7 +387,10 @@ function RouteLayer() {
 
       // Check if this node's coordinates match any coordinate in this segment
       for (const [lon, lat] of segment.coordinates) {
-        if (Math.abs(lon - node.lon) < 0.000001 && Math.abs(lat - node.lat) < 0.000001) {
+        if (
+          Math.abs(lon - node.lon) < 0.000001 &&
+          Math.abs(lat - node.lat) < 0.000001
+        ) {
           // Node is on this segment, so it should be inserted after waypoint at segmentIdx-1
           // and before waypoint at segmentIdx
           return segmentIdx
@@ -375,7 +452,10 @@ function RouteLayer() {
       if (!lastWaypoint) {
         setLastWaypoint(nodeId)
         waypointNodeIds.current = [nodeId]
-        addSegment({ coordinates: [[node.lon, node.lat]], distance: 0 }, [node.lon, node.lat])
+        addSegment({ coordinates: [[node.lon, node.lat]], distance: 0 }, [
+          node.lon,
+          node.lat,
+        ])
         return
       }
 
@@ -398,11 +478,17 @@ function RouteLayer() {
             // First waypoint - just a marker
             const firstNode = router.getNode(waypointNodeIds.current[i])
             if (firstNode) {
-              newSegments.push({ coordinates: [[firstNode.lon, firstNode.lat]], distance: 0 })
+              newSegments.push({
+                coordinates: [[firstNode.lon, firstNode.lat]],
+                distance: 0,
+              })
             }
           } else {
             // Route from previous waypoint
-            const segment = router.route(waypointNodeIds.current[i - 1], waypointNodeIds.current[i])
+            const segment = router.route(
+              waypointNodeIds.current[i - 1],
+              waypointNodeIds.current[i]
+            )
             if (segment) {
               newSegments.push(segment)
               totalDistance += segment.distance
@@ -411,10 +497,17 @@ function RouteLayer() {
         }
 
         // Update the last waypoint reference
-        setLastWaypoint(waypointNodeIds.current[waypointNodeIds.current.length - 1])
+        setLastWaypoint(
+          waypointNodeIds.current[waypointNodeIds.current.length - 1]
+        )
 
         // Update the route store
-        insertWaypoint(insertIndex, [node.lon, node.lat], newSegments, totalDistance)
+        insertWaypoint(
+          insertIndex,
+          [node.lon, node.lat],
+          newSegments,
+          totalDistance
+        )
         return
       }
 
@@ -475,11 +568,17 @@ function RouteLayer() {
         // First waypoint - just a marker
         const firstNode = router.getNode(waypointNodeIds.current[i])
         if (firstNode) {
-          newSegments.push({ coordinates: [[firstNode.lon, firstNode.lat]], distance: 0 })
+          newSegments.push({
+            coordinates: [[firstNode.lon, firstNode.lat]],
+            distance: 0,
+          })
         }
       } else {
         // Route from previous waypoint
-        const segment = router.route(waypointNodeIds.current[i - 1], waypointNodeIds.current[i])
+        const segment = router.route(
+          waypointNodeIds.current[i - 1],
+          waypointNodeIds.current[i]
+        )
         if (segment) {
           newSegments.push(segment)
           totalDistance += segment.distance
@@ -532,11 +631,17 @@ function RouteLayer() {
         // First waypoint - just a marker
         const firstNode = router.getNode(waypointNodeIds.current[i])
         if (firstNode) {
-          newSegments.push({ coordinates: [[firstNode.lon, firstNode.lat]], distance: 0 })
+          newSegments.push({
+            coordinates: [[firstNode.lon, firstNode.lat]],
+            distance: 0,
+          })
         }
       } else {
         // Route from previous waypoint
-        const segment = router.route(waypointNodeIds.current[i - 1], waypointNodeIds.current[i])
+        const segment = router.route(
+          waypointNodeIds.current[i - 1],
+          waypointNodeIds.current[i]
+        )
         if (segment) {
           newSegments.push(segment)
           totalDistance += segment.distance
@@ -568,7 +673,7 @@ function RouteLayer() {
                 [90, -180],
                 [90, 180],
                 [-90, 180],
-                [-90, -180]
+                [-90, -180],
               ],
               // Inner ring (hole): the loaded bounding box
               [
@@ -576,27 +681,27 @@ function RouteLayer() {
                 [loadedBbox.north, loadedBbox.west],
                 [loadedBbox.north, loadedBbox.east],
                 [loadedBbox.south, loadedBbox.east],
-                [loadedBbox.south, loadedBbox.west]
-              ]
+                [loadedBbox.south, loadedBbox.west],
+              ],
             ]}
             pathOptions={{
               color: 'transparent',
               fillColor: 'gray',
               fillOpacity: 0.4,
-              weight: 0
+              weight: 0,
             }}
           />
           {/* Green border around loaded region */}
           <Rectangle
             bounds={[
               [loadedBbox.south, loadedBbox.west],
-              [loadedBbox.north, loadedBbox.east]
+              [loadedBbox.north, loadedBbox.east],
             ]}
             pathOptions={{
               color: 'green',
               weight: 2,
               fillOpacity: 0,
-              dashArray: '5, 5'
+              dashArray: '5, 5',
             }}
           />
         </>
@@ -605,11 +710,22 @@ function RouteLayer() {
       {route && (
         <>
           {route.segments.map((segment, i) => {
-            const positions = segment.coordinates.map(([lon, lat]) => [lat, lon] as [number, number])
-            return <Polyline key={i} positions={positions} color="blue" weight={4} opacity={0.7} />
+            const positions = segment.coordinates.map(
+              ([lon, lat]) => [lat, lon] as [number, number]
+            )
+            return (
+              <Polyline
+                key={i}
+                positions={positions}
+                color="blue"
+                weight={4}
+                opacity={0.7}
+              />
+            )
           })}
           {route.waypoints.map(([lon, lat], i) => {
-            const isLastWaypoint = i === route.waypoints.length - 1 && route.waypoints.length > 1
+            const isLastWaypoint =
+              i === route.waypoints.length - 1 && route.waypoints.length > 1
             const markerProps: any = {
               key: i,
               position: [lat, lon],
@@ -619,8 +735,8 @@ function RouteLayer() {
                 click: handleMarkerClick,
                 dragend: (e: LeafletEvent) => handleMarkerDrag(i, e),
                 dblclick: (e: LeafletEvent) => handleMarkerDoubleClick(i, e),
-                contextmenu: (e: LeafletEvent) => handleMarkerDoubleClick(i, e)
-              }
+                contextmenu: (e: LeafletEvent) => handleMarkerDoubleClick(i, e),
+              },
             }
             return <Marker {...markerProps} />
           })}
@@ -636,12 +752,18 @@ function RouteLayer() {
             color: 'red',
             fillColor: 'red',
             fillOpacity: 0.8,
-            weight: 2
+            weight: 2,
           }}
         />
       )}
 
-      <Controls onLoadData={() => loadData()} onClearRoute={clearRoute} isDataLoaded={isDataLoaded} zoom={currentZoom} mapBounds={currentBounds} />
+      <Controls
+        onLoadData={() => loadData()}
+        onClearRoute={clearRoute}
+        isDataLoaded={isDataLoaded}
+        zoom={currentZoom}
+        mapBounds={currentBounds}
+      />
       {route?.elevationProfile && route?.elevationStats && (
         <ElevationProfile
           elevationProfile={route.elevationProfile}

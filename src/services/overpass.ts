@@ -2,9 +2,12 @@ import { OSMData, OSMNode, OSMWay } from '../types'
 
 const OVERPASS_API = 'https://overpass-api.de/api/interpreter'
 
-export async function fetchOSMData(
-  bbox: { south: number; west: number; north: number; east: number }
-): Promise<OSMData> {
+export async function fetchOSMData(bbox: {
+  south: number
+  west: number
+  north: number
+  east: number
+}): Promise<OSMData> {
   const query = `
     [out:json][timeout:25];
     (

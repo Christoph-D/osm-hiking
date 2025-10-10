@@ -16,11 +16,17 @@ export class Router {
   }
 
   // Find the nearest node to a clicked point
-  findNearestNode(lat: number, lon: number, maxDistance: number = 100): string | null {
+  findNearestNode(
+    lat: number,
+    lon: number,
+    maxDistance: number = 100
+  ): string | null {
     let nearestId: string | null = null
     let minDist = Infinity
 
-    console.log(`Searching for nearest node among ${this.graph.nodes.size} nodes`)
+    console.log(
+      `Searching for nearest node among ${this.graph.nodes.size} nodes`
+    )
     console.log(`Click coords: lat=${lat}, lon=${lon}`)
 
     let sampleCount = 0
@@ -31,11 +37,9 @@ export class Router {
         sampleCount++
       }
 
-      const dist = distance(
-        [lon, lat],
-        [node.lon, node.lat],
-        { units: 'meters' }
-      )
+      const dist = distance([lon, lat], [node.lon, node.lat], {
+        units: 'meters',
+      })
 
       if (dist < minDist) {
         minDist = dist
@@ -45,8 +49,12 @@ export class Router {
 
     if (nearestId) {
       const nearestNode = this.graph.nodes.get(nearestId)
-      console.log(`Nearest node: ${nearestId} at ${minDist.toFixed(2)}m (max: ${maxDistance}m)`)
-      console.log(`Nearest node coords: lat=${nearestNode?.lat}, lon=${nearestNode?.lon}`)
+      console.log(
+        `Nearest node: ${nearestId} at ${minDist.toFixed(2)}m (max: ${maxDistance}m)`
+      )
+      console.log(
+        `Nearest node coords: lat=${nearestNode?.lat}, lon=${nearestNode?.lon}`
+      )
     }
 
     // Return null if the nearest node is too far away

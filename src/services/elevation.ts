@@ -118,7 +118,10 @@ export function subdividePathEqually(
   let totalDistance = 0
 
   for (let i = 1; i < coordinates.length; i++) {
-    const segmentDistance = haversineDistance(coordinates[i - 1], coordinates[i])
+    const segmentDistance = haversineDistance(
+      coordinates[i - 1],
+      coordinates[i]
+    )
     totalDistance += segmentDistance
     distances.push(totalDistance)
   }

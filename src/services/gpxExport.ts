@@ -1,12 +1,17 @@
 import { Route } from '../types'
 import { fetchElevations } from './elevation'
 
-function createGPX(coordinates: [number, number][], metadata: { name: string; desc: string; creator: string }, elevations?: number[]): string {
+function createGPX(
+  coordinates: [number, number][],
+  metadata: { name: string; desc: string; creator: string },
+  elevations?: number[]
+): string {
   const trackPoints = coordinates
     .map(([lon, lat], i) => {
-      const eleTag = elevations && elevations[i] !== undefined
-        ? `<ele>${elevations[i].toFixed(1)}</ele>`
-        : ''
+      const eleTag =
+        elevations && elevations[i] !== undefined
+          ? `<ele>${elevations[i].toFixed(1)}</ele>`
+          : ''
       return `      <trkpt lat="${lat}" lon="${lon}">${eleTag}</trkpt>`
     })
     .join('\n')
@@ -26,11 +31,14 @@ ${trackPoints}
 </gpx>`
 }
 
-export async function exportRouteAsGPX(route: Route, filename: string = 'hiking-route.gpx'): Promise<void> {
+export async function exportRouteAsGPX(
+  route: Route,
+  filename: string = 'hiking-route.gpx'
+): Promise<void> {
   // Flatten all segments into a single line
   const allCoordinates: [number, number][] = []
 
-  route.segments.forEach(segment => {
+  route.segments.forEach((segment) => {
     allCoordinates.push(...segment.coordinates)
   })
 
@@ -39,15 +47,22 @@ export async function exportRouteAsGPX(route: Route, filename: string = 'hiking-
   try {
     elevations = await fetchElevations(allCoordinates)
   } catch (error) {
-    console.warn('Failed to fetch elevations for GPX export, continuing without elevation data:', error)
+    console.warn(
+      'Failed to fetch elevations for GPX export, continuing without elevation data:',
+      error
+    )
   }
 
   // Convert to GPX
-  const gpx = createGPX(allCoordinates, {
-    creator: 'OSM Hiking Route Planner',
-    name: 'Hiking Route',
-    desc: `Total distance: ${(route.totalDistance / 1000).toFixed(2)} km`,
-  }, elevations)
+  const gpx = createGPX(
+    allCoordinates,
+    {
+      creator: 'OSM Hiking Route Planner',
+      name: 'Hiking Route',
+      desc: `Total distance: ${(route.totalDistance / 1000).toFixed(2)} km`,
+    },
+    elevations
+  )
 
   // Download
   const blob = new Blob([gpx], { type: 'application/gpx+xml' })

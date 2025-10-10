@@ -9,7 +9,11 @@ interface ElevationProfileProps {
   isLoading?: boolean
 }
 
-export function ElevationProfile({ elevationProfile, elevationStats, isLoading }: ElevationProfileProps) {
+export function ElevationProfile({
+  elevationProfile,
+  elevationStats,
+  isLoading,
+}: ElevationProfileProps) {
   const [isExpanded, setIsExpanded] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -101,10 +105,14 @@ function ElevationChart({ profile, stats }: ElevationChartProps) {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null)
   const [hoverX, setHoverX] = useState<number>(0)
   const [svgRef, setSvgRef] = useState<SVGSVGElement | null>(null)
-  const setHoveredElevationPoint = useRouteStore((state) => state.setHoveredElevationPoint)
+  const setHoveredElevationPoint = useRouteStore(
+    (state) => state.setHoveredElevationPoint
+  )
 
   if (profile.length === 0) {
-    return <div className="text-sm text-gray-600">No elevation data available</div>
+    return (
+      <div className="text-sm text-gray-600">No elevation data available</div>
+    )
   }
 
   const width = 800
@@ -124,7 +132,8 @@ function ElevationChart({ profile, stats }: ElevationChartProps) {
   const yScale = (elevation: number) =>
     padding.top +
     chartHeight -
-    ((elevation - stats.min + elevationPadding) / (elevationRange + 2 * elevationPadding)) *
+    ((elevation - stats.min + elevationPadding) /
+      (elevationRange + 2 * elevationPadding)) *
       chartHeight
 
   // Generate path
@@ -271,10 +280,12 @@ function ElevationChart({ profile, stats }: ElevationChartProps) {
           }}
         >
           <div>
-            <strong>Distance:</strong> {(profile[hoveredPoint].distance / 1000).toFixed(2)} km
+            <strong>Distance:</strong>{' '}
+            {(profile[hoveredPoint].distance / 1000).toFixed(2)} km
           </div>
           <div>
-            <strong>Elevation:</strong> {profile[hoveredPoint].elevation.toFixed(0)} m
+            <strong>Elevation:</strong>{' '}
+            {profile[hoveredPoint].elevation.toFixed(0)} m
           </div>
         </div>
       )}
