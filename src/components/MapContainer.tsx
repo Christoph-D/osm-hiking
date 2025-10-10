@@ -78,7 +78,7 @@ function RouteLayer() {
   const waypointNodeIds = useRef<string[]>([])
   const preservedWaypoints = useRef<[number, number][]>([])
   const isProcessingMarkerClick = useRef(false)
-  const { route, addSegment, updateWaypoint, deleteWaypoint, clearRoute: clearRouteStore, setLoading, setError, setLoadingElevation, setElevationData, isLoadingElevation, hoveredElevationPoint } = useRouteStore()
+  const { route, addSegment, insertWaypoint, updateWaypoint, deleteWaypoint, clearRoute: clearRouteStore, setLoading, setError, setLoadingElevation, setElevationData, isLoadingElevation, hoveredElevationPoint } = useRouteStore()
 
   // Wrap clearRoute to also clear local state
   const clearRoute = () => {
@@ -292,6 +292,33 @@ function RouteLayer() {
     return lat >= bbox.south && lat <= bbox.north && lon >= bbox.west && lon <= bbox.east
   }
 
+  // Helper function to check if a node exists on the current route
+  // Returns the segment index + 1 where the node should be inserted as a waypoint, or null if not on route
+  const findNodeOnRoute = (nodeId: string): number | null => {
+    if (!route || !router || route.segments.length < 2) {
+      return null
+    }
+
+    const node = router.getNode(nodeId)
+    if (!node) return null
+
+    // Check each segment (skip first segment which is just the starting waypoint marker)
+    for (let segmentIdx = 1; segmentIdx < route.segments.length; segmentIdx++) {
+      const segment = route.segments[segmentIdx]
+
+      // Check if this node's coordinates match any coordinate in this segment
+      for (const [lon, lat] of segment.coordinates) {
+        if (Math.abs(lon - node.lon) < 0.000001 && Math.abs(lat - node.lat) < 0.000001) {
+          // Node is on this segment, so it should be inserted after waypoint at segmentIdx-1
+          // and before waypoint at segmentIdx
+          return segmentIdx
+        }
+      }
+    }
+
+    return null
+  }
+
   useEffect(() => {
     // Initialize current bounds on mount
     const bounds = map.getBounds()
@@ -347,7 +374,46 @@ function RouteLayer() {
         return
       }
 
-      // Route from last waypoint to new one
+      // Check if this node is on the existing route
+      const insertIndex = findNodeOnRoute(nodeId)
+
+      if (insertIndex !== null) {
+        // Node is on the route - insert it at the correct position
+        console.log(`Node is on route, inserting at index ${insertIndex}`)
+
+        // Insert the node ID in the waypoint list
+        waypointNodeIds.current.splice(insertIndex, 0, nodeId)
+
+        // Recalculate all segments
+        const newSegments: RouteSegment[] = []
+        let totalDistance = 0
+
+        for (let i = 0; i < waypointNodeIds.current.length; i++) {
+          if (i === 0) {
+            // First waypoint - just a marker
+            const firstNode = router.getNode(waypointNodeIds.current[i])
+            if (firstNode) {
+              newSegments.push({ coordinates: [[firstNode.lon, firstNode.lat]], distance: 0 })
+            }
+          } else {
+            // Route from previous waypoint
+            const segment = router.route(waypointNodeIds.current[i - 1], waypointNodeIds.current[i])
+            if (segment) {
+              newSegments.push(segment)
+              totalDistance += segment.distance
+            }
+          }
+        }
+
+        // Update the last waypoint reference
+        setLastWaypoint(waypointNodeIds.current[waypointNodeIds.current.length - 1])
+
+        // Update the route store
+        insertWaypoint(insertIndex, [node.lon, node.lat], newSegments, totalDistance)
+        return
+      }
+
+      // Node is not on the route - add to the end (existing behavior)
       const segment = router.route(lastWaypoint, nodeId)
 
       if (!segment) {

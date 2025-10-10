@@ -9,6 +9,7 @@ interface RouteState {
   hoveredElevationPoint: ElevationPoint | null
 
   addSegment: (segment: RouteSegment, waypoint: [number, number]) => void
+  insertWaypoint: (index: number, waypoint: [number, number], segments: RouteSegment[], totalDistance: number) => void
   updateWaypoint: (index: number, waypoint: [number, number], segments: RouteSegment[], totalDistance: number) => void
   deleteWaypoint: (index: number, segments: RouteSegment[], totalDistance: number) => void
   clearRoute: () => void
@@ -33,6 +34,22 @@ export const useRouteStore = create<RouteState>((set) => ({
         segments: [...currentRoute.segments, segment],
         waypoints: [...currentRoute.waypoints, waypoint],
         totalDistance: currentRoute.totalDistance + segment.distance,
+        // Clear elevation data when route changes
+        elevationProfile: undefined,
+        elevationStats: undefined,
+      },
+    }
+  }),
+
+  insertWaypoint: (index, waypoint, segments, totalDistance) => set((state) => {
+    if (!state.route) return state
+    const newWaypoints = [...state.route.waypoints]
+    newWaypoints.splice(index, 0, waypoint)
+    return {
+      route: {
+        segments,
+        waypoints: newWaypoints,
+        totalDistance,
         // Clear elevation data when route changes
         elevationProfile: undefined,
         elevationStats: undefined,

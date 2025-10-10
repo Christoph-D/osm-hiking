@@ -10,8 +10,9 @@ trails and footpaths, view elevation profiles, and export routes as GPX files.
   external routing API needed
 - **Path snapping**: Routes automatically follow hiking trails and footpaths
   from OpenStreetMap
-- **Interactive waypoints**: Click to add, drag to adjust, double-click to
-  remove waypoints
+- **Interactive waypoints**: Click to add, drag to adjust, double-click or
+  right-click to remove. Clicking on an existing route automatically inserts
+  waypoints at the correct position
 - **Elevation profiles**: View detailed elevation data with gain/loss statistics
   and interactive hover
 - **GPX export**: Download your route for use with GPS devices and hiking apps
@@ -92,8 +93,10 @@ npm run preview
 4. **Click on the map** to place your first waypoint (will snap to nearest
    trail)
 5. **Continue clicking** to extend your route along hiking paths
+   - Clicking on an existing route segment automatically inserts the waypoint at
+     the correct position
 6. **Drag waypoints** to adjust the route
-7. **Double-click waypoints** to remove them
+7. **Double- or right-click waypoints** to remove them
 8. **View elevation profile** below the map (appears after route is created)
    - Hover over the profile to see elevation at specific points
    - View total elevation gain/loss and min/max elevation
@@ -154,6 +157,8 @@ Both APIs are free and require no authentication.
 ## Tips
 
 - If no path is found, try clicking closer to a visible trail line on the map
+- Click on an existing route to insert waypoints in the middle rather than at
+  the end
 - Drag waypoints to fine-tune your route
 - Use the green dashed border to see which area has loaded data
 - Reload data if you pan to a new area outside the loaded region
