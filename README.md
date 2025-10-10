@@ -4,15 +4,17 @@ A fully client-side web application for planning hiking routes using
 OpenStreetMap data. Create custom hiking routes that automatically snap to
 trails and footpaths, view elevation profiles, and export routes as GPX files.
 
+**Try it here: https://yozora.eu/osm-hiking/**
+
 ## Features
 
 - **Client-side routing**: All route calculation happens in your browser - no
   external routing API needed
 - **Path snapping**: Routes automatically follow hiking trails and footpaths
   from OpenStreetMap
-- **Interactive waypoints**: Click to add, drag to adjust, double-click or
-  right-click to remove. Clicking on an existing route automatically inserts
-  waypoints at the correct position
+- **Interactive waypoints**: Click to add, drag to adjust, double or right-click
+  to remove. Clicking on an existing route automatically inserts waypoints at
+  the correct position
 - **Elevation profiles**: View detailed elevation data with gain/loss statistics
   and interactive hover
 - **GPX export**: Download your route for use with GPS devices and hiking apps
@@ -96,7 +98,7 @@ npm run preview
    - Clicking on an existing route segment automatically inserts the waypoint at
      the correct position
 6. **Drag waypoints** to adjust the route
-7. **Double- or right-click waypoints** to remove them
+7. **Double or right-click waypoints** to remove them
 8. **View elevation profile** below the map (appears after route is created)
    - Hover over the profile to see elevation at specific points
    - View total elevation gain/loss and min/max elevation
