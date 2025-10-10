@@ -48,63 +48,92 @@ trails and footpaths, view elevation profiles, and export routes as GPX files.
 
 ## Getting Started
 
-### Prerequisites
+### Option 1: Development Container (Recommended)
+
+For the best experience, use the included devcontainer configuration with all dependencies pre-configured:
+
+1. Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) for VS Code
+2. Open this project in VS Code
+3. Click "Reopen in Container" when prompted (or use Command Palette: "Dev Containers: Reopen in Container")
+4. Start the development server:
+
+```bash
+npm run dev
+```
+
+The app will be available at <http://localhost:5173>
+
+### Option 2: Manual Setup
+
+**Prerequisites:**
 
 - Node.js 18+ and npm
 
-### Development
+**Installation:**
 
 ```bash
-# Start development server with hot module replacement
+# Install dependencies
+npm install
+
+# Set up git hooks for code quality (linting and formatting)
+npm run prepare
+```
+
+**Running the Application:**
+
+```bash
+# Start the development server with hot module replacement
 npm run dev
-
-# The app will be available at http://localhost:5173
 ```
 
-### Production Build
+The app will be available at <http://localhost:5173>
+
+## Development
+
+### Development Server
+
+The primary command for development is:
 
 ```bash
-# Build for production (TypeScript compilation + Vite build)
-npm run build
-
-# The optimized files will be in the dist/ directory
+npm run dev
 ```
 
-### Preview Production Build
+This starts Vite's development server with:
+
+- Hot module replacement (HMR) for instant updates
+- TypeScript type checking
+- Fast refresh for React components
+- Available at <http://localhost:5173>
+
+### Code Quality
+
+The project uses ESLint and Prettier to maintain code quality and consistency. Git hooks automatically run these checks before commits, but you can also run them manually:
 
 ```bash
-# Build and preview the production build locally
-npm run build
-npm run preview
-```
-
-## Development Workflow
-
-### Code Quality Tools
-
-The project uses ESLint and Prettier to maintain code quality and consistency:
-
-```bash
-# Run linter
+# Lint your code
 npm run lint
 
-# Run linter and auto-fix issues
+# Lint and auto-fix issues
 npm run lint:fix
 
 # Format code with Prettier
 npm run format
 
-# Check if code is formatted correctly
+# Check formatting without making changes
 npm run format:check
 ```
 
-### Git Hooks
-
-After cloning the repository, set up the git precommit hook for linting and formatting:
+## Building for Production
 
 ```bash
-npm run prepare
+# Build optimized production bundle (TypeScript compilation + Vite build)
+npm run build
+
+# Preview the production build locally
+npm run preview
 ```
+
+The optimized production files will be in the `dist/` directory.
 
 ## Usage
 

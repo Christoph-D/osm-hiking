@@ -36,5 +36,6 @@
   "mounts": [
     "source=bashhistory-osm-hiking,target=/commandhistory,type=volume",
     "source=claude-code-config-osm-hiking,target=/home/node/claude-config,type=volume"
-  ]
+  ],
+  "postCreateCommand": "npm run prepare"
 }
