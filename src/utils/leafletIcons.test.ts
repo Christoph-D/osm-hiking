@@ -9,7 +9,10 @@ vi.mock('leaflet', async () => {
     default: {
       Icon: {
         Default: {
-          prototype: {},
+          prototype: {
+            options: {},
+          },
+          imagePath: '',
           mergeOptions: vi.fn(),
         },
       },
