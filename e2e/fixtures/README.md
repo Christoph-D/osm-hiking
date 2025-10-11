@@ -1,7 +1,7 @@
 # E2E Test Fixtures
 
-This directory contains cached map data from the Overpass API used for e2e
-testing.
+This directory contains cached map data and mock interceptors for external APIs
+used in e2e testing.
 
 ## Files
 
@@ -11,9 +11,12 @@ testing.
   bounding box, capture timestamp, and element count
 - **overpass-mock.ts**: Playwright route interceptor that mocks Overpass API
   calls with the cached data
-- **README.md**: This file
+- **elevation-mock.ts**: Playwright route interceptor that mocks Open-Elevation
+  API calls with dynamically generated elevation data using simplex noise
+- **tile-mock.ts**: Playwright route interceptor that mocks OpenStreetMap tile
+  requests with a 1x1 green PNG image
 
-## Updating the Mock Data
+## Updating the Overpass API Mock Data
 
 If you need to update the mock data (e.g., after changing the test region or
 zoom level):
@@ -45,22 +48,3 @@ The bounding box is automatically determined by the map view in the tests:
 
 If you change the initial map position or zoom level in the tests, the bounding
 box will automatically adjust to match when you re-run the capture test.
-
-## Captured Region
-
-The current cached data covers this region (see `overpass-metadata.json` for
-exact values):
-
-**Bounding Box:**
-
-- South: 49.990°
-- West: 9.973°
-- North: 50.010°
-- East: 10.027°
-
-**Data Summary:**
-
-- 1,565 OSM elements (nodes and ways)
-- Contains paths, footways, roads, and other walkable routes in central Germany
-- Corresponds to zoom level 15 after 10 zoom-in operations from the default view
-- Captured: 2025-10-11

@@ -1,6 +1,7 @@
 import { test, expect, Page } from '@playwright/test'
-import { setupOverpassMock } from './fixtures/overpass-mock'
 import { setupElevationMock } from './fixtures/elevation-mock'
+import { setupOverpassMock } from './fixtures/overpass-mock'
+import { setupTileMock } from './fixtures/tile-mock'
 import { zoomToRequiredLevel } from './test-utils'
 
 /**
@@ -72,6 +73,7 @@ test.describe('Waypoint Manipulation', () => {
     // Set up API mocking before navigating
     await setupOverpassMock(page)
     await setupElevationMock(page)
+    await setupTileMock(page)
 
     await page.goto('/')
     await page.waitForSelector('.leaflet-container')
