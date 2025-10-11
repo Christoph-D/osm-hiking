@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
+import { execPath } from 'process'
 
 /**
  * Helper function to zoom in to the required zoom level and wait for tiles to load
@@ -35,26 +36,23 @@ async function loadHikingPaths(page: Page) {
   while (retries > 0) {
     await loadButton.click()
 
-    try {
-      // Wait for the "Hiking paths loaded" confirmation message to appear
-      await expect(page.locator('text=/✓ Hiking paths loaded/i')).toBeVisible({
-        timeout: 10000,
-      })
+    // Wait for either "Hiking paths loaded" or "Failed to load map data"
+    const successMsg = page.getByText('Hiking paths loaded')
+    const failureMsg = page.getByText('Failed to load map data')
+    await expect(successMsg.or(failureMsg)).toBeVisible({ timeout: 15000 })
+
+    if (await successMsg.isVisible()) {
+      // Success case - hiking paths loaded
       return
-    } catch (error) {
-      // Check if there's an error message
-      const errorMessage = page.locator('text=/Failed to load map data/i')
-      const isErrorVisible = await errorMessage.isVisible()
-
-      if (isErrorVisible && retries > 1) {
-        // Retry loading
+    } else {
+      // Error case - failed to load map data
+      if (retries > 1) {
         retries--
-        await page.waitForTimeout(1000)
+        await page.waitForTimeout(500)
         continue
+      } else {
+        throw new Error('Failed to load map data after multiple attempts')
       }
-
-      // If no error message or out of retries, throw the original error
-      throw error
     }
   }
 }
