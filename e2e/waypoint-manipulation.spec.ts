@@ -187,7 +187,7 @@ test.describe('Waypoint Manipulation', () => {
       initialBox.y + initialBox.height / 2
     )
     await page.mouse.down()
-    await page.mouse.move(initialBox.x + 50, initialBox.y + 50, { steps: 10 })
+    await page.mouse.move(initialBox.x + 300, initialBox.y + 300, { steps: 10 })
     await page.mouse.up()
 
     // Wait for route to recalculate by checking if distance changes
