@@ -1,5 +1,7 @@
 /node_modules
 /dist
 /*.local
+/playwright-report
+/test-results
 /tsconfig.tsbuildinfo
 /tsconfig.*.tsbuildinfo

@@ -1,0 +1,48 @@
+{
+  // Vitest configuration for unit tests
+  "vitest.enable": true,
+  "vitest.commandLine": "npm test",
+
+  // TypeScript configuration
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+
+  // Test Explorer configuration
+  "testExplorer.useNativeTesting": true,
+
+  // Editor settings for test files
+  "files.associations": {
+    "*.spec.ts": "typescript",
+    "*.test.ts": "typescript"
+  },
+
+  // Auto-save and formatting
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+
+  // Markdown-specific settings
+  "[markdown]": {
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.wordWrap": "on"
+  },
+  "prettier.proseWrap": "always",
+  "markdownlint.config": {
+    "no-duplicate-heading": {
+      "siblings_only": true
+    }
+  },
+
+  // File settings
+  "files.insertFinalNewline": true,
+
+  // Exclude common directories from file watcher
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/coverage/**": true,
+    "**/.git/**": true
+  }
+}

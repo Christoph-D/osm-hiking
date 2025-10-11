@@ -115,6 +115,34 @@ This starts Vite's development server with:
 - Fast refresh for React components
 - Available at <http://localhost:5173>
 
+### Testing
+
+The project includes comprehensive test coverage:
+
+```bash
+# Run all unit tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests with UI
+npm run test:ui
+
+# Run E2E tests
+npm run test:e2e
+```
+
+**Test Coverage:**
+
+- ✅ 45+ unit tests for core services (elevation, GPX export, graph building)
+- ✅ E2E tests for UI interactions
+- ✅ Vitest + @testing-library/react for unit/component tests
+- ✅ Playwright for end-to-end testing
+
+See [TESTING.md](./TESTING.md) for detailed testing guide and
+[PLAN.md](./PLAN.md) for the complete testing strategy.
+
 ### Code Quality
 
 The project uses ESLint and Prettier to maintain code quality and consistency.

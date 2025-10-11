@@ -3,39 +3,28 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
+  "runArgs": ["--sysctl", "net.ipv6.conf.all.disable_ipv6=1"],
   "customizations": {
     "vscode": {
       "extensions": [
         "anthropic.claude-code",
         "Continue.continue",
         "DavidAnson.vscode-markdownlint",
+        "dbaeumer.vscode-eslint",
         "eamodio.gitlens",
         "esbenp.prettier-vscode",
+        "ms-playwright.playwright",
         "saoudrizwan.claude-dev",
-        "dbaeumer.vscode-eslint"
-      ],
-      "settings": {
-        "[markdown]": {
-          "editor.defaultFormatter": "esbenp.prettier-vscode",
-          "diffEditor.ignoreTrimWhitespace": false,
-          "editor.wordWrap": "on"
-        },
-        "prettier.proseWrap": "always",
-        "markdownlint.config": {
-          "no-duplicate-heading": {
-            "siblings_only": true
-          }
-        },
-        "files.insertFinalNewline": true
-      }
+        "vitest.explorer"
+      ]
     }
   },
   "workspaceFolder": "/workspaces/osm-hiking",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/osm-hiking,type=bind,consistency=cached",
-  "remoteUser": "node",
+  "remoteUser": "ubuntu",
   "mounts": [
     "source=bashhistory-osm-hiking,target=/commandhistory,type=volume",
-    "source=claude-code-config-osm-hiking,target=/home/node/claude-config,type=volume"
+    "source=claude-code-config-osm-hiking,target=/home/ubuntu/claude-config,type=volume"
   ],
   "postCreateCommand": "npm run prepare"
 }

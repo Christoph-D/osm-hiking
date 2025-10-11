@@ -1,20 +1,19 @@
-FROM node:lts-alpine3.22
+FROM mcr.microsoft.com/playwright:v1.56.0-noble
 
-RUN apk add --no-cache git curl bash libgcc libstdc++ ripgrep jq
+RUN apt-get update && apt-get install -y git curl ripgrep jq
 
 RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
   && mkdir /commandhistory \
   && touch /commandhistory/.bash_history \
-  && chown -R node /commandhistory \
-  && echo "$SNIPPET" >> "/home/node/.bashrc"
+  && chown -R ubuntu /commandhistory \
+  && echo "$SNIPPET" >> "/home/ubuntu/.bashrc"
 
-USER node
-WORKDIR /home/node
+USER ubuntu
+WORKDIR /home/ubuntu
 
-ENV USE_BUILTIN_RIPGREP=0
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
-  mkdir -p /home/node/claude-config
-ENV CLAUDE_CONFIG_DIR=/home/node/claude-config
-ENV PATH="$HOME/.local/bin:$PATH"
+  mkdir -p /home/ubuntu/claude-config
+ENV CLAUDE_CONFIG_DIR=/home/ubuntu/claude-config
+ENV PATH="/home/ubuntu/.local/bin:$PATH"
 
 WORKDIR /workspaces/osm-hiking
