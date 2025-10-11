@@ -7,17 +7,14 @@ vi.mock('leaflet', async () => {
   return {
     ...actual,
     default: {
-      ...actual.default,
       Icon: {
-        ...actual.default.Icon,
         Default: {
-          ...actual.default.Icon.Default,
           prototype: {},
           mergeOptions: vi.fn(),
         },
       },
-      divIcon: actual.default.divIcon,
-      DivIcon: actual.default.DivIcon,
+      divIcon: actual.divIcon,
+      DivIcon: actual.DivIcon,
     },
   }
 })
