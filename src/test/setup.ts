@@ -14,6 +14,10 @@ vi.mock('leaflet', () => ({
       addLayer: vi.fn(),
     })),
   },
+  DomEvent: {
+    disableClickPropagation: vi.fn(),
+    disableScrollPropagation: vi.fn(),
+  },
 }))
 
 // Mock react-leaflet components

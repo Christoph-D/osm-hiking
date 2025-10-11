@@ -142,7 +142,7 @@ describe('fetchOSMData', () => {
       json: async () => {
         throw new Error('Invalid JSON')
       },
-    } as Response)
+    } as unknown as Response)
 
     const bbox = {
       south: 50.0,
