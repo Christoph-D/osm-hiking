@@ -1,5 +1,6 @@
 import { test, expect, Page } from '@playwright/test'
 import { setupOverpassMock } from './fixtures/overpass-mock'
+import { setupElevationMock } from './fixtures/elevation-mock'
 import { zoomToRequiredLevel } from './test-utils'
 
 /**
@@ -68,8 +69,9 @@ async function getPolylineCount(page: Page): Promise<number> {
 
 test.describe('Waypoint Manipulation', () => {
   test.beforeEach(async ({ page }) => {
-    // Set up Overpass API mocking before navigating
+    // Set up API mocking before navigating
     await setupOverpassMock(page)
+    await setupElevationMock(page)
 
     await page.goto('/')
     await page.waitForSelector('.leaflet-container')
