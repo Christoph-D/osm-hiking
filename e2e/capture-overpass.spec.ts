@@ -2,7 +2,6 @@ import { test } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { zoomToRequiredLevel } from './test-utils'
 
 interface OverpassResponse {
   elements?: Array<unknown>
@@ -57,8 +56,17 @@ test.skip('capture Overpass API response', async ({ page }) => {
   })
 
   await page.goto('/')
+  await page.evaluate(() => {
+    localStorage.setItem(
+      'osm-hiking-map-position',
+      JSON.stringify({
+        center: [50, 10],
+        zoom: 15,
+      })
+    )
+  })
+  await page.goto('/')
   await page.waitForSelector('.leaflet-container')
-  await zoomToRequiredLevel(page)
 
   // Click Load Hiking Paths to trigger the API call
   const loadButton = page.getByRole('button', { name: /load hiking paths/i })

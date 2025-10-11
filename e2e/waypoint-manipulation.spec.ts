@@ -2,7 +2,6 @@ import { test, expect, Page } from '@playwright/test'
 import { setupElevationMock } from './fixtures/elevation-mock'
 import { setupOverpassMock } from './fixtures/overpass-mock'
 import { setupTileMock } from './fixtures/tile-mock'
-import { zoomToRequiredLevel } from './test-utils'
 
 /**
  * Helper function to load hiking path data
@@ -76,8 +75,18 @@ test.describe('Waypoint Manipulation', () => {
     await setupTileMock(page)
 
     await page.goto('/')
+    await page.evaluate(() => {
+      localStorage.setItem(
+        'osm-hiking-map-position',
+        JSON.stringify({
+          center: [50, 10],
+          zoom: 15,
+        })
+      )
+    })
+    await page.goto('/')
+
     await page.waitForSelector('.leaflet-container')
-    await zoomToRequiredLevel(page)
   })
 
   test('should add first waypoint marker at snapped location when clicking map', async ({
@@ -444,5 +453,56 @@ test.describe('Waypoint Manipulation', () => {
 
     // Clear Route button should be disabled again
     await expect(clearButton).toBeDisabled()
+  })
+
+  test('should update localStorage after zoom operations', async ({ page }) => {
+    // Clear initial map position
+    await page.evaluate(() => {
+      localStorage.removeItem('osm-hiking-map-position')
+    })
+
+    await page.goto('/')
+    await page.waitForSelector('.leaflet-container')
+
+    // Perform zoom operations
+
+    // Click zoom in a few times
+    const zoomInButton = page.locator('.leaflet-control-zoom-in')
+    for (let i = 0; i < 3; i++) {
+      await zoomInButton.click()
+
+      // Wait for zoom animation to start
+      await page.waitForFunction(() => {
+        const mapPane = document.querySelector('.leaflet-map-pane')
+        return mapPane && mapPane.classList.contains('leaflet-zoom-anim')
+      })
+      // Wait for zoom animation to complete
+      await page.waitForFunction(() => {
+        const mapPane = document.querySelector('.leaflet-map-pane')
+        return mapPane && !mapPane.classList.contains('leaflet-zoom-anim')
+      })
+    }
+
+    // Click zoom out a few times
+    const zoomOutButton = page.locator('.leaflet-control-zoom-out')
+    for (let i = 0; i < 2; i++) {
+      await zoomOutButton.click()
+
+      // Wait for zoom animation to start
+      await page.waitForFunction(() => {
+        const mapPane = document.querySelector('.leaflet-map-pane')
+        return mapPane && mapPane.classList.contains('leaflet-zoom-anim')
+      })
+      // Wait for zoom animation to complete
+      await page.waitForFunction(() => {
+        const mapPane = document.querySelector('.leaflet-map-pane')
+        return mapPane && !mapPane.classList.contains('leaflet-zoom-anim')
+      })
+    }
+
+    const finalPosition = await page.evaluate(() => {
+      return localStorage.getItem('osm-hiking-map-position')
+    })
+    expect(finalPosition).toBe('{"center":[50,10],"zoom":6}')
   })
 })
