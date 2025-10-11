@@ -9,6 +9,8 @@ on:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.0-noble
 
     strategy:
       matrix:
@@ -26,9 +28,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
 
       - name: Run E2E tests
         run: npm run test:e2e -- --workers=2

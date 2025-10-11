@@ -80,7 +80,7 @@ The app will be available at <http://localhost:5173>
 
 **Prerequisites:**
 
-- Node.js 22+ and npm
+- Node.js 20+ and npm
 
 **Installation:**
 
