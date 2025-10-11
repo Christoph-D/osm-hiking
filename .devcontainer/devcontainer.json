@@ -26,5 +26,5 @@
     "source=bashhistory-osm-hiking,target=/commandhistory,type=volume",
     "source=claude-code-config-osm-hiking,target=/home/ubuntu/claude-config,type=volume"
   ],
-  "postCreateCommand": "npm run prepare"
+  "postCreateCommand": "npm install && npm run prepare"
 }
