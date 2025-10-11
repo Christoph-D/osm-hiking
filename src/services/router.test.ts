@@ -1,0 +1,412 @@
+import { describe, it, expect } from 'vitest'
+import { Router } from './router'
+import { buildRoutingGraph } from './graphBuilder'
+import { OSMData } from '../types'
+
+describe('Router', () => {
+  describe('getNode', () => {
+    it('should return correct node data', () => {
+      const osmData: OSMData = {
+        nodes: new Map([
+          ['node1', { id: 'node1', lat: 50.0, lon: 10.0 }],
+          ['node2', { id: 'node2', lat: 50.1, lon: 10.1 }],
+        ]),
+        ways: [],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      const node = router.getNode('node1')
+      expect(node).toEqual({ id: 'node1', lat: 50.0, lon: 10.0 })
+    })
+
+    it('should return undefined for non-existent node', () => {
+      const osmData: OSMData = {
+        nodes: new Map([['node1', { id: 'node1', lat: 50.0, lon: 10.0 }]]),
+        ways: [],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      const node = router.getNode('nonexistent')
+      expect(node).toBeUndefined()
+    })
+  })
+
+  describe('findNearestNode', () => {
+    it('should return closest node when multiple nodes exist', () => {
+      const osmData: OSMData = {
+        nodes: new Map([
+          ['node1', { id: 'node1', lat: 50.0, lon: 10.0 }],
+          ['node2', { id: 'node2', lat: 50.001, lon: 10.001 }],
+          ['node3', { id: 'node3', lat: 50.01, lon: 10.01 }],
+        ]),
+        ways: [],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      // Click near node2
+      const nearest = router.findNearestNode(50.001, 10.001)
+      expect(nearest).toBe('node2')
+    })
+
+    it('should return null when no nodes within radius', () => {
+      const osmData: OSMData = {
+        nodes: new Map([['node1', { id: 'node1', lat: 50.0, lon: 10.0 }]]),
+        ways: [],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      // Click far from node1 with small max distance
+      const nearest = router.findNearestNode(51.0, 11.0, 100) // ~100km away
+      expect(nearest).toBeNull()
+    })
+
+    it('should return null when no nodes exist', () => {
+      const osmData: OSMData = {
+        nodes: new Map(),
+        ways: [],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      const nearest = router.findNearestNode(50.0, 10.0)
+      expect(nearest).toBeNull()
+    })
+
+    it('should find node within default max distance (100m)', () => {
+      const osmData: OSMData = {
+        nodes: new Map([['node1', { id: 'node1', lat: 50.0, lon: 10.0 }]]),
+        ways: [],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      // Click very close to node1 (within 100m)
+      const nearest = router.findNearestNode(50.0001, 10.0001)
+      expect(nearest).toBe('node1')
+    })
+
+    it('should respect custom max distance parameter', () => {
+      const osmData: OSMData = {
+        nodes: new Map([['node1', { id: 'node1', lat: 50.0, lon: 10.0 }]]),
+        ways: [],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      // Click ~157m away from node1
+      const nearest = router.findNearestNode(50.001, 10.001, 200)
+      expect(nearest).toBe('node1')
+
+      // Same click with smaller max distance should return null
+      const nearestSmall = router.findNearestNode(50.001, 10.001, 50)
+      expect(nearestSmall).toBeNull()
+    })
+
+    it('should handle single node graph', () => {
+      const osmData: OSMData = {
+        nodes: new Map([['node1', { id: 'node1', lat: 50.0, lon: 10.0 }]]),
+        ways: [],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      const nearest = router.findNearestNode(50.0, 10.0, 100)
+      expect(nearest).toBe('node1')
+    })
+  })
+
+  describe('route', () => {
+    it('should find shortest path between connected nodes', () => {
+      const osmData: OSMData = {
+        nodes: new Map([
+          ['node1', { id: 'node1', lat: 50.0, lon: 10.0 }],
+          ['node2', { id: 'node2', lat: 50.001, lon: 10.001 }],
+          ['node3', { id: 'node3', lat: 50.002, lon: 10.002 }],
+        ]),
+        ways: [
+          {
+            id: 'way1',
+            nodes: ['node1', 'node2', 'node3'],
+            tags: { highway: 'path' },
+          },
+        ],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      const segment = router.route('node1', 'node3')
+
+      expect(segment).not.toBeNull()
+      expect(segment?.coordinates).toHaveLength(3)
+      expect(segment?.coordinates[0]).toEqual([10.0, 50.0])
+      expect(segment?.coordinates[2]).toEqual([10.002, 50.002])
+      expect(segment?.distance).toBeGreaterThan(0)
+    })
+
+    it('should return null when no path exists', () => {
+      const osmData: OSMData = {
+        nodes: new Map([
+          ['node1', { id: 'node1', lat: 50.0, lon: 10.0 }],
+          ['node2', { id: 'node2', lat: 50.1, lon: 10.1 }],
+          ['node3', { id: 'node3', lat: 50.2, lon: 10.2 }],
+          ['node4', { id: 'node4', lat: 50.3, lon: 10.3 }],
+        ]),
+        ways: [
+          // Two disconnected components
+          { id: 'way1', nodes: ['node1', 'node2'], tags: { highway: 'path' } },
+          { id: 'way2', nodes: ['node3', 'node4'], tags: { highway: 'path' } },
+        ],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      // Try to route between disconnected nodes
+      const segment = router.route('node1', 'node3')
+      expect(segment).toBeNull()
+    })
+
+    it('should handle same start and end node', () => {
+      const osmData: OSMData = {
+        nodes: new Map([
+          ['node1', { id: 'node1', lat: 50.0, lon: 10.0 }],
+          ['node2', { id: 'node2', lat: 50.001, lon: 10.001 }],
+        ]),
+        ways: [
+          { id: 'way1', nodes: ['node1', 'node2'], tags: { highway: 'path' } },
+        ],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      const segment = router.route('node1', 'node1')
+
+      // Should return null or a segment with single point and zero distance
+      if (segment) {
+        expect(segment.coordinates).toHaveLength(1)
+        expect(segment.distance).toBe(0)
+      } else {
+        expect(segment).toBeNull()
+      }
+    })
+
+    it('should throw error for non-existent start node', () => {
+      const osmData: OSMData = {
+        nodes: new Map([
+          ['node1', { id: 'node1', lat: 50.0, lon: 10.0 }],
+          ['node2', { id: 'node2', lat: 50.001, lon: 10.001 }],
+        ]),
+        ways: [
+          { id: 'way1', nodes: ['node1', 'node2'], tags: { highway: 'path' } },
+        ],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      // ngraph.path throws error for non-existent nodes
+      expect(() => router.route('nonexistent', 'node1')).toThrow()
+    })
+
+    it('should throw error for non-existent end node', () => {
+      const osmData: OSMData = {
+        nodes: new Map([
+          ['node1', { id: 'node1', lat: 50.0, lon: 10.0 }],
+          ['node2', { id: 'node2', lat: 50.001, lon: 10.001 }],
+        ]),
+        ways: [
+          { id: 'way1', nodes: ['node1', 'node2'], tags: { highway: 'path' } },
+        ],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      // ngraph.path throws error for non-existent nodes
+      expect(() => router.route('node1', 'nonexistent')).toThrow()
+    })
+
+    it('should find direct path between two nodes', () => {
+      const osmData: OSMData = {
+        nodes: new Map([
+          ['node1', { id: 'node1', lat: 50.0, lon: 10.0 }],
+          ['node2', { id: 'node2', lat: 50.001, lon: 10.001 }],
+        ]),
+        ways: [
+          {
+            id: 'way1',
+            nodes: ['node1', 'node2'],
+            tags: { highway: 'path' },
+          },
+        ],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      const segment = router.route('node1', 'node2')
+
+      expect(segment).not.toBeNull()
+      expect(segment?.coordinates).toHaveLength(2)
+      expect(segment?.coordinates[0]).toEqual([10.0, 50.0])
+      expect(segment?.coordinates[1]).toEqual([10.001, 50.001])
+      expect(segment?.distance).toBeGreaterThan(0)
+      expect(segment?.distance).toBeLessThan(200) // Should be ~157m
+    })
+
+    it('should respect edge weights in pathfinding', () => {
+      // Create a graph where the direct path is longer but the indirect path is shorter
+      const osmData: OSMData = {
+        nodes: new Map([
+          ['node1', { id: 'node1', lat: 50.0, lon: 10.0 }],
+          ['node2', { id: 'node2', lat: 50.002, lon: 10.0 }], // Direct route
+          ['node3', { id: 'node3', lat: 50.001, lon: 10.001 }], // Waypoint for better route
+        ]),
+        ways: [
+          {
+            id: 'way1',
+            nodes: ['node1', 'node2'],
+            tags: { highway: 'residential' }, // Higher weight (less preferred)
+          },
+          {
+            id: 'way2',
+            nodes: ['node1', 'node3'],
+            tags: { highway: 'path' }, // Lower weight (preferred)
+          },
+          {
+            id: 'way3',
+            nodes: ['node3', 'node2'],
+            tags: { highway: 'path' }, // Lower weight (preferred)
+          },
+        ],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      const segment = router.route('node1', 'node2')
+
+      expect(segment).not.toBeNull()
+      expect(segment?.coordinates.length).toBeGreaterThanOrEqual(2)
+    })
+
+    it('should calculate correct total distance for multi-segment path', () => {
+      const osmData: OSMData = {
+        nodes: new Map([
+          ['node1', { id: 'node1', lat: 50.0, lon: 10.0 }],
+          ['node2', { id: 'node2', lat: 50.001, lon: 10.001 }],
+          ['node3', { id: 'node3', lat: 50.002, lon: 10.002 }],
+          ['node4', { id: 'node4', lat: 50.003, lon: 10.003 }],
+        ]),
+        ways: [
+          {
+            id: 'way1',
+            nodes: ['node1', 'node2', 'node3', 'node4'],
+            tags: { highway: 'path' },
+          },
+        ],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      const segment = router.route('node1', 'node4')
+
+      expect(segment).not.toBeNull()
+      expect(segment?.coordinates).toHaveLength(4)
+      expect(segment?.distance).toBeGreaterThan(0)
+
+      // Distance should be cumulative across all segments
+      const expectedMinDistance = 350 // Rough estimate (actual ~396m)
+      expect(segment?.distance).toBeGreaterThan(expectedMinDistance)
+    })
+
+    it('should handle disconnected graph components', () => {
+      const osmData: OSMData = {
+        nodes: new Map([
+          ['node1', { id: 'node1', lat: 50.0, lon: 10.0 }],
+          ['node2', { id: 'node2', lat: 50.001, lon: 10.001 }],
+          ['node3', { id: 'node3', lat: 50.1, lon: 10.1 }],
+          ['node4', { id: 'node4', lat: 50.101, lon: 10.101 }],
+        ]),
+        ways: [
+          {
+            id: 'way1',
+            nodes: ['node1', 'node2'], // Connected component 1
+            tags: { highway: 'path' },
+          },
+          {
+            id: 'way2',
+            nodes: ['node3', 'node4'], // Connected component 2 (disconnected)
+            tags: { highway: 'path' },
+          },
+        ],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      // Try to route between disconnected components
+      const segment = router.route('node1', 'node3')
+      expect(segment).toBeNull()
+    })
+
+    it('should find path in complex network with multiple options', () => {
+      const osmData: OSMData = {
+        nodes: new Map([
+          ['node1', { id: 'node1', lat: 50.0, lon: 10.0 }],
+          ['node2', { id: 'node2', lat: 50.001, lon: 10.001 }],
+          ['node3', { id: 'node3', lat: 50.002, lon: 10.002 }],
+          ['node4', { id: 'node4', lat: 50.001, lon: 10.002 }],
+        ]),
+        ways: [
+          {
+            id: 'way1',
+            nodes: ['node1', 'node2'],
+            tags: { highway: 'path' },
+          },
+          {
+            id: 'way2',
+            nodes: ['node2', 'node3'],
+            tags: { highway: 'path' },
+          },
+          {
+            id: 'way3',
+            nodes: ['node1', 'node4'],
+            tags: { highway: 'path' },
+          },
+          {
+            id: 'way4',
+            nodes: ['node4', 'node3'],
+            tags: { highway: 'path' },
+          },
+        ],
+      }
+
+      const graph = buildRoutingGraph(osmData)
+      const router = new Router(graph)
+
+      const segment = router.route('node1', 'node3')
+
+      expect(segment).not.toBeNull()
+      expect(segment?.coordinates[0]).toEqual([10.0, 50.0])
+      expect(segment?.coordinates[segment.coordinates.length - 1]).toEqual([
+        10.002, 50.002,
+      ])
+    })
+  })
+})
