@@ -2,6 +2,7 @@ import { test, expect, Page } from '@playwright/test'
 import { setupElevationMock } from './fixtures/elevation-mock'
 import { setupOverpassMock } from './fixtures/overpass-mock'
 import { setupTileMock } from './fixtures/tile-mock'
+import { setMapPosition } from './utils'
 
 /**
  * Helper function to load hiking path data
@@ -75,15 +76,7 @@ test.describe('Waypoint Manipulation', () => {
     await setupTileMock(page)
 
     await page.goto('/')
-    await page.evaluate(() => {
-      localStorage.setItem(
-        'osm-hiking-map-position',
-        JSON.stringify({
-          center: [50, 10],
-          zoom: 15,
-        })
-      )
-    })
+    await page.evaluate(setMapPosition)
     await page.goto('/')
 
     await page.waitForSelector('.leaflet-container')
