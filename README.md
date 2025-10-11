@@ -1,5 +1,7 @@
 # OSM Hiking Route Planner
 
+[![Tests](https://github.com/Christoph-D/osm-hiking/actions/workflows/tests.yml/badge.svg)](https://github.com/Christoph-D/osm-hiking/actions/workflows/tests.yml)
+
 A fully client-side web application for planning hiking routes using
 OpenStreetMap data. Create custom hiking routes that automatically snap to
 trails and footpaths, view elevation profiles, and export routes as GPX files.
