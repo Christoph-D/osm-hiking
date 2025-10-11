@@ -138,13 +138,12 @@ npm run test:e2e
 
 **Test Coverage:**
 
-- ✅ 45+ unit tests for core services (elevation, GPX export, graph building)
+- ✅ Unit tests for core services (elevation, GPX export, graph building)
 - ✅ E2E tests for UI interactions
 - ✅ Vitest + @testing-library/react for unit/component tests
 - ✅ Playwright for end-to-end testing
 
-See [TESTING.md](./TESTING.md) for detailed testing guide and
-[PLAN.md](./PLAN.md) for the complete testing strategy.
+See [TESTING.md](./TESTING.md) for detailed testing guide.
 
 ### Code Quality
 
