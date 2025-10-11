@@ -33,10 +33,20 @@ test.describe('OSM Hiking Route Planner', () => {
     // Find and click the zoom in button multiple times to reach sufficient zoom level
     const zoomInButton = page.locator('.leaflet-control-zoom-in')
 
-    // Click zoom in several times to ensure we reach the minimum requires zoom level
+    // Click zoom in several times to ensure we reach the minimum required zoom level
     for (let i = 0; i < 8; i++) {
       await zoomInButton.click()
-      await page.waitForTimeout(300) // Wait for zoom animation
+
+      // Wait for zoom animation to start
+      await page.waitForFunction(() => {
+        const mapPane = document.querySelector('.leaflet-map-pane')
+        return mapPane && mapPane.classList.contains('leaflet-zoom-anim')
+      })
+      // Wait for zoom animation to complete
+      await page.waitForFunction(() => {
+        const mapPane = document.querySelector('.leaflet-map-pane')
+        return mapPane && !mapPane.classList.contains('leaflet-zoom-anim')
+      })
     }
 
     // Verify the zoom warning is no longer visible
@@ -91,11 +101,11 @@ test.describe('OSM Hiking Route Planner', () => {
     // Wait for map container
     await page.waitForSelector('.leaflet-container')
 
-    // Wait a bit for tiles to start loading
-    await page.waitForTimeout(2000)
+    // Wait for at least one tile to be visible
+    const tiles = page.locator('.leaflet-tile')
+    await expect(tiles.first()).toBeVisible({ timeout: 10000 })
 
     // Check if any tiles are present (they should have loaded)
-    const tiles = page.locator('.leaflet-tile')
     const tileCount = await tiles.count()
     expect(tileCount).toBeGreaterThan(0)
   })
@@ -108,8 +118,18 @@ test.describe('OSM Hiking Route Planner', () => {
     const zoomInButton = page.locator('.leaflet-control-zoom-in')
     await zoomInButton.click()
 
-    // Wait for zoom animation and moveend event
-    await page.waitForTimeout(1000)
+    // Wait for localStorage to be updated by checking for the saved position
+    await page.waitForFunction(
+      () => {
+        const savedPosition = localStorage.getItem('osm-hiking-map-position')
+        return (
+          savedPosition &&
+          savedPosition.includes('center') &&
+          savedPosition.includes('zoom')
+        )
+      },
+      { timeout: 5000 }
+    )
 
     // Check localStorage for saved position
     const savedPosition = await page.evaluate(() => {
