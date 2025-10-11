@@ -1,6 +1,12 @@
 import { test, expect } from '@playwright/test'
+import { setupOverpassMock } from './fixtures/overpass-mock'
 
 test.describe('OSM Hiking Route Planner', () => {
+  test.beforeEach(async ({ page }) => {
+    // Set up Overpass API mocking before each test
+    await setupOverpassMock(page)
+  })
+
   test('should load the application successfully', async ({ page }) => {
     await page.goto('/')
 

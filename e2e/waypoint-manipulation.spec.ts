@@ -1,28 +1,6 @@
 import { test, expect, Page } from '@playwright/test'
-import { execPath } from 'process'
-
-/**
- * Helper function to zoom in to the required zoom level and wait for tiles to load
- */
-async function zoomToRequiredLevel(page: Page) {
-  const zoomInButton = page.locator('.leaflet-control-zoom-in')
-
-  // Click zoom in a few times to reach the minimum required zoom level
-  for (let i = 0; i < 10; i++) {
-    await zoomInButton.click()
-
-    // Wait for zoom animation to start
-    await page.waitForFunction(() => {
-      const mapPane = document.querySelector('.leaflet-map-pane')
-      return mapPane && mapPane.classList.contains('leaflet-zoom-anim')
-    })
-    // Wait for zoom animation to complete
-    await page.waitForFunction(() => {
-      const mapPane = document.querySelector('.leaflet-map-pane')
-      return mapPane && !mapPane.classList.contains('leaflet-zoom-anim')
-    })
-  }
-}
+import { setupOverpassMock } from './fixtures/overpass-mock'
+import { zoomToRequiredLevel } from './test-utils'
 
 /**
  * Helper function to load hiking path data
@@ -90,6 +68,9 @@ async function getPolylineCount(page: Page): Promise<number> {
 
 test.describe('Waypoint Manipulation', () => {
   test.beforeEach(async ({ page }) => {
+    // Set up Overpass API mocking before navigating
+    await setupOverpassMock(page)
+
     await page.goto('/')
     await page.waitForSelector('.leaflet-container')
     await zoomToRequiredLevel(page)
