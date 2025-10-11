@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Controls } from './Controls'
 import {
@@ -29,13 +29,15 @@ describe('Controls', () => {
     },
   }
 
-  beforeEach(() => {
-    resetRouteStore()
-    vi.clearAllMocks()
+  beforeEach(async () => {
+    await act(async () => {
+      resetRouteStore()
+      vi.clearAllMocks()
+    })
   })
 
-  afterEach(() => {
-    resetRouteStore()
+  afterEach(async () => {
+    await act(async () => resetRouteStore())
   })
 
   describe('Rendering', () => {

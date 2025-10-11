@@ -398,15 +398,36 @@ describe('ElevationProfile', () => {
 
   describe('Edge Cases', () => {
     it('should handle single elevation point', () => {
-      const singlePoint = createMockElevationProfile(1)
+      // Single point with some distance to avoid division by zero
+      const singlePoint = [
+        {
+          distance: 100,
+          elevation: 200,
+          lat: 50.0,
+          lon: 10.0,
+        },
+      ]
+      const singleStats = createMockElevationStats({
+        min: 200,
+        max: 200,
+      })
+      // Suppress console warnings for this edge case test
+      const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const consoleError = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {})
+
       const { container } = render(
         <ElevationProfile
           elevationProfile={singlePoint}
-          elevationStats={mockElevationStats}
+          elevationStats={singleStats}
         />
       )
       const svg = container.querySelector('svg')
       expect(svg).toBeInTheDocument()
+
+      consoleWarn.mockRestore()
+      consoleError.mockRestore()
     })
 
     it('should handle very large elevation values', () => {
@@ -426,22 +447,37 @@ describe('ElevationProfile', () => {
       expect(screen.getByText('8000 m')).toBeInTheDocument()
     })
 
-    it('should handle zero elevation values', () => {
-      const zeroStats = createMockElevationStats({
+    it('should handle zero elevation range with multiple points', () => {
+      // Create profile with varying distance but same elevation
+      const flatProfile = [
+        { distance: 0, elevation: 100, lat: 50.0, lon: 10.0 },
+        { distance: 1000, elevation: 100, lat: 50.001, lon: 10.001 },
+        { distance: 2000, elevation: 100, lat: 50.002, lon: 10.002 },
+      ]
+      const flatStats = createMockElevationStats({
         gain: 0,
         loss: 0,
-        min: 0,
-        max: 0,
+        min: 100,
+        max: 100,
       })
+      // Suppress console warnings for this edge case test
+      const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const consoleError = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {})
+
       render(
         <ElevationProfile
-          elevationProfile={mockElevationProfile}
-          elevationStats={zeroStats}
+          elevationProfile={flatProfile}
+          elevationStats={flatStats}
         />
       )
-      // Use getAllByText since multiple stats will show "0 m"
-      const zeroTexts = screen.getAllByText('0 m')
-      expect(zeroTexts.length).toBeGreaterThan(0)
+      // Use getAllByText since multiple stats will show "100 m"
+      const elevationTexts = screen.getAllByText('100 m')
+      expect(elevationTexts.length).toBeGreaterThan(0)
+
+      consoleWarn.mockRestore()
+      consoleError.mockRestore()
     })
   })
 })

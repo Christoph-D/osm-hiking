@@ -21,7 +21,11 @@ export default defineConfig({
         'src/test/',
         'e2e/',
         '*.config.ts',
+        '*.config.js',
         'src/main.tsx',
+        'src/types/**',
+        'src/components/MapContainer.tsx', // Complex integration component covered by e2e tests
+        'dist/**',
       ],
     },
   },
