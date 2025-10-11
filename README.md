@@ -45,7 +45,7 @@ trails and footpaths, view elevation profiles, and export routes as GPX files.
 
 ## Tech Stack
 
-- **React 18** + TypeScript for UI
+- **React 19** + TypeScript for UI
 - **Vite** for fast development and optimized builds
 - **Leaflet** + React-Leaflet for interactive mapping
 - **Overpass API** for downloading OpenStreetMap hiking path data
@@ -80,7 +80,7 @@ The app will be available at <http://localhost:5173>
 
 **Prerequisites:**
 
-- Node.js 18+ and npm
+- Node.js 22+ and npm
 
 **Installation:**
 
