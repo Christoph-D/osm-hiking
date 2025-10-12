@@ -28,14 +28,9 @@ interface UseMapEventsParams {
     east: number
   } | null
   isProcessingMarkerClickRef: RefObject<boolean>
-  processMapClick: (
-    router: Router,
-    lat: number,
-    lng: number,
-    forceNewRoute?: boolean
-  ) => void
+  processMapClick: (router: Router, lat: number, lng: number) => void
   loadData: (
-    onSuccess?: (router: Router, forceNewRoute: boolean) => void,
+    onSuccess?: (router: Router) => void,
     skipConfirmation?: boolean
   ) => Promise<{ router: Router; waypointNodeIds: string[] } | undefined>
 }
@@ -101,14 +96,14 @@ export function useMapEvents({
         // Store pending click and load data
         // loadData will handle zoom validation and route clearing confirmation
         pendingClick.current = { lat, lng }
-        loadData((loadedRouter, forceNewRoute) => {
+        loadData((loadedRouter) => {
           // Process the pending click after data loads
           if (pendingClick.current) {
             const pendingLat = pendingClick.current.lat
             const pendingLng = pendingClick.current.lng
             pendingClick.current = null
             // Process with the loaded router
-            processMapClick(loadedRouter, pendingLat, pendingLng, forceNewRoute)
+            processMapClick(loadedRouter, pendingLat, pendingLng)
           }
         })
         return

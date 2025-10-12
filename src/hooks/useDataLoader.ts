@@ -56,10 +56,7 @@ export function useDataLoader({
   const [loadedBbox, setLoadedBbox] = useState<LoadedBbox | null>(null)
 
   const loadData = useCallback(
-    async (
-      onSuccess?: (router: Router, forceNewRoute: boolean) => void,
-      skipConfirmation = false
-    ) => {
+    async (onSuccess?: (router: Router) => void, skipConfirmation = false) => {
       try {
         // Check zoom level - only load if zoomed in enough
         if (map.getZoom() < MIN_ZOOM) {
@@ -146,7 +143,7 @@ export function useDataLoader({
 
           // Call success callback if provided
           if (onSuccess) {
-            onSuccess(newRouter, false)
+            onSuccess(newRouter)
           }
 
           return { router: newRouter, waypointNodeIds: nodeIds }
@@ -155,9 +152,8 @@ export function useDataLoader({
         setLoading(false)
 
         // Call success callback
-        // Force new route only when we didn't preserve waypoints
         if (onSuccess) {
-          onSuccess(newRouter, true)
+          onSuccess(newRouter)
         }
 
         return { router: newRouter, waypointNodeIds: [] }
