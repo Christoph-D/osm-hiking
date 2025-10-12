@@ -11,7 +11,7 @@
  * Coordinates between user clicks, data loading, and waypoint processing.
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useMapEvents as useLeafletMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { Router } from '../services/router'
@@ -52,7 +52,6 @@ export function useMapEvents({
   const [currentZoom, setCurrentZoom] = useState(map.getZoom())
   const [currentBounds, setCurrentBounds] = useState<MapBounds | null>(null)
   const [isCurrentViewLoaded, setIsCurrentViewLoaded] = useState(false)
-  const pendingClick = useRef<{ lat: number; lng: number } | null>(null)
 
   // Initialize current bounds on mount
   useEffect(() => {
@@ -87,16 +86,10 @@ export function useMapEvents({
       if (needsDataLoad) {
         // Store pending click and load data
         // loadData will handle zoom validation and route clearing confirmation
-        pendingClick.current = { lat, lng }
         loadData((loadedRouter) => {
           // Process the pending click after data loads
-          if (pendingClick.current) {
-            const pendingLat = pendingClick.current.lat
-            const pendingLng = pendingClick.current.lng
-            pendingClick.current = null
-            // Process with the loaded router
-            processMapClick(loadedRouter, pendingLat, pendingLng)
-          }
+          // Process with the loaded router
+          processMapClick(loadedRouter, lat, lng)
         })
         return
       }
