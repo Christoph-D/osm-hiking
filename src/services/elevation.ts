@@ -1,3 +1,5 @@
+import { Route, ElevationPoint } from '../types'
+
 interface ElevationResult {
   latitude: number
   longitude: number
@@ -234,4 +236,75 @@ export function calculateElevationStats(elevations: number[]): {
   }
 
   return { gain, loss, min, max }
+}
+
+/**
+ * Collect all coordinates from route segments, handling segment connections
+ * @param route The route containing segments to process
+ * @returns Array of all coordinates in order
+ */
+export function collectRouteCoordinates(route: Route): [number, number][] {
+  const allCoordinates: [number, number][] = []
+
+  for (let i = 0; i < route.segments.length; i++) {
+    const segment = route.segments[i]
+    if (i === 0) {
+      // First segment: include all coordinates (usually just one point)
+      allCoordinates.push(...segment.coordinates)
+    } else {
+      // Check if this segment connects to the previous one
+      const prevLastCoord = allCoordinates[allCoordinates.length - 1]
+      const currFirstCoord = segment.coordinates[0]
+      const coordsMatch =
+        prevLastCoord &&
+        Math.abs(prevLastCoord[0] - currFirstCoord[0]) < 0.000001 &&
+        Math.abs(prevLastCoord[1] - currFirstCoord[1]) < 0.000001
+
+      if (coordsMatch) {
+        // Skip the first coordinate (it's the same as the last coordinate of the previous segment)
+        allCoordinates.push(...segment.coordinates.slice(1))
+      } else {
+        // Segments don't connect, include all coordinates
+        allCoordinates.push(...segment.coordinates)
+      }
+    }
+  }
+
+  return allCoordinates
+}
+
+/**
+ * Calculate theoretical distances for subdivided points
+ * @param originalDistances Cumulative distances along the original path
+ * @param numPoints Number of points in the subdivided path
+ * @returns Array of distances for each subdivided point
+ */
+export function calculateSubdividedDistances(
+  originalDistances: number[],
+  numPoints: number
+): number[] {
+  const totalDistance = originalDistances[originalDistances.length - 1]
+  const spacing = totalDistance / (numPoints - 1)
+
+  return Array.from({ length: numPoints }, (_, i) => i * spacing)
+}
+
+/**
+ * Build elevation profile from coordinates and elevations
+ * @param coordinates Array of [lon, lat] coordinates
+ * @param elevations Array of elevation values
+ * @param distances Array of distances for each point
+ * @returns Array of ElevationPoint objects
+ */
+export function buildElevationProfile(
+  coordinates: [number, number][],
+  elevations: number[],
+  distances: number[]
+): ElevationPoint[] {
+  return coordinates.map((coord, i) => ({
+    distance: distances[i],
+    elevation: elevations[i],
+    lat: coord[1], // coord[1] is latitude
+    lon: coord[0], // coord[0] is longitude
+  }))
 }
