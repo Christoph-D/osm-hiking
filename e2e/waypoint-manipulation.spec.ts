@@ -522,7 +522,6 @@ test.describe('Waypoint Manipulation', () => {
   test('should reload hiking data when panning and clicking in newly revealed area', async ({
     page,
   }) => {
-    // Load initial hiking paths
     await loadHikingPaths(page)
 
     const initialBoundingBox = getLastBoundingBox()
@@ -545,5 +544,23 @@ test.describe('Waypoint Manipulation', () => {
 
     expect(boundingBox.minLat).toBeGreaterThan(initialBoundingBox.minLat)
     expect(boundingBox.maxLat).toBeGreaterThan(initialBoundingBox.maxLat)
+  })
+
+  test('should add a new waypoint when clicking in a new area', async ({
+    page,
+  }) => {
+    await loadHikingPaths(page)
+
+    // Drag the map to pan it
+    await page.mouse.move(100, 100)
+    await page.mouse.down()
+    await page.mouse.move(400, 400)
+    await page.mouse.up()
+
+    // Click in the newly revealed area
+    await clickMap(page, 200, 200)
+
+    // Check that a new waypoint was added
+    await expect(page.locator('.leaflet-marker-icon')).toHaveCount(1)
   })
 })
