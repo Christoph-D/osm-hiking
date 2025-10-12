@@ -554,13 +554,33 @@ test.describe('Waypoint Manipulation', () => {
     // Drag the map to pan it
     await page.mouse.move(100, 100)
     await page.mouse.down()
-    await page.mouse.move(400, 400)
+    await page.mouse.move(1000, 1000, { steps: 20 })
     await page.mouse.up()
+    // Wait for pan animation to start
+    await page.waitForFunction(() => {
+      const mapPane = document.querySelector('.leaflet-map-pane')
+      return mapPane && mapPane.classList.contains('leaflet-pan-anim')
+    })
+    // Wait for pan animation to complete
+    await page.waitForFunction(() => {
+      const mapPane = document.querySelector('.leaflet-map-pane')
+      return mapPane && !mapPane.classList.contains('leaflet-pan-anim')
+    })
 
     // Click in the newly revealed area
     await clickMap(page, 200, 200)
 
     // Check that a new waypoint was added
-    await expect(page.locator('.leaflet-marker-icon')).toHaveCount(1)
+    const markers = page.locator('.leaflet-marker-icon')
+    await expect(markers).toHaveCount(1)
+
+    // Verify the marker is in the expected position based on Overpass mock data
+    const marker = markers.first()
+    const markerBox = await marker.boundingBox()
+    if (!markerBox) {
+      throw new Error('Marker bounding box not found')
+    }
+    expect(Math.abs(200 - markerBox.x)).toBeLessThanOrEqual(40)
+    expect(Math.abs(200 - markerBox.y)).toBeLessThanOrEqual(40)
   })
 })
