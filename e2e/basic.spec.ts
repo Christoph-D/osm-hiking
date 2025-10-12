@@ -1,37 +1,25 @@
 import { test, expect } from '@playwright/test'
 import { setupOverpassMock } from './fixtures/overpass-mock'
+import { Jimp } from 'jimp'
+import { setupElevationMock } from './fixtures/elevation-mock'
+import { setupTileMock } from './fixtures/tile-mock'
 
 test.describe('OSM Hiking Route Planner', () => {
   test.beforeEach(async ({ page }) => {
-    // Set up Overpass API mocking before each test
     await setupOverpassMock(page)
-  })
-
-  test('should load the application successfully', async ({ page }) => {
+    await setupElevationMock(page)
+    await setupTileMock(page)
     await page.goto('/')
-
-    // Check that the map container is present
-    await expect(page.locator('.leaflet-container')).toBeVisible()
+    await page.waitForSelector('.leaflet-container')
   })
 
   test('should display map controls', async ({ page }) => {
-    await page.goto('/')
-
-    // Wait for the map to load
-    await page.waitForSelector('.leaflet-container')
-
-    // Check for zoom controls
     await expect(page.locator('.leaflet-control-zoom')).toBeVisible()
   })
 
   test('should hide zoom level warning after zooming in enough levels', async ({
     page,
   }) => {
-    await page.goto('/')
-
-    // Wait for the map to load
-    await page.waitForSelector('.leaflet-container')
-
     // Check if zoom warning is initially visible
     const zoomWarning = page.getByText(/Please zoom in more/i)
     await expect(zoomWarning).toBeVisible()
@@ -60,20 +48,12 @@ test.describe('OSM Hiking Route Planner', () => {
   })
 
   test('should display route planner panel', async ({ page }) => {
-    await page.goto('/')
-
-    await page.waitForSelector('.leaflet-container')
-
     // Check for the route planner heading
     const heading = page.getByRole('heading', { name: /route planner/i })
     await expect(heading).toBeVisible()
   })
 
   test('should have clear route button', async ({ page }) => {
-    await page.goto('/')
-
-    await page.waitForSelector('.leaflet-container')
-
     // Look for Clear Route button
     const clearButton = page.getByRole('button', { name: /clear route/i })
     await expect(clearButton).toBeVisible()
@@ -81,10 +61,6 @@ test.describe('OSM Hiking Route Planner', () => {
   })
 
   test('should have load hiking paths button', async ({ page }) => {
-    await page.goto('/')
-
-    await page.waitForSelector('.leaflet-container')
-
     // Look for Load Hiking Paths button
     const loadButton = page.getByRole('button', { name: /load hiking paths/i })
     await expect(loadButton).toBeVisible()
@@ -92,50 +68,42 @@ test.describe('OSM Hiking Route Planner', () => {
   })
 
   test('should display instruction text', async ({ page }) => {
-    await page.goto('/')
-
-    await page.waitForSelector('.leaflet-container')
-
     // Check for instruction text
     const instructionText = page.getByText(/zoom in enough.*click on the map/i)
     await expect(instructionText).toBeVisible()
   })
 
   test('should render map tiles', async ({ page }) => {
-    await page.goto('/')
+    // Wait for network to be idle (tile requests finished)
+    await page.waitForLoadState('networkidle')
 
-    // Wait for map container
-    await page.waitForSelector('.leaflet-container')
+    // Check if a tile is a green image (they should all be the same in the test)
+    // Take a screenshot of the page and check the color of the center pixel
+    const screenshot = await page.screenshot()
+    const image = await Jimp.read(screenshot)
 
-    // Wait for at least one tile to be visible
-    const tiles = page.locator('.leaflet-tile')
-    await expect(tiles.first()).toBeVisible({ timeout: 10000 })
+    const centerX = Math.floor(image.bitmap.width / 2)
+    const centerY = Math.floor(image.bitmap.height / 2)
+    const color = image.getPixelColor(centerX, centerY)
 
-    // Check if any tiles are present (they should have loaded)
-    const tileCount = await tiles.count()
-    expect(tileCount).toBeGreaterThan(0)
+    // The mocked test tiles are all green (1x1 green PNG).
+    expect(color).toBe(0x226f2fff)
   })
 
   test('should persist map position in localStorage', async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('.leaflet-container')
-
     // Use zoom controls to trigger a moveend event
     const zoomInButton = page.locator('.leaflet-control-zoom-in')
     await zoomInButton.click()
 
     // Wait for localStorage to be updated by checking for the saved position
-    await page.waitForFunction(
-      () => {
-        const savedPosition = localStorage.getItem('osm-hiking-map-position')
-        return (
-          savedPosition &&
-          savedPosition.includes('center') &&
-          savedPosition.includes('zoom')
-        )
-      },
-      { timeout: 5000 }
-    )
+    await page.waitForFunction(() => {
+      const savedPosition = localStorage.getItem('osm-hiking-map-position')
+      return (
+        savedPosition &&
+        savedPosition.includes('center') &&
+        savedPosition.includes('zoom')
+      )
+    })
 
     // Check localStorage for saved position
     const savedPosition = await page.evaluate(() => {

@@ -70,7 +70,6 @@ async function getPolylineCount(page: Page): Promise<number> {
 
 test.describe('Waypoint Manipulation', () => {
   test.beforeEach(async ({ page }) => {
-    // Set up API mocking before navigating
     await setupOverpassMock(page)
     await setupElevationMock(page)
     await setupTileMock(page)
