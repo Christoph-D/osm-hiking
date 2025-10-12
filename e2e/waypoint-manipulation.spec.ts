@@ -450,6 +450,7 @@ test.describe('Waypoint Manipulation', () => {
       localStorage.removeItem('osm-hiking-map-position')
     })
 
+    // Reload the page so it picks up the new localStorage value
     await page.goto('/')
     await page.waitForSelector('.leaflet-container')
 
@@ -493,5 +494,28 @@ test.describe('Waypoint Manipulation', () => {
       return localStorage.getItem('osm-hiking-map-position')
     })
     expect(finalPosition).toBe('{"center":[50,10],"zoom":6}')
+  })
+
+  test('should use correct marker icons for waypoints in a route', async ({
+    page,
+  }) => {
+    await loadHikingPaths(page)
+
+    const markers = page.locator('.leaflet-marker-icon, .custom-flag-icon')
+
+    // Create a route
+    await clickMap(page, 350, 300)
+    await clickMap(page, 400, 300)
+    await clickMap(page, 450, 300)
+    await clickMap(page, 700, 300)
+    await expect(markers).toHaveCount(4)
+
+    // Verify initial markers use default icon
+    await expect(markers.nth(0)).toContainClass('leaflet-marker-icon')
+    await expect(markers.nth(1)).toContainClass('leaflet-marker-icon')
+    await expect(markers.nth(2)).toContainClass('leaflet-marker-icon')
+
+    // Verify last marker uses flag icon
+    await expect(markers.nth(3)).toContainClass('custom-flag-icon')
   })
 })
