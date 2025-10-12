@@ -108,7 +108,6 @@ function RouteLayer() {
     updateWaypoint,
     deleteWaypoint,
     clearRoute: clearRouteStore,
-    setLoading,
     setError,
     setLoadingElevation,
     setElevationData,
@@ -131,15 +130,15 @@ function RouteLayer() {
   })
 
   // Data loading hook
-  const { router, isDataLoaded, loadedBbox, loadData } = useDataLoader({
-    map,
-    route,
-    clearRoute,
-    addSegment,
-    clearRouteStore,
-    setLoading,
-    setError,
-  })
+  const { router, isDataLoaded, loadedBbox, loadData, isLoading } =
+    useDataLoader({
+      map,
+      route,
+      clearRoute,
+      addSegment,
+      clearRouteStore,
+      setError,
+    })
 
   // Marker handlers hook
   const { handleMarkerDrag, handleMarkerClick, handleMarkerDoubleClick } =
@@ -227,6 +226,7 @@ function RouteLayer() {
         isCurrentViewLoaded={isCurrentViewLoaded}
         zoom={currentZoom}
         mapBounds={currentBounds}
+        isLoading={isLoading}
       />
       {route?.elevationProfile && route?.elevationStats && (
         <ElevationProfile

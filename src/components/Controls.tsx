@@ -12,6 +12,7 @@ interface ControlsProps {
   isCurrentViewLoaded: boolean
   zoom: number
   mapBounds: { south: number; west: number; north: number; east: number } | null
+  isLoading: boolean
 }
 
 export function Controls({
@@ -21,10 +22,11 @@ export function Controls({
   isCurrentViewLoaded,
   zoom,
   mapBounds,
+  isLoading,
 }: ControlsProps) {
-  const { route, isLoading, error } = useRouteStore()
+  const { route, error } = useRouteStore()
   const containerRef = useRef<HTMLDivElement>(null)
-  const loadingMessage = useProgressiveLoadingMessage(
+  const message = useProgressiveLoadingMessage(
     'Loading hiking paths...',
     isLoading
   )
@@ -46,10 +48,6 @@ export function Controls({
         console.error('Failed to export GPX:', error)
       }
     }
-  }
-
-  const handleClear = () => {
-    onClearRoute()
   }
 
   const handleLoadData = () => {
@@ -86,7 +84,7 @@ export function Controls({
         <h3 className="font-bold text-lg mb-2">Route Planner</h3>
 
         {isLoading && (
-          <div className="text-sm text-gray-600 mb-2">{loadingMessage}</div>
+          <div className="text-sm text-gray-600 mb-2">{message}</div>
         )}
 
         {error && (
@@ -134,7 +132,7 @@ export function Controls({
             Export GPX
           </button>
           <button
-            onClick={handleClear}
+            onClick={onClearRoute}
             disabled={!route}
             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium"
           >

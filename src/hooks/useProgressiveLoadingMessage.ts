@@ -7,20 +7,17 @@ import { useState, useEffect } from 'react'
  * feedback for long-running operations.
  *
  * @param baseMessage - The initial loading message (e.g., "Loading hiking paths...")
- * @param isLoading - Whether loading is currently active
- * @returns The current message to display based on elapsed time
+ * @param isLoading - Whether the loading operation is currently active
+ * @returns The current message string
  */
 export function useProgressiveLoadingMessage(
   baseMessage: string,
   isLoading: boolean
-): string {
+) {
   const [message, setMessage] = useState(baseMessage)
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMessage(baseMessage)
-
-    // Reset to base message when loading state changes
+    // Only start timers when loading is active
     if (!isLoading) {
       return
     }
@@ -29,8 +26,8 @@ export function useProgressiveLoadingMessage(
     const progressiveMessages = [
       { delaySeconds: 5, message: `${baseMessage} still loading...` },
       { delaySeconds: 10, message: `${baseMessage} this is taking a while...` },
-      { delaySeconds: 20, message: `${baseMessage} any moment now...` },
-      { delaySeconds: 30, message: `${baseMessage} almost there...` },
+      { delaySeconds: 15, message: `${baseMessage} any moment now...` },
+      { delaySeconds: 25, message: `${baseMessage} almost there...` },
     ]
 
     // Create timers for each progressive message
@@ -44,5 +41,5 @@ export function useProgressiveLoadingMessage(
     }
   }, [baseMessage, isLoading])
 
-  return message
+  return isLoading ? message : baseMessage
 }

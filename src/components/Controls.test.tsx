@@ -27,6 +27,7 @@ describe('Controls', () => {
       north: 50.1,
       east: 10.1,
     },
+    isLoading: false,
   }
 
   beforeEach(async () => {
@@ -63,14 +64,12 @@ describe('Controls', () => {
 
   describe('Loading State', () => {
     it('should show loading message when isLoading is true', () => {
-      mockRouteStore({ isLoading: true })
-      render(<Controls {...defaultProps} />)
+      render(<Controls {...defaultProps} isLoading={true} />)
       expect(screen.getByText('Loading hiking paths...')).toBeInTheDocument()
     })
 
     it('should not show loading message when isLoading is false', () => {
-      mockRouteStore({ isLoading: false })
-      render(<Controls {...defaultProps} />)
+      render(<Controls {...defaultProps} isLoading={false} />)
       expect(
         screen.queryByText('Loading hiking paths...')
       ).not.toBeInTheDocument()
@@ -170,13 +169,13 @@ describe('Controls', () => {
     })
 
     it('should be disabled when loading', () => {
-      mockRouteStore({ isLoading: true })
       render(
         <Controls
           {...defaultProps}
           zoom={13}
           isCurrentViewLoaded={false}
           isDataLoaded={false}
+          isLoading={true}
         />
       )
       const button = screen.getByText('Load Hiking Paths')

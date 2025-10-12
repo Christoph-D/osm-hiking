@@ -12,7 +12,6 @@ describe('useRouteStore', () => {
     // Reset store before each test
     useRouteStore.setState({
       route: null,
-      isLoading: false,
       isLoadingElevation: false,
       error: null,
       hoveredElevationPoint: null,
@@ -24,7 +23,6 @@ describe('useRouteStore', () => {
       const state = useRouteStore.getState()
 
       expect(state.route).toBeNull()
-      expect(state.isLoading).toBe(false)
       expect(state.isLoadingElevation).toBe(false)
       expect(state.error).toBeNull()
       expect(state.hoveredElevationPoint).toBeNull()
@@ -461,23 +459,6 @@ describe('useRouteStore', () => {
     })
   })
 
-  describe('setLoading', () => {
-    it('should set loading state to true', () => {
-      useRouteStore.getState().setLoading(true)
-
-      const state = useRouteStore.getState()
-      expect(state.isLoading).toBe(true)
-    })
-
-    it('should set loading state to false', () => {
-      useRouteStore.setState({ isLoading: true })
-      useRouteStore.getState().setLoading(false)
-
-      const state = useRouteStore.getState()
-      expect(state.isLoading).toBe(false)
-    })
-  })
-
   describe('setLoadingElevation', () => {
     it('should set loading elevation state to true', () => {
       useRouteStore.getState().setLoadingElevation(true)
@@ -650,16 +631,12 @@ describe('useRouteStore', () => {
       const stats: ElevationStats = { gain: 0, loss: 0, min: 100, max: 100 }
       useRouteStore.getState().setElevationData(profile, stats)
 
-      // Set loading
-      useRouteStore.getState().setLoading(true)
-
       // Clear route
       useRouteStore.getState().clearRoute()
 
       const state = useRouteStore.getState()
       expect(state.route).toBeNull()
       expect(state.error).toBeNull()
-      expect(state.isLoading).toBe(true) // Loading state should persist
     })
 
     it('should handle error state with route data', () => {

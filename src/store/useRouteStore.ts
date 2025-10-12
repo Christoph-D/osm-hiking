@@ -9,7 +9,6 @@ import {
 
 interface RouteState {
   route: Route | null
-  isLoading: boolean
   isLoadingElevation: boolean
   error: string | null
   hoveredElevationPoint: ElevationPoint | null
@@ -33,7 +32,6 @@ interface RouteState {
     totalDistance: number
   ) => void
   clearRoute: () => void
-  setLoading: (loading: boolean) => void
   setLoadingElevation: (loading: boolean) => void
   setError: (error: string | null) => void
   setElevationData: (profile: ElevationPoint[], stats: ElevationStats) => void
@@ -42,7 +40,6 @@ interface RouteState {
 
 export const useRouteStore = create<RouteState>((set) => ({
   route: null,
-  isLoading: false,
   isLoadingElevation: false,
   error: null,
   hoveredElevationPoint: null,
@@ -124,7 +121,6 @@ export const useRouteStore = create<RouteState>((set) => ({
     }),
 
   clearRoute: () => set({ route: null, error: null }),
-  setLoading: (loading) => set({ isLoading: loading }),
   setLoadingElevation: (loading) => set({ isLoadingElevation: loading }),
   setError: (error) => set({ error }),
 

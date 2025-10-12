@@ -31,7 +31,6 @@ interface UseDataLoaderParams {
   clearRoute: () => void
   addSegment: (segment: RouteSegment, waypoint: Waypoint) => void
   clearRouteStore: () => void
-  setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
 }
 
@@ -48,12 +47,12 @@ export function useDataLoader({
   clearRoute,
   addSegment,
   clearRouteStore,
-  setLoading,
   setError,
 }: UseDataLoaderParams) {
   const [router, setRouter] = useState<Router | null>(null)
   const [isDataLoaded, setIsDataLoaded] = useState(false)
   const [loadedBbox, setLoadedBbox] = useState<LoadedBbox | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const loadData = useCallback(
     async (onSuccess?: (router: Router) => void, skipConfirmation = false) => {
@@ -68,7 +67,7 @@ export function useDataLoader({
         // Get current bounding box
         const bbox = getCurrentBbox(map)
 
-        setLoading(true)
+        setIsLoading(true)
         setError(null)
 
         // Check if we have an existing route and handle preservation/clearing
@@ -84,7 +83,7 @@ export function useDataLoader({
               'Loading hiking paths for this area will clear your current route because some waypoints are outside the visible area. Continue?'
             )
             if (!confirmed) {
-              setLoading(false)
+              setIsLoading(false)
               return
             }
           }
@@ -121,7 +120,7 @@ export function useDataLoader({
           const nodeIds = mapWaypointsToNodes(newRouter, waypointsToPreserve)
           if (!nodeIds) {
             clearRoute()
-            setLoading(false)
+            setIsLoading(false)
             return { router: newRouter, waypointNodeIds: [] }
           }
 
@@ -135,11 +134,11 @@ export function useDataLoader({
 
           if (newSegments.length === 0) {
             clearRoute()
-            setLoading(false)
+            setIsLoading(false)
             return { router: newRouter, waypointNodeIds: [] }
           }
 
-          setLoading(false)
+          setIsLoading(false)
 
           // Call success callback if provided
           if (onSuccess) {
@@ -149,7 +148,7 @@ export function useDataLoader({
           return { router: newRouter, waypointNodeIds: nodeIds }
         }
 
-        setLoading(false)
+        setIsLoading(false)
 
         // Call success callback
         if (onSuccess) {
@@ -168,10 +167,10 @@ export function useDataLoader({
         setError(errorMessage)
         return undefined
       } finally {
-        setLoading(false)
+        setIsLoading(false)
       }
     },
-    [map, route, clearRoute, addSegment, clearRouteStore, setLoading, setError]
+    [map, route, clearRoute, addSegment, clearRouteStore, setError]
   )
 
   return {
@@ -179,5 +178,6 @@ export function useDataLoader({
     isDataLoaded,
     loadedBbox,
     loadData,
+    isLoading,
   }
 }

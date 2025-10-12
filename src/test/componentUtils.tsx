@@ -29,7 +29,6 @@ export function mockRouteStore(
 export function resetRouteStore() {
   useRouteStore.setState({
     route: null,
-    isLoading: false,
     error: null,
     isLoadingElevation: false,
     hoveredElevationPoint: null,
