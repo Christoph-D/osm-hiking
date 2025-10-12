@@ -160,8 +160,8 @@ function RouteLayer() {
       loadData,
     })
 
-  // Elevation data hook
-  const { isLoading: isLoadingElevation } = useElevationLoader({
+  // Elevation data loader hook
+  useElevationLoader({
     route,
     setElevationData,
   })
@@ -225,11 +225,10 @@ function RouteLayer() {
         mapBounds={currentBounds}
         isLoading={isLoading}
       />
-      {route?.elevationProfile && route?.elevationStats && (
+      {route && route.waypoints.length > 1 && (
         <ElevationProfile
-          elevationProfile={route.elevationProfile}
-          elevationStats={route.elevationStats}
-          isLoading={isLoadingElevation}
+          elevationProfile={route?.elevationProfile}
+          elevationStats={route?.elevationStats}
         />
       )}
     </>

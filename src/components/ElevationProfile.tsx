@@ -4,15 +4,13 @@ import { ElevationPoint, ElevationStats } from '../types'
 import { useRouteStore } from '../store/useRouteStore'
 
 interface ElevationProfileProps {
-  elevationProfile: ElevationPoint[]
-  elevationStats: ElevationStats
-  isLoading?: boolean
+  elevationProfile: ElevationPoint[] | undefined
+  elevationStats: ElevationStats | undefined
 }
 
 export function ElevationProfile({
   elevationProfile,
   elevationStats,
-  isLoading,
 }: ElevationProfileProps) {
   const [isExpanded, setIsExpanded] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -54,7 +52,7 @@ export function ElevationProfile({
         </button>
       </div>
 
-      {isLoading ? (
+      {!elevationStats || !elevationProfile ? (
         <div className="text-sm text-gray-600 py-8 text-center">
           Loading elevation data...
         </div>

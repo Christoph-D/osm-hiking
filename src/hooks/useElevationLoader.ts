@@ -14,7 +14,7 @@
  * Complex operations are delegated to the elevation service.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import {
   fetchElevations,
   subdividePathEqually,
@@ -41,8 +41,6 @@ export function useElevationLoader({
   route,
   setElevationData,
 }: UseElevationDataParams) {
-  const [isLoading, setIsLoading] = useState(false)
-
   useEffect(() => {
     if (!route || route.waypoints.length < 2) {
       return
@@ -55,8 +53,6 @@ export function useElevationLoader({
 
     const fetchElevationData = async () => {
       try {
-        setIsLoading(true)
-
         // Collect all coordinates from all segments in order
         const allCoordinates = collectRouteCoordinates(route)
 
@@ -94,13 +90,9 @@ export function useElevationLoader({
         setElevationData(elevationProfile, elevationStats)
       } catch (error) {
         console.error('Failed to fetch elevation data:', error)
-      } finally {
-        setIsLoading(false)
       }
     }
 
     fetchElevationData()
   }, [route, setElevationData])
-
-  return { isLoading }
 }

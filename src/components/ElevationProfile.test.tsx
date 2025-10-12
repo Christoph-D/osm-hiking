@@ -114,20 +114,18 @@ describe('ElevationProfile', () => {
     it('should show loading message when isLoading is true', () => {
       render(
         <ElevationProfile
-          elevationProfile={mockElevationProfile}
-          elevationStats={mockElevationStats}
-          isLoading={true}
+          elevationProfile={undefined}
+          elevationStats={undefined}
         />
       )
       expect(screen.getByText('Loading elevation data...')).toBeInTheDocument()
     })
 
-    it('should not show loading message when isLoading is false', () => {
+    it('should not show loading message when elevation data exists', () => {
       render(
         <ElevationProfile
           elevationProfile={mockElevationProfile}
           elevationStats={mockElevationStats}
-          isLoading={false}
         />
       )
       expect(
@@ -138,9 +136,8 @@ describe('ElevationProfile', () => {
     it('should not render stats or chart when loading', () => {
       render(
         <ElevationProfile
-          elevationProfile={mockElevationProfile}
-          elevationStats={mockElevationStats}
-          isLoading={true}
+          elevationProfile={undefined}
+          elevationStats={undefined}
         />
       )
       expect(screen.queryByText('Elevation Gain')).not.toBeInTheDocument()
