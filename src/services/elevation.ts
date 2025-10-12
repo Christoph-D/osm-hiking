@@ -1,4 +1,4 @@
-import { Route, ElevationPoint } from '../types'
+import { Route, ElevationPoint, Waypoint } from '../types'
 
 interface ElevationResult {
   latitude: number
@@ -15,11 +15,10 @@ const ELEVATION_API = 'https://api.open-elevation.com/api/v1/lookup'
 
 /**
  * Fetch elevation data for an array of coordinates
- * Coordinates should be in [lon, lat] format (GeoJSON convention)
  * API accepts max ~500 locations per request, but we'll batch at 100 for reliability
  */
 export async function fetchElevations(
-  coordinates: [number, number][]
+  coordinates: Waypoint[]
 ): Promise<number[]> {
   const BATCH_SIZE = 100
   const results: number[] = []
@@ -34,13 +33,11 @@ export async function fetchElevations(
   return results
 }
 
-async function fetchElevationBatch(
-  coordinates: [number, number][]
-): Promise<number[]> {
-  // Convert [lon, lat] to {latitude, longitude} format for API
-  const locations = coordinates.map(([lon, lat]) => ({
-    latitude: lat,
-    longitude: lon,
+async function fetchElevationBatch(coordinates: Waypoint[]): Promise<number[]> {
+  // Convert Waypoint to {latitude, longitude} format for API
+  const locations = coordinates.map((wp) => ({
+    latitude: wp.lat,
+    longitude: wp.lon,
   }))
 
   try {
@@ -68,12 +65,11 @@ async function fetchElevationBatch(
 /**
  * Calculate distance between two points using Haversine formula
  */
-function haversineDistance(
-  coord1: [number, number],
-  coord2: [number, number]
-): number {
-  const [lon1, lat1] = coord1
-  const [lon2, lat2] = coord2
+function haversineDistance(coord1: Waypoint, coord2: Waypoint): number {
+  const lon1 = coord1.lon
+  const lat1 = coord1.lat
+  const lon2 = coord2.lon
+  const lat2 = coord2.lat
   const R = 6371000 // Earth radius in meters
   const φ1 = (lat1 * Math.PI) / 180
   const φ2 = (lat2 * Math.PI) / 180
@@ -91,26 +87,26 @@ function haversineDistance(
  * Interpolate a point along a line segment
  */
 function interpolatePoint(
-  p1: [number, number],
-  p2: [number, number],
+  p1: Waypoint,
+  p2: Waypoint,
   fraction: number
-): [number, number] {
-  return [
-    p1[0] + (p2[0] - p1[0]) * fraction,
-    p1[1] + (p2[1] - p1[1]) * fraction,
-  ]
+): Waypoint {
+  return {
+    lat: p1.lat + (p2.lat - p1.lat) * fraction,
+    lon: p1.lon + (p2.lon - p1.lon) * fraction,
+  }
 }
 
 /**
  * Subdivide a path into equally spaced points along its length
- * @param coordinates Array of [lon, lat] coordinates representing the path
+ * @param coordinates Array of Waypoint coordinates representing the path
  * @param numPoints Number of points to generate (default 100)
- * @returns Array of equally spaced coordinates along the path
+ * @returns Array of equally spaced Waypoint coordinates along the path
  */
 export function subdividePathEqually(
-  coordinates: [number, number][],
+  coordinates: Waypoint[],
   numPoints: number = 100
-): [number, number][] {
+): Waypoint[] {
   if (coordinates.length < 2) {
     return coordinates
   }
@@ -133,7 +129,7 @@ export function subdividePathEqually(
   }
 
   // Generate equally spaced target distances
-  const result: [number, number][] = []
+  const result: Waypoint[] = []
   const spacing = totalDistance / (numPoints - 1)
 
   for (let i = 0; i < numPoints; i++) {
@@ -178,13 +174,15 @@ export function subdividePathEqually(
 /**
  * Calculate cumulative distance along a path
  */
-export function calculateDistances(coordinates: [number, number][]): number[] {
+export function calculateDistances(coordinates: Waypoint[]): number[] {
   const distances: number[] = [0]
   let cumulative = 0
 
   for (let i = 1; i < coordinates.length; i++) {
-    const [lon1, lat1] = coordinates[i - 1]
-    const [lon2, lat2] = coordinates[i]
+    const lon1 = coordinates[i - 1].lon
+    const lat1 = coordinates[i - 1].lat
+    const lon2 = coordinates[i].lon
+    const lat2 = coordinates[i].lat
 
     // Haversine distance
     const R = 6371000 // Earth radius in meters
@@ -241,41 +239,31 @@ export function calculateElevationStats(elevations: number[]): {
 /**
  * Collect all coordinates from route segments, handling segment connections
  * @param route The route containing segments to process
- * @returns Array of all coordinates in order
+ * @returns Array of all Waypoint coordinates in order
  */
-export function collectRouteCoordinates(route: Route): [number, number][] {
-  const allCoordinates: [number, number][] = []
+export function collectRouteCoordinates(route: Route): Waypoint[] {
+  const allCoordinates: Waypoint[] = []
 
   for (let i = 0; i < route.segments.length; i++) {
     const segment = route.segments[i]
     if (i === 0) {
       // First segment: include all coordinates (usually just one point)
-      allCoordinates.push(
-        ...segment.coordinates.map((wp) => [wp.lon, wp.lat] as [number, number])
-      )
+      allCoordinates.push(...segment.coordinates)
     } else {
       // Check if this segment connects to the previous one
       const prevLastCoord = allCoordinates[allCoordinates.length - 1]
       const currFirstCoord = segment.coordinates[0]
       const coordsMatch =
         prevLastCoord &&
-        Math.abs(prevLastCoord[0] - currFirstCoord.lon) < 0.000001 &&
-        Math.abs(prevLastCoord[1] - currFirstCoord.lat) < 0.0000001
+        Math.abs(prevLastCoord.lon - currFirstCoord.lon) < 0.000001 &&
+        Math.abs(prevLastCoord.lat - currFirstCoord.lat) < 0.0000001
 
       if (coordsMatch) {
         // Skip the first coordinate (it's the same as the last coordinate of the previous segment)
-        allCoordinates.push(
-          ...segment.coordinates
-            .slice(1)
-            .map((wp) => [wp.lon, wp.lat] as [number, number])
-        )
+        allCoordinates.push(...segment.coordinates.slice(1))
       } else {
         // Segments don't connect, include all coordinates
-        allCoordinates.push(
-          ...segment.coordinates.map(
-            (wp) => [wp.lon, wp.lat] as [number, number]
-          )
-        )
+        allCoordinates.push(...segment.coordinates)
       }
     }
   }
@@ -301,20 +289,20 @@ export function calculateSubdividedDistances(
 
 /**
  * Build elevation profile from coordinates and elevations
- * @param coordinates Array of [lon, lat] coordinates
+ * @param coordinates Array of Waypoint coordinates
  * @param elevations Array of elevation values
  * @param distances Array of distances for each point
  * @returns Array of ElevationPoint objects
  */
 export function buildElevationProfile(
-  coordinates: [number, number][],
+  coordinates: Waypoint[],
   elevations: number[],
   distances: number[]
 ): ElevationPoint[] {
   return coordinates.map((coord, i) => ({
     distance: distances[i],
     elevation: elevations[i],
-    lat: coord[1], // coord[1] is latitude
-    lon: coord[0], // coord[0] is longitude
+    lat: coord.lat,
+    lon: coord.lon,
   }))
 }

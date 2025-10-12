@@ -5,7 +5,7 @@ export function setMapPosition() {
   localStorage.setItem(
     'osm-hiking-map-position',
     JSON.stringify({
-      center: [50, 10],
+      center: { lat: 50, lon: 10 },
       zoom: 15,
     })
   )

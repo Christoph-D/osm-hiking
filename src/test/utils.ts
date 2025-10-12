@@ -1,4 +1,4 @@
-import { OSMData, OSMNode, OSMWay } from '../types'
+import { OSMData, OSMNode, OSMWay, Waypoint } from '../types'
 
 /**
  * Generate mock OSM data for testing
@@ -82,13 +82,13 @@ export function createMockElevations(
 /**
  * Create mock coordinates for testing
  */
-export function createMockCoordinates(count: number): Array<[number, number]> {
-  const coordinates: Array<[number, number]> = []
+export function createMockCoordinates(count: number): Waypoint[] {
+  const coordinates: Waypoint[] = []
 
   for (let i = 0; i < count; i++) {
     const lon = 10.0 + i * 0.001
     const lat = 50.0 + i * 0.001
-    coordinates.push([lon, lat])
+    coordinates.push({ lat, lon })
   }
 
   return coordinates

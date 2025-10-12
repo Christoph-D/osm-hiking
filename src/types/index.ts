@@ -25,7 +25,7 @@ export interface GraphEdge {
   from: string
   to: string
   weight: number
-  geometry: [number, number][]
+  geometry: Waypoint[]
 }
 
 export interface RouteSegment {

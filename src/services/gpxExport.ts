@@ -44,15 +44,10 @@ export async function exportRouteAsGPX(
     allCoordinates.push(...segment.coordinates)
   })
 
-  // Convert to [lon, lat] format for elevation API
-  const coordinatesForElevation: [number, number][] = allCoordinates.map(
-    (waypoint) => [waypoint.lon, waypoint.lat]
-  )
-
   // Fetch elevations for all coordinates
   let elevations: number[] | undefined
   try {
-    elevations = await fetchElevations(coordinatesForElevation)
+    elevations = await fetchElevations(allCoordinates)
   } catch (error) {
     console.warn(
       'Failed to fetch elevations for GPX export, continuing without elevation data:',

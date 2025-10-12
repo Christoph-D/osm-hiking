@@ -493,7 +493,7 @@ test.describe('Waypoint Manipulation', () => {
     const finalPosition = await page.evaluate(() => {
       return localStorage.getItem('osm-hiking-map-position')
     })
-    expect(finalPosition).toBe('{"center":[50,10],"zoom":6}')
+    expect(finalPosition).toBe('{"center":{"lat":50,"lon":10},"zoom":6}')
   })
 
   test('should use correct marker icons for waypoints in a route', async ({

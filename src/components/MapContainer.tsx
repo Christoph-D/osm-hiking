@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { Waypoint } from '../types'
 import {
   MapContainer as LeafletMapContainer,
   TileLayer,
@@ -19,20 +20,37 @@ import { useDataLoader } from '../hooks/useDataLoader'
 import { useRouteManagement } from '../hooks/useRouteManagement'
 import { useMarkerHandlers } from '../hooks/useMarkerHandlers'
 import { useMapEvents as useMapEventsHandler } from '../hooks/useMapEvents'
-import { DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from '../constants/map'
+import { INITIAL_POSITION } from '../constants/map'
 
 const MAP_POSITION_KEY = 'osm-hiking-map-position'
 
-function getInitialMapPosition() {
+interface MapPosition {
+  center: Waypoint
+  zoom: number
+}
+
+function getInitialMapPosition(): MapPosition {
   const saved = localStorage.getItem(MAP_POSITION_KEY)
+  const defaultPosition = { center: INITIAL_POSITION, zoom: 5 }
   if (saved) {
     try {
-      return JSON.parse(saved)
+      const parsed = JSON.parse(saved)
+      if (
+        typeof parsed?.center?.lat !== 'number' ||
+        typeof parsed?.center?.lon !== 'number' ||
+        typeof parsed?.zoom !== 'number'
+      ) {
+        return defaultPosition
+      }
+      return {
+        center: { lat: parsed.center.lat, lon: parsed.center.lon },
+        zoom: parsed.zoom,
+      }
     } catch {
-      return { center: [DEFAULT_LATITUDE, DEFAULT_LONGITUDE], zoom: 5 }
+      return defaultPosition
     }
   }
-  return { center: [DEFAULT_LATITUDE, DEFAULT_LONGITUDE], zoom: 5 }
+  return defaultPosition
 }
 
 function MapPositionSaver() {
@@ -45,7 +63,7 @@ function MapPositionSaver() {
       localStorage.setItem(
         MAP_POSITION_KEY,
         JSON.stringify({
-          center: [center.lat, center.lng],
+          center: { lat: center.lat, lon: center.lng },
           zoom,
         })
       )
@@ -60,7 +78,7 @@ export function MapContainer() {
 
   return (
     <LeafletMapContainer
-      center={initialPosition.center as [number, number]}
+      center={[initialPosition.center.lat, initialPosition.center.lon]}
       zoom={initialPosition.zoom}
       className="w-full h-full"
       worldCopyJump={false}

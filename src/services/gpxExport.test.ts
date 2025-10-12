@@ -107,10 +107,10 @@ describe('exportRouteAsGPX', () => {
 
     // Verify that fetchElevations was called with all 4 coordinates
     expect(elevationModule.fetchElevations).toHaveBeenCalledWith([
-      [10.0, 50.0],
-      [10.1, 50.1],
-      [10.1, 50.1],
-      [10.2, 50.2],
+      { lat: 50.0, lon: 10.0 },
+      { lat: 50.1, lon: 10.1 },
+      { lat: 50.1, lon: 10.1 },
+      { lat: 50.2, lon: 10.2 },
     ])
   })
 

@@ -1,14 +1,14 @@
+import { Waypoint } from '../types'
+
 /**
  * Minimum zoom level required to load hiking paths
  */
 export const MIN_ZOOM = 13
 
 /**
- * Default latitude for initial page load
+ * Initial position for the map on page load
  */
-export const DEFAULT_LATITUDE = 50.0
-
-/**
- * Default longitude for initial page load
- */
-export const DEFAULT_LONGITUDE = 10.0
+export const INITIAL_POSITION: Waypoint = {
+  lat: 50.0,
+  lon: 10.0,
+}

@@ -13,7 +13,7 @@ import { Page } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from '../../src/constants/map'
+import { INITIAL_POSITION } from '../../src/constants/map'
 
 interface OverpassElement {
   type: 'node' | 'way' | 'relation'
@@ -128,9 +128,9 @@ export async function setupOverpassMock(page: Page) {
     }
 
     const offsetLat =
-      (boundingBox.minLat + boundingBox.maxLat) / 2 - DEFAULT_LATITUDE
+      (boundingBox.minLat + boundingBox.maxLat) / 2 - INITIAL_POSITION.lat
     const offsetLon =
-      (boundingBox.minLon + boundingBox.maxLon) / 2 - DEFAULT_LONGITUDE
+      (boundingBox.minLon + boundingBox.maxLon) / 2 - INITIAL_POSITION.lon
     const translatedData = translateMockData(mockResponse, offsetLat, offsetLon)
 
     await route.fulfill({

@@ -5,20 +5,21 @@ import {
   calculateElevationStats,
   fetchElevations,
 } from './elevation'
+import { Waypoint } from '../types'
 
 describe('calculateDistances', () => {
   it('should return [0] for single point', () => {
-    const coordinates: [number, number][] = [[10.0, 50.0]]
+    const coordinates: Waypoint[] = [{ lon: 10.0, lat: 50.0 }]
     const result = calculateDistances(coordinates)
     expect(result).toEqual([0])
   })
 
   it('should calculate cumulative distances for multiple points', () => {
     // Points roughly 111km apart in latitude (1 degree ≈ 111km)
-    const coordinates: [number, number][] = [
-      [10.0, 50.0],
-      [10.0, 51.0],
-      [10.0, 52.0],
+    const coordinates: Waypoint[] = [
+      { lon: 10.0, lat: 50.0 },
+      { lon: 10.0, lat: 51.0 },
+      { lon: 10.0, lat: 52.0 },
     ]
     const result = calculateDistances(coordinates)
 
@@ -30,15 +31,15 @@ describe('calculateDistances', () => {
   })
 
   it('should handle empty array', () => {
-    const coordinates: [number, number][] = []
+    const coordinates: Waypoint[] = []
     const result = calculateDistances(coordinates)
     expect(result).toEqual([0])
   })
 
   it('should return correct distances for close points', () => {
-    const coordinates: [number, number][] = [
-      [10.0, 50.0],
-      [10.001, 50.001],
+    const coordinates: Waypoint[] = [
+      { lon: 10.0, lat: 50.0 },
+      { lon: 10.001, lat: 50.001 },
     ]
     const result = calculateDistances(coordinates)
 
@@ -50,19 +51,19 @@ describe('calculateDistances', () => {
 
 describe('subdividePathEqually', () => {
   it('should return original coordinates for < 2 points', () => {
-    const singlePoint: [number, number][] = [[10.0, 50.0]]
+    const singlePoint: Waypoint[] = [{ lon: 10.0, lat: 50.0 }]
     const result = subdividePathEqually(singlePoint, 10)
     expect(result).toEqual(singlePoint)
 
-    const empty: [number, number][] = []
+    const empty: Waypoint[] = []
     const result2 = subdividePathEqually(empty, 10)
     expect(result2).toEqual(empty)
   })
 
   it('should generate requested number of points', () => {
-    const coordinates: [number, number][] = [
-      [10.0, 50.0],
-      [10.1, 50.1],
+    const coordinates: Waypoint[] = [
+      { lon: 10.0, lat: 50.0 },
+      { lon: 10.1, lat: 50.1 },
     ]
     const numPoints = 10
     const result = subdividePathEqually(coordinates, numPoints)
@@ -71,10 +72,10 @@ describe('subdividePathEqually', () => {
   })
 
   it('should start and end at original coordinates', () => {
-    const coordinates: [number, number][] = [
-      [10.0, 50.0],
-      [10.1, 50.1],
-      [10.2, 50.2],
+    const coordinates: Waypoint[] = [
+      { lon: 10.0, lat: 50.0 },
+      { lon: 10.1, lat: 50.1 },
+      { lon: 10.2, lat: 50.2 },
     ]
     const result = subdividePathEqually(coordinates, 20)
 
@@ -85,37 +86,37 @@ describe('subdividePathEqually', () => {
   })
 
   it('should create evenly spaced points along straight line', () => {
-    const coordinates: [number, number][] = [
-      [10.0, 50.0],
-      [11.0, 50.0],
+    const coordinates: Waypoint[] = [
+      { lon: 10.0, lat: 50.0 },
+      { lon: 11.0, lat: 50.0 },
     ]
     const numPoints = 5
     const result = subdividePathEqually(coordinates, numPoints)
 
     expect(result).toHaveLength(5)
     // Check that longitude increases evenly (latitude stays 50.0)
-    expect(result[0][0]).toBeCloseTo(10.0, 5)
-    expect(result[1][0]).toBeGreaterThan(10.0)
-    expect(result[1][0]).toBeLessThan(10.5)
-    expect(result[4][0]).toBeCloseTo(11.0, 5)
+    expect(result[0].lon).toBeCloseTo(10.0, 5)
+    expect(result[1].lon).toBeGreaterThan(10.0)
+    expect(result[1].lon).toBeLessThan(10.5)
+    expect(result[4].lon).toBeCloseTo(11.0, 5)
   })
 
   it('should handle path with zero total distance', () => {
-    const coordinates: [number, number][] = [
-      [10.0, 50.0],
-      [10.0, 50.0],
-      [10.0, 50.0],
+    const coordinates: Waypoint[] = [
+      { lon: 10.0, lat: 50.0 },
+      { lon: 10.0, lat: 50.0 },
+      { lon: 10.0, lat: 50.0 },
     ]
     const result = subdividePathEqually(coordinates, 10)
 
-    expect(result).toEqual([[10.0, 50.0]])
+    expect(result).toEqual([{ lon: 10.0, lat: 50.0 }])
   })
 
   it('should handle curved paths', () => {
-    const coordinates: [number, number][] = [
-      [10.0, 50.0],
-      [10.05, 50.05],
-      [10.1, 50.0],
+    const coordinates: Waypoint[] = [
+      { lon: 10.0, lat: 50.0 },
+      { lon: 10.05, lat: 50.05 },
+      { lon: 10.1, lat: 50.0 },
     ]
     const result = subdividePathEqually(coordinates, 10)
 
@@ -233,9 +234,9 @@ describe('fetchElevations', () => {
       json: async () => mockResponse,
     } as Response)
 
-    const coordinates: [number, number][] = [
-      [10.0, 50.0],
-      [10.1, 50.1],
+    const coordinates: Waypoint[] = [
+      { lon: 10.0, lat: 50.0 },
+      { lon: 10.1, lat: 50.1 },
     ]
     const result = await fetchElevations(coordinates)
 
@@ -264,9 +265,9 @@ describe('fetchElevations', () => {
       }
     )
 
-    const coordinates: [number, number][] = Array(250)
+    const coordinates: Waypoint[] = Array(250)
       .fill(null)
-      .map((_, i) => [10.0 + i * 0.01, 50.0 + i * 0.01])
+      .map((_, i) => ({ lat: 50.0 + i * 0.01, lon: 10.0 + i * 0.01 }))
 
     const result = await fetchElevations(coordinates)
 
@@ -282,9 +283,9 @@ describe('fetchElevations', () => {
       statusText: 'Internal Server Error',
     } as Response)
 
-    const coordinates: [number, number][] = [
-      [10.0, 50.0],
-      [10.1, 50.1],
+    const coordinates: Waypoint[] = [
+      { lat: 50.0, lon: 10.0 },
+      { lat: 50.1, lon: 10.1 },
     ]
     const result = await fetchElevations(coordinates)
 
@@ -295,16 +296,16 @@ describe('fetchElevations', () => {
     const mockFetch = global.fetch as ReturnType<typeof vi.fn>
     mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
-    const coordinates: [number, number][] = [
-      [10.0, 50.0],
-      [10.1, 50.1],
+    const coordinates: Waypoint[] = [
+      { lat: 50.0, lon: 10.0 },
+      { lat: 50.1, lon: 10.1 },
     ]
     const result = await fetchElevations(coordinates)
 
     expect(result).toEqual([0, 0])
   })
 
-  it('should convert [lon, lat] to API format {latitude, longitude}', async () => {
+  it('should convert Waypoint to API format {latitude, longitude}', async () => {
     const mockResponse = {
       results: [{ latitude: 50.0, longitude: 10.0, elevation: 150 }],
     }
@@ -315,7 +316,7 @@ describe('fetchElevations', () => {
       json: async () => mockResponse,
     } as Response)
 
-    const coordinates: [number, number][] = [[10.0, 50.0]]
+    const coordinates: Waypoint[] = [{ lat: 50.0, lon: 10.0 }]
     await fetchElevations(coordinates)
 
     const fetchCall = mockFetch.mock.calls[0]
