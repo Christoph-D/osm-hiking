@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Waypoint } from '../types'
 import {
   MapContainer as LeafletMapContainer,
@@ -113,6 +113,9 @@ function RouteLayer() {
     hoveredElevationPoint,
   } = useRouteStore()
 
+  // Track if a marker is currently being dragged
+  const isDraggingMarkerRef = useRef(false)
+
   // Route management hook
   const {
     waypointNodeIds,
@@ -139,15 +142,20 @@ function RouteLayer() {
     })
 
   // Marker handlers hook
-  const { handleMarkerDrag, handleMarkerClick, handleMarkerDoubleClick } =
-    useMarkerHandlers({
-      router,
-      route,
-      waypointNodeIdsRef: waypointNodeIds,
-      updateWaypoint,
-      deleteWaypoint,
-      clearRoute,
-    })
+  const {
+    handleMarkerDragStart,
+    handleMarkerDrag,
+    handleMarkerClick,
+    handleMarkerDoubleClick,
+  } = useMarkerHandlers({
+    router,
+    route,
+    waypointNodeIdsRef: waypointNodeIds,
+    isDraggingMarkerRef,
+    updateWaypoint,
+    deleteWaypoint,
+    clearRoute,
+  })
 
   // Map events hook
   const { currentZoom, currentBounds, isCurrentViewLoaded } =
@@ -156,6 +164,7 @@ function RouteLayer() {
       router,
       isDataLoaded,
       loadedBbox,
+      isDraggingMarkerRef,
       processMapClick,
       loadData,
     })
@@ -196,6 +205,7 @@ function RouteLayer() {
           <WaypointMarkers
             waypoints={route.waypoints}
             onMarkerClick={handleMarkerClick}
+            onMarkerDragStart={handleMarkerDragStart}
             onMarkerDrag={handleMarkerDrag}
             onMarkerDoubleClick={handleMarkerDoubleClick}
           />

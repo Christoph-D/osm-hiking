@@ -11,7 +11,7 @@
  * Coordinates between user clicks, data loading, and waypoint processing.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, RefObject } from 'react'
 import { useMapEvents as useLeafletMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { Router } from '../services/router'
@@ -27,6 +27,7 @@ interface UseMapEventsParams {
     north: number
     east: number
   } | null
+  isDraggingMarkerRef: RefObject<boolean>
   processMapClick: (router: Router, lat: number, lng: number) => void
   loadData: (
     onSuccess?: (router: Router) => void,
@@ -46,6 +47,7 @@ export function useMapEvents({
   router,
   isDataLoaded,
   loadedBbox,
+  isDraggingMarkerRef,
   processMapClick,
   loadData,
 }: UseMapEventsParams) {
@@ -75,6 +77,11 @@ export function useMapEvents({
 
   useLeafletMapEvents({
     click(e) {
+      // Ignore clicks during marker drag to prevent duplicate markers
+      if (isDraggingMarkerRef.current) {
+        return
+      }
+
       const { lat, lng } = e.latlng
 
       // Check if data needs to be loaded

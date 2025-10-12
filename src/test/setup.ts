@@ -17,6 +17,9 @@ vi.mock('leaflet', () => ({
   DomEvent: {
     disableClickPropagation: vi.fn(),
     disableScrollPropagation: vi.fn(),
+    on: vi.fn(),
+    off: vi.fn(),
+    stopPropagation: vi.fn(),
   },
 }))
 

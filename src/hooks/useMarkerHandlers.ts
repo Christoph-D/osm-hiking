@@ -20,6 +20,7 @@ interface UseMarkerHandlersParams {
   router: Router | null
   route: Route | null
   waypointNodeIdsRef: RefObject<string[]>
+  isDraggingMarkerRef: RefObject<boolean>
   updateWaypoint: (
     index: number,
     waypoint: Waypoint,
@@ -38,10 +39,16 @@ export function useMarkerHandlers({
   router,
   route,
   waypointNodeIdsRef,
+  isDraggingMarkerRef,
   updateWaypoint,
   deleteWaypoint,
   clearRoute,
 }: UseMarkerHandlersParams) {
+  const handleMarkerDragStart = useCallback(() => {
+    // Set flag to prevent map click events during drag
+    isDraggingMarkerRef.current = true
+  }, [isDraggingMarkerRef])
+
   const handleMarkerDrag = useCallback(
     (index: number, event: LeafletEvent) => {
       if (!router || !route) return
@@ -75,8 +82,14 @@ export function useMarkerHandlers({
         newSegments,
         totalDistance
       )
+
+      // Clear the dragging flag after a short delay to prevent map clicks
+      // This delay is necessary because the mouseup event fires after dragend
+      setTimeout(() => {
+        isDraggingMarkerRef.current = false
+      }, 100)
     },
-    [router, route, waypointNodeIdsRef, updateWaypoint]
+    [router, route, waypointNodeIdsRef, isDraggingMarkerRef, updateWaypoint]
   )
 
   const handleMarkerClick = useCallback((event: LeafletEvent) => {
@@ -121,6 +134,7 @@ export function useMarkerHandlers({
   )
 
   return {
+    handleMarkerDragStart,
     handleMarkerDrag,
     handleMarkerClick,
     handleMarkerDoubleClick,

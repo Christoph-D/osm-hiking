@@ -21,6 +21,7 @@ import { Waypoint } from '../types'
 interface WaypointMarkersProps {
   waypoints: Waypoint[]
   onMarkerClick: (event: LeafletEvent) => void
+  onMarkerDragStart: () => void
   onMarkerDrag: (index: number, event: LeafletEvent) => void
   onMarkerDoubleClick: (index: number, event: LeafletEvent) => void
 }
@@ -31,6 +32,7 @@ interface WaypointMarkersProps {
 export function WaypointMarkers({
   waypoints,
   onMarkerClick,
+  onMarkerDragStart,
   onMarkerDrag,
   onMarkerDoubleClick,
 }: WaypointMarkersProps) {
@@ -47,6 +49,7 @@ export function WaypointMarkers({
             icon={isLastWaypoint ? createFlagIcon() : new L.Icon.Default()}
             eventHandlers={{
               click: onMarkerClick,
+              dragstart: onMarkerDragStart,
               dragend: (e: LeafletEvent) => onMarkerDrag(i, e),
               dblclick: (e: LeafletEvent) => onMarkerDoubleClick(i, e),
               contextmenu: (e: LeafletEvent) => onMarkerDoubleClick(i, e),
