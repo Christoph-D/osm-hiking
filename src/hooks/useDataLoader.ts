@@ -57,7 +57,7 @@ export function useDataLoader({
 
   const loadData = useCallback(
     async (
-      onSuccess?: (router: Router, treatAsFirstWaypoint: boolean) => void,
+      onSuccess?: (router: Router, forceNewRoute: boolean) => void,
       skipConfirmation = false
     ) => {
       try {
@@ -155,7 +155,7 @@ export function useDataLoader({
         setLoading(false)
 
         // Call success callback
-        // Treat pending click as first waypoint only when we didn't preserve waypoints
+        // Force new route only when we didn't preserve waypoints
         if (onSuccess) {
           onSuccess(newRouter, true)
         }

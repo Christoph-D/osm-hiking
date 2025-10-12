@@ -32,10 +32,10 @@ interface UseMapEventsParams {
     router: Router,
     lat: number,
     lng: number,
-    treatAsFirstWaypoint?: boolean
+    forceNewRoute?: boolean
   ) => void
   loadData: (
-    onSuccess?: (router: Router, treatAsFirstWaypoint: boolean) => void,
+    onSuccess?: (router: Router, forceNewRoute: boolean) => void,
     skipConfirmation?: boolean
   ) => Promise<{ router: Router; waypointNodeIds: string[] } | undefined>
 }
@@ -101,19 +101,14 @@ export function useMapEvents({
         // Store pending click and load data
         // loadData will handle zoom validation and route clearing confirmation
         pendingClick.current = { lat, lng }
-        loadData((loadedRouter, treatAsFirstWaypoint) => {
+        loadData((loadedRouter, forceNewRoute) => {
           // Process the pending click after data loads
           if (pendingClick.current) {
             const pendingLat = pendingClick.current.lat
             const pendingLng = pendingClick.current.lng
             pendingClick.current = null
             // Process with the loaded router
-            processMapClick(
-              loadedRouter,
-              pendingLat,
-              pendingLng,
-              treatAsFirstWaypoint
-            )
+            processMapClick(loadedRouter, pendingLat, pendingLng, forceNewRoute)
           }
         })
         return

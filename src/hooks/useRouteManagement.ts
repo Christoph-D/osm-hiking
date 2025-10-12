@@ -49,12 +49,7 @@ export function useRouteManagement({
   }, [clearRouteStore])
 
   const processMapClick = useCallback(
-    (
-      router: Router,
-      lat: number,
-      lng: number,
-      treatAsFirstWaypoint = false
-    ) => {
+    (router: Router, lat: number, lng: number, forceNewRoute = false) => {
       // Find nearest node with increased search radius
       const nodeId = router.findNearestNode(lat, lng, 500)
 
@@ -73,9 +68,9 @@ export function useRouteManagement({
       }
 
       // First waypoint - just mark it
-      // treatAsFirstWaypoint flag allows us to override the lastWaypoint check
+      // forceNewRoute flag allows us to override the lastWaypoint check
       // This is needed when loading new data clears the old route
-      if (!lastWaypoint || treatAsFirstWaypoint) {
+      if (!lastWaypoint || forceNewRoute) {
         setLastWaypoint(nodeId)
         waypointNodeIds.current = [nodeId]
         addSegment({ coordinates: [[node.lon, node.lat]], distance: 0 }, [
