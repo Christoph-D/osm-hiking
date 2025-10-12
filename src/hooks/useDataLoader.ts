@@ -18,12 +18,13 @@ import { Router } from '../services/router'
 import { fetchOSMData } from '../services/overpass'
 import { buildRoutingGraph } from '../services/graphBuilder'
 import { RouteSegment, Route } from '../types'
-import {
-  getCurrentBbox,
-  isPointInBbox,
-  wouldClearRoute,
-} from '../utils/mapHelpers'
+import { getCurrentBbox, wouldClearRoute } from '../utils/mapHelpers'
 import { MIN_ZOOM } from '../constants/map'
+import {
+  shouldPreserveRoute,
+  mapWaypointsToNodes,
+  recalculateRoute,
+} from '../services/routePreservation'
 
 interface UseDataLoaderParams {
   map: L.Map
@@ -58,8 +59,7 @@ export function useDataLoader({
   const loadData = useCallback(
     async (
       onSuccess?: (router: Router, treatAsFirstWaypoint: boolean) => void,
-      skipConfirmation = false,
-      preservedWaypoints: [number, number][] = []
+      skipConfirmation = false
     ) => {
       try {
         // Check zoom level - only load if zoomed in enough
@@ -90,24 +90,15 @@ export function useDataLoader({
         setError(null)
 
         // Check if we have an existing route and preserve waypoints if they fit in new bbox
-        let waypointsToPreserve: [number, number][] = preservedWaypoints
-        if (
-          preservedWaypoints.length === 0 &&
-          route &&
-          route.waypoints.length > 0
-        ) {
-          const allWaypointsFit = route.waypoints.every(([lon, lat]) =>
-            isPointInBbox(lon, lat, bbox)
-          )
-
-          if (allWaypointsFit) {
-            // Preserve waypoints for recalculation after loading
-            waypointsToPreserve = [...route.waypoints]
-            console.log('Preserving route with waypoints:', waypointsToPreserve)
-          } else {
+        let waypointsToPreserve: [number, number][] = []
+        if (route) {
+          waypointsToPreserve = shouldPreserveRoute(route, bbox)
+          if (waypointsToPreserve.length === 0) {
             // Route doesn't fit in new bbox, clear it
             clearRoute()
             console.log('Route does not fit in new bbox, clearing')
+          } else {
+            console.log('Preserving route with waypoints:', waypointsToPreserve)
           }
         }
 
@@ -129,49 +120,26 @@ export function useDataLoader({
 
         // Recalculate route if we have preserved waypoints
         if (hadPreservedWaypoints) {
-          // Map preserved waypoints to nearest nodes in new graph
-          const newNodeIds: string[] = []
-
-          for (const [lon, lat] of waypointsToPreserve) {
-            const nodeId = newRouter.findNearestNode(lat, lon, 500)
-            if (!nodeId) {
-              clearRoute()
-              setLoading(false)
-              return { router: newRouter, waypointNodeIds: [] }
-            }
-            newNodeIds.push(nodeId)
+          // Map waypoints to nodes and recalculate route
+          const nodeIds = mapWaypointsToNodes(newRouter, waypointsToPreserve)
+          if (!nodeIds) {
+            clearRoute()
+            setLoading(false)
+            return { router: newRouter, waypointNodeIds: [] }
           }
 
-          // Recalculate all segments
-          const newSegments: RouteSegment[] = []
+          const newSegments = recalculateRoute(
+            newRouter,
+            nodeIds,
+            addSegment,
+            clearRouteStore,
+            waypointsToPreserve
+          )
 
-          for (let i = 0; i < newNodeIds.length; i++) {
-            if (i === 0) {
-              // First waypoint - just a marker
-              const firstNode = newRouter.getNode(newNodeIds[i])
-              if (firstNode) {
-                newSegments.push({
-                  coordinates: [[firstNode.lon, firstNode.lat]],
-                  distance: 0,
-                })
-              }
-            } else {
-              // Route from previous waypoint
-              const segment = newRouter.route(newNodeIds[i - 1], newNodeIds[i])
-              if (segment) {
-                newSegments.push(segment)
-              } else {
-                clearRoute()
-                setLoading(false)
-                return { router: newRouter, waypointNodeIds: [] }
-              }
-            }
-          }
-
-          // Clear the route first then rebuild it
-          clearRouteStore()
-          for (let i = 0; i < waypointsToPreserve.length; i++) {
-            addSegment(newSegments[i], waypointsToPreserve[i])
+          if (newSegments.length === 0) {
+            clearRoute()
+            setLoading(false)
+            return { router: newRouter, waypointNodeIds: [] }
           }
 
           setLoading(false)
@@ -181,7 +149,7 @@ export function useDataLoader({
             onSuccess(newRouter, false)
           }
 
-          return { router: newRouter, waypointNodeIds: newNodeIds }
+          return { router: newRouter, waypointNodeIds: nodeIds }
         }
 
         setLoading(false)
