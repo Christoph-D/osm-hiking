@@ -37,7 +37,7 @@ interface UseElevationDataParams {
 /**
  * Hook to fetch and calculate elevation data for a route
  */
-export function useElevationData({
+export function useElevationLoader({
   route,
   setElevationData,
 }: UseElevationDataParams) {

@@ -15,7 +15,7 @@ import { Controls } from './Controls'
 import { ElevationProfile } from './ElevationProfile'
 import { LoadedAreaOverlay } from './LoadedAreaOverlay'
 import { WaypointMarkers } from './WaypointMarkers'
-import { useElevationData } from '../hooks/useElevationData'
+import { useElevationLoader } from '../hooks/useElevationLoader'
 import { useDataLoader } from '../hooks/useDataLoader'
 import { useRouteManagement } from '../hooks/useRouteManagement'
 import { useMarkerHandlers } from '../hooks/useMarkerHandlers'
@@ -161,7 +161,7 @@ function RouteLayer() {
     })
 
   // Elevation data hook
-  const { isLoading: isLoadingElevation } = useElevationData({
+  const { isLoading: isLoadingElevation } = useElevationLoader({
     route,
     setElevationData,
   })
