@@ -19,6 +19,7 @@ import { useDataLoader } from '../hooks/useDataLoader'
 import { useRouteManagement } from '../hooks/useRouteManagement'
 import { useMarkerHandlers } from '../hooks/useMarkerHandlers'
 import { useMapEvents as useMapEventsHandler } from '../hooks/useMapEvents'
+import { DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from '../constants/map'
 
 const MAP_POSITION_KEY = 'osm-hiking-map-position'
 
@@ -28,10 +29,10 @@ function getInitialMapPosition() {
     try {
       return JSON.parse(saved)
     } catch {
-      return { center: [50.0, 10.0], zoom: 5 }
+      return { center: [DEFAULT_LATITUDE, DEFAULT_LONGITUDE], zoom: 5 }
     }
   }
-  return { center: [50.0, 10.0], zoom: 5 }
+  return { center: [DEFAULT_LATITUDE, DEFAULT_LONGITUDE], zoom: 5 }
 }
 
 function MapPositionSaver() {
