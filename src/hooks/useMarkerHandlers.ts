@@ -10,7 +10,7 @@
  * All handlers automatically recalculate the route when waypoints are modified.
  */
 
-import { useCallback, useRef, RefObject } from 'react'
+import { useCallback, RefObject } from 'react'
 import { LeafletEvent } from 'leaflet'
 import { Router } from '../services/router'
 import { Route, RouteSegment } from '../types'
@@ -42,8 +42,6 @@ export function useMarkerHandlers({
   deleteWaypoint,
   clearRoute,
 }: UseMarkerHandlersParams) {
-  const isProcessingMarkerClick = useRef(false)
-
   const handleMarkerDrag = useCallback(
     (index: number, event: LeafletEvent) => {
       if (!router || !route) return
@@ -77,8 +75,7 @@ export function useMarkerHandlers({
   )
 
   const handleMarkerClick = useCallback((event: LeafletEvent) => {
-    // Mark that we're processing a marker click to prevent map click handler
-    isProcessingMarkerClick.current = true
+    // Stop propagation to prevent map click handler from firing
     const origEvent = (event as LeafletEvent & { originalEvent?: Event })
       .originalEvent
     if (origEvent) {
@@ -90,8 +87,7 @@ export function useMarkerHandlers({
     (index: number, event: LeafletEvent) => {
       if (!router || !route) return
 
-      // Mark that we're processing a marker click to prevent map click handler
-      isProcessingMarkerClick.current = true
+      // Stop propagation to prevent map click handler from firing
       const origEvent = (event as LeafletEvent & { originalEvent?: Event })
         .originalEvent
       if (origEvent) {
@@ -115,15 +111,11 @@ export function useMarkerHandlers({
 
       // Update the route store
       deleteWaypoint(index, newSegments, totalDistance)
-
-      // Reset the marker click flag so subsequent map clicks work
-      isProcessingMarkerClick.current = false
     },
     [router, route, waypointNodeIdsRef, deleteWaypoint, clearRoute]
   )
 
   return {
-    isProcessingMarkerClick,
     handleMarkerDrag,
     handleMarkerClick,
     handleMarkerDoubleClick,

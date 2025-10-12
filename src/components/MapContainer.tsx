@@ -124,19 +124,15 @@ function RouteLayer() {
   })
 
   // Marker handlers hook
-  const {
-    isProcessingMarkerClick,
-    handleMarkerDrag,
-    handleMarkerClick,
-    handleMarkerDoubleClick,
-  } = useMarkerHandlers({
-    router,
-    route,
-    waypointNodeIdsRef: waypointNodeIds,
-    updateWaypoint,
-    deleteWaypoint,
-    clearRoute,
-  })
+  const { handleMarkerDrag, handleMarkerClick, handleMarkerDoubleClick } =
+    useMarkerHandlers({
+      router,
+      route,
+      waypointNodeIdsRef: waypointNodeIds,
+      updateWaypoint,
+      deleteWaypoint,
+      clearRoute,
+    })
 
   // Map events hook
   const { currentZoom, currentBounds, isCurrentViewLoaded } =
@@ -145,7 +141,6 @@ function RouteLayer() {
       router,
       isDataLoaded,
       loadedBbox,
-      isProcessingMarkerClickRef: isProcessingMarkerClick,
       processMapClick,
       loadData,
     })
