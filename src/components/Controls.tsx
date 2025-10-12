@@ -3,6 +3,7 @@ import { DomEvent } from 'leaflet'
 import { useRouteStore } from '../store/useRouteStore'
 import { exportRouteAsGPX } from '../services/gpxExport'
 import { MIN_ZOOM } from '../constants/map'
+import { useProgressiveLoadingMessage } from '../hooks/useProgressiveLoadingMessage'
 
 interface ControlsProps {
   onLoadData: () => void
@@ -23,6 +24,10 @@ export function Controls({
 }: ControlsProps) {
   const { route, isLoading, error } = useRouteStore()
   const containerRef = useRef<HTMLDivElement>(null)
+  const loadingMessage = useProgressiveLoadingMessage(
+    'Loading hiking paths...',
+    isLoading
+  )
 
   useEffect(() => {
     const container = containerRef.current
@@ -81,9 +86,7 @@ export function Controls({
         <h3 className="font-bold text-lg mb-2">Route Planner</h3>
 
         {isLoading && (
-          <div className="text-sm text-gray-600 mb-2">
-            Loading hiking paths...
-          </div>
+          <div className="text-sm text-gray-600 mb-2">{loadingMessage}</div>
         )}
 
         {error && (
