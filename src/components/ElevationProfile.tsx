@@ -14,6 +14,23 @@ export function ElevationProfile({
 }: ElevationProfileProps) {
   const [isExpanded, setIsExpanded] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
+  const [previousProfile, setPreviousProfile] = useState<
+    ElevationPoint[] | null
+  >(null)
+  const [previousStats, setPreviousStats] = useState<ElevationStats | null>(
+    null
+  )
+
+  // Update previous data when we have valid data
+  useEffect(() => {
+    if (elevationProfile) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPreviousProfile(elevationProfile)
+    }
+    if (elevationStats) {
+      setPreviousStats(elevationStats)
+    }
+  }, [elevationProfile, elevationStats])
 
   useEffect(() => {
     const container = containerRef.current
@@ -52,44 +69,48 @@ export function ElevationProfile({
         </button>
       </div>
 
-      {!elevationStats || !elevationProfile ? (
-        <div className="text-sm text-gray-600 py-8 text-center">
-          Loading elevation data...
-        </div>
-      ) : (
-        <>
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-sm">
-            <div className="bg-green-50 p-2 rounded">
-              <div className="text-gray-600 text-xs">Elevation Gain</div>
-              <div className="font-bold text-green-700">
-                {elevationStats.gain.toFixed(0)} m
+      {(() => {
+        const displayProfile = elevationProfile || previousProfile
+        const displayStats = elevationStats || previousStats
+        return displayProfile && displayStats ? (
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-sm">
+              <div className="bg-green-50 p-2 rounded">
+                <div className="text-gray-600 text-xs">Elevation Gain</div>
+                <div className="font-bold text-green-700">
+                  {displayStats.gain.toFixed(0)} m
+                </div>
+              </div>
+              <div className="bg-red-50 p-2 rounded">
+                <div className="text-gray-600 text-xs">Elevation Loss</div>
+                <div className="font-bold text-red-700">
+                  {displayStats.loss.toFixed(0)} m
+                </div>
+              </div>
+              <div className="bg-blue-50 p-2 rounded">
+                <div className="text-gray-600 text-xs">Min Elevation</div>
+                <div className="font-bold text-blue-700">
+                  {displayStats.min.toFixed(0)} m
+                </div>
+              </div>
+              <div className="bg-purple-50 p-2 rounded">
+                <div className="text-gray-600 text-xs">Max Elevation</div>
+                <div className="font-bold text-purple-700">
+                  {displayStats.max.toFixed(0)} m
+                </div>
               </div>
             </div>
-            <div className="bg-red-50 p-2 rounded">
-              <div className="text-gray-600 text-xs">Elevation Loss</div>
-              <div className="font-bold text-red-700">
-                {elevationStats.loss.toFixed(0)} m
-              </div>
-            </div>
-            <div className="bg-blue-50 p-2 rounded">
-              <div className="text-gray-600 text-xs">Min Elevation</div>
-              <div className="font-bold text-blue-700">
-                {elevationStats.min.toFixed(0)} m
-              </div>
-            </div>
-            <div className="bg-purple-50 p-2 rounded">
-              <div className="text-gray-600 text-xs">Max Elevation</div>
-              <div className="font-bold text-purple-700">
-                {elevationStats.max.toFixed(0)} m
-              </div>
-            </div>
-          </div>
 
-          {/* Chart */}
-          <ElevationChart profile={elevationProfile} stats={elevationStats} />
-        </>
-      )}
+            {/* Chart */}
+            <ElevationChart profile={displayProfile} stats={displayStats} />
+          </>
+        ) : (
+          <div className="text-sm text-gray-600 py-8 text-center">
+            Loading elevation data...
+          </div>
+        )
+      })()}
     </div>
   )
 }
