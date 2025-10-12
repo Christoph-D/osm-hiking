@@ -9,7 +9,7 @@ export async function fetchOSMData(bbox: {
   east: number
 }): Promise<OSMData> {
   const query = `
-    [out:json][timeout:25];
+    [out:json][timeout:60];
     (
       way["highway"~"^(path|footway|track|bridleway|cycleway|steps|residential|unclassified|tertiary|tertiary_link|secondary|secondary_link|service|pedestrian|living_street|road)$"](${bbox.south},${bbox.west},${bbox.north},${bbox.east});
     );
