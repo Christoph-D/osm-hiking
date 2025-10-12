@@ -12,7 +12,7 @@
  * This is the central coordination point for route state management.
  */
 
-import { useState, useCallback, useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { Router } from '../services/router'
 import { RouteSegment, Route } from '../types'
 import { findNodeOnRoute, recalculateSegments } from '../utils/mapHelpers'
@@ -37,13 +37,11 @@ export function useRouteManagement({
   clearRouteStore,
   setError,
 }: UseRouteManagementParams) {
-  const [lastWaypoint, setLastWaypoint] = useState<string | null>(null)
   const waypointNodeIds = useRef<string[]>([])
   const preservedWaypoints = useRef<[number, number][]>([])
 
   const clearRoute = useCallback(() => {
     clearRouteStore()
-    setLastWaypoint(null)
     waypointNodeIds.current = []
     preservedWaypoints.current = []
   }, [clearRouteStore])
@@ -68,9 +66,7 @@ export function useRouteManagement({
       }
 
       // First waypoint - just mark it
-      // Check if there is no last waypoint or if the route is cleared
-      if (!lastWaypoint || waypointNodeIds.current.length === 0) {
-        setLastWaypoint(nodeId)
+      if (waypointNodeIds.current.length === 0) {
         waypointNodeIds.current = [nodeId]
         addSegment({ coordinates: [[node.lon, node.lat]], distance: 0 }, [
           node.lon,
@@ -93,11 +89,6 @@ export function useRouteManagement({
           router
         )
 
-        // Update the last waypoint reference
-        setLastWaypoint(
-          waypointNodeIds.current[waypointNodeIds.current.length - 1]
-        )
-
         // Update the route store
         insertWaypoint(
           insertIndex,
@@ -108,8 +99,11 @@ export function useRouteManagement({
         return
       }
 
-      // Node is not on the route - add to the end (existing behavior)
-      const segment = router.route(lastWaypoint, nodeId)
+      // Node is not on the route - add to the end
+      const segment = router.route(
+        waypointNodeIds.current[waypointNodeIds.current.length - 1],
+        nodeId
+      )
 
       if (!segment) {
         setError('Could not find a route between these points.')
@@ -118,14 +112,11 @@ export function useRouteManagement({
 
       waypointNodeIds.current.push(nodeId)
       addSegment(segment, [node.lon, node.lat])
-      setLastWaypoint(nodeId)
     },
-    [lastWaypoint, route, addSegment, insertWaypoint, setError]
+    [route, addSegment, insertWaypoint, setError]
   )
 
   return {
-    lastWaypoint,
-    setLastWaypoint,
     waypointNodeIds,
     preservedWaypointsRef: preservedWaypoints,
     clearRoute,

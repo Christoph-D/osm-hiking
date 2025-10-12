@@ -99,7 +99,6 @@ function RouteLayer() {
 
   // Route management hook
   const {
-    setLastWaypoint,
     waypointNodeIds,
     preservedWaypointsRef,
     clearRoute,
@@ -133,7 +132,6 @@ function RouteLayer() {
     router,
     route,
     waypointNodeIdsRef: waypointNodeIds,
-    setLastWaypoint,
     updateWaypoint,
     deleteWaypoint,
     clearRoute,

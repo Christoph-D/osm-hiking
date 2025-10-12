@@ -20,7 +20,6 @@ interface UseMarkerHandlersParams {
   router: Router | null
   route: Route | null
   waypointNodeIdsRef: RefObject<string[]>
-  setLastWaypoint: (nodeId: string | null) => void
   updateWaypoint: (
     index: number,
     waypoint: [number, number],
@@ -39,7 +38,6 @@ export function useMarkerHandlers({
   router,
   route,
   waypointNodeIdsRef,
-  setLastWaypoint,
   updateWaypoint,
   deleteWaypoint,
   clearRoute,
@@ -72,15 +70,10 @@ export function useMarkerHandlers({
         router
       )
 
-      // Update the last waypoint reference
-      setLastWaypoint(
-        waypointNodeIdsRef.current[waypointNodeIdsRef.current.length - 1]
-      )
-
       // Update the route store
       updateWaypoint(index, [node.lon, node.lat], newSegments, totalDistance)
     },
-    [router, route, waypointNodeIdsRef, setLastWaypoint, updateWaypoint]
+    [router, route, waypointNodeIdsRef, updateWaypoint]
   )
 
   const handleMarkerClick = useCallback((event: LeafletEvent) => {
@@ -111,7 +104,6 @@ export function useMarkerHandlers({
       // If no waypoints left, clear everything
       if (waypointNodeIdsRef.current.length === 0) {
         clearRoute()
-        setLastWaypoint(null)
         return
       }
 
@@ -121,25 +113,13 @@ export function useMarkerHandlers({
         router
       )
 
-      // Update the last waypoint reference
-      setLastWaypoint(
-        waypointNodeIdsRef.current[waypointNodeIdsRef.current.length - 1]
-      )
-
       // Update the route store
       deleteWaypoint(index, newSegments, totalDistance)
 
       // Reset the marker click flag so subsequent map clicks work
       isProcessingMarkerClick.current = false
     },
-    [
-      router,
-      route,
-      waypointNodeIdsRef,
-      setLastWaypoint,
-      deleteWaypoint,
-      clearRoute,
-    ]
+    [router, route, waypointNodeIdsRef, deleteWaypoint, clearRoute]
   )
 
   return {
