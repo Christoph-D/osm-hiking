@@ -12,7 +12,6 @@ describe('useRouteStore', () => {
     // Reset store before each test
     useRouteStore.setState({
       route: null,
-      isLoadingElevation: false,
       error: null,
       hoveredElevationPoint: null,
     })
@@ -23,7 +22,6 @@ describe('useRouteStore', () => {
       const state = useRouteStore.getState()
 
       expect(state.route).toBeNull()
-      expect(state.isLoadingElevation).toBe(false)
       expect(state.error).toBeNull()
       expect(state.hoveredElevationPoint).toBeNull()
     })
@@ -456,23 +454,6 @@ describe('useRouteStore', () => {
 
       const state = useRouteStore.getState()
       expect(state.error).toBeNull()
-    })
-  })
-
-  describe('setLoadingElevation', () => {
-    it('should set loading elevation state to true', () => {
-      useRouteStore.getState().setLoadingElevation(true)
-
-      const state = useRouteStore.getState()
-      expect(state.isLoadingElevation).toBe(true)
-    })
-
-    it('should set loading elevation state to false', () => {
-      useRouteStore.setState({ isLoadingElevation: true })
-      useRouteStore.getState().setLoadingElevation(false)
-
-      const state = useRouteStore.getState()
-      expect(state.isLoadingElevation).toBe(false)
     })
   })
 

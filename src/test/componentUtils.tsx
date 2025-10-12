@@ -30,7 +30,6 @@ export function resetRouteStore() {
   useRouteStore.setState({
     route: null,
     error: null,
-    isLoadingElevation: false,
     hoveredElevationPoint: null,
   })
 }

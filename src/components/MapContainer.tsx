@@ -109,9 +109,7 @@ function RouteLayer() {
     deleteWaypoint,
     clearRoute: clearRouteStore,
     setError,
-    setLoadingElevation,
     setElevationData,
-    isLoadingElevation,
     hoveredElevationPoint,
   } = useRouteStore()
 
@@ -163,9 +161,8 @@ function RouteLayer() {
     })
 
   // Elevation data hook
-  useElevationData({
+  const { isLoading: isLoadingElevation } = useElevationData({
     route,
-    setLoadingElevation,
     setElevationData,
   })
 

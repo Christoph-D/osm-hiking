@@ -14,7 +14,7 @@
  * Complex operations are delegated to the elevation service.
  */
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import {
   fetchElevations,
   subdividePathEqually,
@@ -28,7 +28,6 @@ import { ElevationPoint, Route } from '../types'
 
 interface UseElevationDataParams {
   route: Route | null
-  setLoadingElevation: (loading: boolean) => void
   setElevationData: (
     profile: ElevationPoint[],
     stats: ReturnType<typeof calculateElevationStats>
@@ -40,9 +39,10 @@ interface UseElevationDataParams {
  */
 export function useElevationData({
   route,
-  setLoadingElevation,
   setElevationData,
 }: UseElevationDataParams) {
+  const [isLoading, setIsLoading] = useState(false)
+
   useEffect(() => {
     if (!route || route.waypoints.length < 2) {
       return
@@ -55,7 +55,7 @@ export function useElevationData({
 
     const fetchElevationData = async () => {
       try {
-        setLoadingElevation(true)
+        setIsLoading(true)
 
         // Collect all coordinates from all segments in order
         const allCoordinates = collectRouteCoordinates(route)
@@ -95,10 +95,12 @@ export function useElevationData({
       } catch (error) {
         console.error('Failed to fetch elevation data:', error)
       } finally {
-        setLoadingElevation(false)
+        setIsLoading(false)
       }
     }
 
     fetchElevationData()
-  }, [route, setLoadingElevation, setElevationData])
+  }, [route, setElevationData])
+
+  return { isLoading }
 }
