@@ -1,6 +1,6 @@
 import { test, expect, Page } from '@playwright/test'
 import { setupElevationMock } from './fixtures/elevation-mock'
-import { setupOverpassMock } from './fixtures/overpass-mock'
+import { setupOverpassMock, getLastBoundingBox } from './fixtures/overpass-mock'
 import { setupTileMock } from './fixtures/tile-mock'
 import { setMapPosition } from './utils'
 
@@ -517,5 +517,33 @@ test.describe('Waypoint Manipulation', () => {
 
     // Verify last marker uses flag icon
     await expect(markers.nth(3)).toContainClass('custom-flag-icon')
+  })
+
+  test('should reload hiking data when panning and clicking in newly revealed area', async ({
+    page,
+  }) => {
+    // Load initial hiking paths
+    await loadHikingPaths(page)
+
+    const initialBoundingBox = getLastBoundingBox()
+
+    // Drag the map to pan it
+    await page.mouse.move(100, 100)
+    await page.mouse.down()
+    await page.mouse.move(400, 400)
+    await page.mouse.up()
+
+    // Click in the newly revealed area
+    await clickMap(page, 200, 200)
+
+    await expect(page.getByText('Hiking paths loaded')).toBeVisible()
+
+    const boundingBox = getLastBoundingBox()
+
+    expect(boundingBox.minLon).toBeLessThan(initialBoundingBox.minLon)
+    expect(boundingBox.maxLon).toBeLessThan(initialBoundingBox.maxLon)
+
+    expect(boundingBox.minLat).toBeGreaterThan(initialBoundingBox.minLat)
+    expect(boundingBox.maxLat).toBeGreaterThan(initialBoundingBox.maxLat)
   })
 })
