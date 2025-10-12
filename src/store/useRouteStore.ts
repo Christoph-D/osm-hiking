@@ -1,5 +1,11 @@
 import { create } from 'zustand'
-import { Route, RouteSegment, ElevationPoint, ElevationStats } from '../types'
+import {
+  Route,
+  RouteSegment,
+  ElevationPoint,
+  ElevationStats,
+  Waypoint,
+} from '../types'
 
 interface RouteState {
   route: Route | null
@@ -8,16 +14,16 @@ interface RouteState {
   error: string | null
   hoveredElevationPoint: ElevationPoint | null
 
-  addSegment: (segment: RouteSegment, waypoint: [number, number]) => void
+  addSegment: (segment: RouteSegment, waypoint: Waypoint) => void
   insertWaypoint: (
     index: number,
-    waypoint: [number, number],
+    waypoint: Waypoint,
     segments: RouteSegment[],
     totalDistance: number
   ) => void
   updateWaypoint: (
     index: number,
-    waypoint: [number, number],
+    waypoint: Waypoint,
     segments: RouteSegment[],
     totalDistance: number
   ) => void

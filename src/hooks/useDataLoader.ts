@@ -17,7 +17,7 @@ import L from 'leaflet'
 import { Router } from '../services/router'
 import { fetchOSMData } from '../services/overpass'
 import { buildRoutingGraph } from '../services/graphBuilder'
-import { RouteSegment, Route } from '../types'
+import { RouteSegment, Route, Waypoint } from '../types'
 import { getCurrentBbox, wouldClearRoute } from '../utils/mapHelpers'
 import { MIN_ZOOM } from '../constants/map'
 import {
@@ -29,7 +29,7 @@ interface UseDataLoaderParams {
   map: L.Map
   route: Route | null
   clearRoute: () => void
-  addSegment: (segment: RouteSegment, waypoint: [number, number]) => void
+  addSegment: (segment: RouteSegment, waypoint: Waypoint) => void
   clearRouteStore: () => void
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
@@ -72,7 +72,7 @@ export function useDataLoader({
         setError(null)
 
         // Check if we have an existing route and handle preservation/clearing
-        let waypointsToPreserve: [number, number][] = []
+        let waypointsToPreserve: Waypoint[] = []
         let wouldClear = false
 
         if (route) {

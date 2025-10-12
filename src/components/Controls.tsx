@@ -52,11 +52,11 @@ export function Controls({
     if (route && route.waypoints.length > 0 && mapBounds) {
       // Check if all waypoints fit in the new bounds
       const allWaypointsFit = route.waypoints.every(
-        ([lon, lat]) =>
-          lat >= mapBounds.south &&
-          lat <= mapBounds.north &&
-          lon >= mapBounds.west &&
-          lon <= mapBounds.east
+        (waypoint) =>
+          waypoint.lat >= mapBounds.south &&
+          waypoint.lat <= mapBounds.north &&
+          waypoint.lon >= mapBounds.west &&
+          waypoint.lon <= mapBounds.east
       )
 
       // Only show confirmation if route would be cleared

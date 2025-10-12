@@ -13,7 +13,7 @@
 import { useCallback, RefObject } from 'react'
 import { LeafletEvent } from 'leaflet'
 import { Router } from '../services/router'
-import { Route, RouteSegment } from '../types'
+import { Route, RouteSegment, Waypoint } from '../types'
 import { recalculateSegments } from '../utils/mapHelpers'
 
 interface UseMarkerHandlersParams {
@@ -22,7 +22,7 @@ interface UseMarkerHandlersParams {
   waypointNodeIdsRef: RefObject<string[]>
   updateWaypoint: (
     index: number,
-    waypoint: [number, number],
+    waypoint: Waypoint,
     segments: RouteSegment[],
     totalDistance: number
   ) => void
@@ -69,7 +69,12 @@ export function useMarkerHandlers({
       )
 
       // Update the route store
-      updateWaypoint(index, [node.lon, node.lat], newSegments, totalDistance)
+      updateWaypoint(
+        index,
+        { lat: node.lat, lon: node.lon },
+        newSegments,
+        totalDistance
+      )
     },
     [router, route, waypointNodeIdsRef, updateWaypoint]
   )

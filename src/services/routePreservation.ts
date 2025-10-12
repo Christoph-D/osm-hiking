@@ -1,5 +1,5 @@
 import { Router } from './router'
-import { RouteSegment } from '../types'
+import { RouteSegment, Waypoint } from '../types'
 
 /**
  * Map waypoint coordinates to nearest nodes in the routing graph
@@ -9,12 +9,12 @@ import { RouteSegment } from '../types'
  */
 export function mapWaypointsToNodes(
   router: Router,
-  waypoints: [number, number][]
+  waypoints: Waypoint[]
 ): string[] | null {
   const nodeIds: string[] = []
 
-  for (const [lon, lat] of waypoints) {
-    const nodeId = router.findNearestNode(lat, lon, 500)
+  for (const waypoint of waypoints) {
+    const nodeId = router.findNearestNode(waypoint.lat, waypoint.lon, 500)
     if (!nodeId) {
       return null
     }
@@ -35,9 +35,9 @@ export function mapWaypointsToNodes(
 export function recalculateRoute(
   router: Router,
   waypointNodeIds: string[],
-  addSegment: (segment: RouteSegment, waypoint: [number, number]) => void,
+  addSegment: (segment: RouteSegment, waypoint: Waypoint) => void,
   clearRouteStore: () => void,
-  waypoints: [number, number][]
+  waypoints: Waypoint[]
 ): RouteSegment[] {
   const newSegments: RouteSegment[] = []
 

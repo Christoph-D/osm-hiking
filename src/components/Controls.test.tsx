@@ -215,8 +215,8 @@ describe('Controls', () => {
       const user = userEvent.setup()
       const mockRoute = createMockRoute({
         waypoints: [
-          [10.0, 50.0],
-          [11.0, 51.0], // Outside the current bounds
+          { lat: 50.0, lon: 10.0 },
+          { lat: 51.0, lon: 11.0 }, // Outside the current bounds
         ],
       })
       mockRouteStore({ route: mockRoute })
@@ -248,8 +248,8 @@ describe('Controls', () => {
       const user = userEvent.setup()
       const mockRoute = createMockRoute({
         waypoints: [
-          [10.0, 50.0],
-          [11.0, 51.0], // Outside the current bounds
+          { lat: 50.0, lon: 10.0 },
+          { lat: 51.0, lon: 11.0 }, // Outside the current bounds
         ],
       })
       mockRouteStore({ route: mockRoute })
@@ -278,8 +278,8 @@ describe('Controls', () => {
     it('should be enabled when route has at least 2 waypoints', () => {
       const mockRoute = createMockRoute({
         waypoints: [
-          [10.0, 50.0],
-          [10.001, 50.001],
+          { lat: 50.0, lon: 10.0 },
+          { lat: 50.001, lon: 10.001 },
         ],
       })
       mockRouteStore({ route: mockRoute })
@@ -297,7 +297,7 @@ describe('Controls', () => {
 
     it('should be disabled when route has less than 2 waypoints', () => {
       const mockRoute = createMockRoute({
-        waypoints: [[10.0, 50.0]],
+        waypoints: [{ lat: 50.0, lon: 10.0 }],
       })
       mockRouteStore({ route: mockRoute })
       render(<Controls {...defaultProps} />)

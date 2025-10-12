@@ -14,15 +14,15 @@
 
 import { useCallback, useRef } from 'react'
 import { Router } from '../services/router'
-import { RouteSegment, Route } from '../types'
+import { RouteSegment, Route, Waypoint } from '../types'
 import { findNodeOnRoute, recalculateSegments } from '../utils/mapHelpers'
 
 interface UseRouteManagementParams {
   route: Route | null
-  addSegment: (segment: RouteSegment, waypoint: [number, number]) => void
+  addSegment: (segment: RouteSegment, waypoint: Waypoint) => void
   insertWaypoint: (
     index: number,
-    waypoint: [number, number],
+    waypoint: Waypoint,
     segments: RouteSegment[],
     totalDistance: number
   ) => void
@@ -38,7 +38,7 @@ export function useRouteManagement({
   setError,
 }: UseRouteManagementParams) {
   const waypointNodeIds = useRef<string[]>([])
-  const preservedWaypoints = useRef<[number, number][]>([])
+  const preservedWaypoints = useRef<Waypoint[]>([])
 
   const clearRoute = useCallback(() => {
     clearRouteStore()
@@ -68,10 +68,10 @@ export function useRouteManagement({
       // First waypoint - just mark it
       if (waypointNodeIds.current.length === 0) {
         waypointNodeIds.current = [nodeId]
-        addSegment({ coordinates: [[node.lon, node.lat]], distance: 0 }, [
-          node.lon,
-          node.lat,
-        ])
+        addSegment(
+          { coordinates: [[node.lon, node.lat]], distance: 0 },
+          { lat: node.lat, lon: node.lon }
+        )
         return
       }
 
@@ -92,7 +92,7 @@ export function useRouteManagement({
         // Update the route store
         insertWaypoint(
           insertIndex,
-          [node.lon, node.lat],
+          { lat: node.lat, lon: node.lon },
           newSegments,
           totalDistance
         )
@@ -111,7 +111,7 @@ export function useRouteManagement({
       }
 
       waypointNodeIds.current.push(nodeId)
-      addSegment(segment, [node.lon, node.lat])
+      addSegment(segment, { lat: node.lat, lon: node.lon })
     },
     [route, addSegment, insertWaypoint, setError]
   )

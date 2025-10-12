@@ -47,9 +47,14 @@ export interface ElevationStats {
   max: number // Maximum elevation in meters
 }
 
+export interface Waypoint {
+  lat: number
+  lon: number
+}
+
 export interface Route {
   segments: RouteSegment[]
-  waypoints: [number, number][]
+  waypoints: Waypoint[]
   totalDistance: number
   elevationProfile?: ElevationPoint[]
   elevationStats?: ElevationStats

@@ -54,7 +54,7 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      waypoints: [[10.0, 50.0]],
+      waypoints: [{ lat: 50.0, lon: 10.0 }],
       totalDistance: 1000,
     }
 
@@ -92,9 +92,9 @@ describe('exportRouteAsGPX', () => {
         },
       ],
       waypoints: [
-        [10.0, 50.0],
-        [10.1, 50.1],
-        [10.2, 50.2],
+        { lat: 50.0, lon: 10.0 },
+        { lat: 50.1, lon: 10.1 },
+        { lat: 50.2, lon: 10.2 },
       ],
       totalDistance: 2000,
     }
@@ -125,7 +125,7 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      waypoints: [[10.0, 50.0]],
+      waypoints: [{ lat: 50.0, lon: 10.0 }],
       totalDistance: 1000,
     }
 
@@ -157,7 +157,7 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      waypoints: [[10.0, 50.0]],
+      waypoints: [{ lat: 50.0, lon: 10.0 }],
       totalDistance: 1000,
     }
 
@@ -191,7 +191,7 @@ describe('exportRouteAsGPX', () => {
           distance: 5432.1,
         },
       ],
-      waypoints: [[10.0, 50.0]],
+      waypoints: [{ lat: 50.0, lon: 10.0 }],
       totalDistance: 5432.1,
     }
 
@@ -219,7 +219,7 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      waypoints: [[10.0, 50.0]],
+      waypoints: [{ lat: 50.0, lon: 10.0 }],
       totalDistance: 1000,
     }
 
@@ -242,7 +242,7 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      waypoints: [[10.0, 50.0]],
+      waypoints: [{ lat: 50.0, lon: 10.0 }],
       totalDistance: 1000,
     }
 
@@ -261,7 +261,7 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      waypoints: [[10.0, 50.0]],
+      waypoints: [{ lat: 50.0, lon: 10.0 }],
       totalDistance: 1000,
     }
 
@@ -313,7 +313,7 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      waypoints: [[10.0, 50.0]],
+      waypoints: [{ lat: 50.0, lon: 10.0 }],
       totalDistance: 1000,
     }
 
@@ -341,7 +341,7 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      waypoints: [[10.0, 50.0]],
+      waypoints: [{ lat: 50.0, lon: 10.0 }],
       totalDistance: 1000,
     }
 

@@ -16,9 +16,10 @@ import { Marker } from 'react-leaflet'
 import { LeafletEvent } from 'leaflet'
 import L from 'leaflet'
 import { createFlagIcon } from '../utils/leafletIcons'
+import { Waypoint } from '../types'
 
 interface WaypointMarkersProps {
-  waypoints: [number, number][]
+  waypoints: Waypoint[]
   onMarkerClick: (event: LeafletEvent) => void
   onMarkerDrag: (index: number, event: LeafletEvent) => void
   onMarkerDoubleClick: (index: number, event: LeafletEvent) => void
@@ -35,13 +36,13 @@ export function WaypointMarkers({
 }: WaypointMarkersProps) {
   return (
     <>
-      {waypoints.map(([lon, lat], i) => {
+      {waypoints.map((waypoint, i) => {
         const isLastWaypoint =
           i === waypoints.length - 1 && waypoints.length > 1
         return (
           <Marker
             key={i}
-            position={[lat, lon]}
+            position={[waypoint.lat, waypoint.lon]}
             draggable={true}
             icon={isLastWaypoint ? createFlagIcon() : new L.Icon.Default()}
             eventHandlers={{

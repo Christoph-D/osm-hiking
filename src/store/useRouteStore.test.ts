@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useRouteStore } from './useRouteStore'
-import { RouteSegment, ElevationPoint, ElevationStats } from '../types'
+import {
+  RouteSegment,
+  ElevationPoint,
+  ElevationStats,
+  Waypoint,
+} from '../types'
 
 describe('useRouteStore', () => {
   beforeEach(() => {
@@ -35,7 +40,7 @@ describe('useRouteStore', () => {
         ],
         distance: 1000,
       }
-      const waypoint: [number, number] = [10.0, 50.0]
+      const waypoint: Waypoint = { lat: 50.0, lon: 10.0 }
 
       useRouteStore.getState().addSegment(segment, waypoint)
 
@@ -63,8 +68,8 @@ describe('useRouteStore', () => {
         distance: 1500,
       }
 
-      useRouteStore.getState().addSegment(segment1, [10.0, 50.0])
-      useRouteStore.getState().addSegment(segment2, [10.1, 50.1])
+      useRouteStore.getState().addSegment(segment1, { lat: 50.0, lon: 10.0 })
+      useRouteStore.getState().addSegment(segment2, { lat: 50.1, lon: 10.1 })
 
       const state = useRouteStore.getState()
       expect(state.route?.segments).toHaveLength(2)
@@ -98,7 +103,10 @@ describe('useRouteStore', () => {
       ] as RouteSegment[]
 
       segments.forEach((seg) => {
-        useRouteStore.getState().addSegment(seg, seg.coordinates[0])
+        useRouteStore.getState().addSegment(seg, {
+          lat: seg.coordinates[0][1],
+          lon: seg.coordinates[0][0],
+        })
       })
 
       const state = useRouteStore.getState()
@@ -114,7 +122,7 @@ describe('useRouteStore', () => {
         ],
         distance: 1000,
       }
-      useRouteStore.getState().addSegment(segment1, [10.0, 50.0])
+      useRouteStore.getState().addSegment(segment1, { lat: 50.0, lon: 10.0 })
 
       const profile: ElevationPoint[] = [
         { distance: 0, elevation: 100, lat: 50.0, lon: 10.0 },
@@ -130,7 +138,7 @@ describe('useRouteStore', () => {
         ],
         distance: 1000,
       }
-      useRouteStore.getState().addSegment(segment2, [10.1, 50.1])
+      useRouteStore.getState().addSegment(segment2, { lat: 50.1, lon: 10.1 })
 
       const state = useRouteStore.getState()
       expect(state.route?.elevationProfile).toBeUndefined()
@@ -148,12 +156,12 @@ describe('useRouteStore', () => {
         ],
         distance: 1000,
       }
-      useRouteStore.getState().addSegment(segment, [10.0, 50.0])
-      useRouteStore.getState().addSegment(segment, [10.1, 50.1])
+      useRouteStore.getState().addSegment(segment, { lat: 50.0, lon: 10.0 })
+      useRouteStore.getState().addSegment(segment, { lat: 50.1, lon: 10.1 })
     })
 
     it('should insert waypoint at correct index', () => {
-      const newWaypoint: [number, number] = [10.05, 50.05]
+      const newWaypoint: Waypoint = { lat: 50.05, lon: 10.05 }
       const newSegments: RouteSegment[] = [
         {
           coordinates: [
@@ -180,7 +188,7 @@ describe('useRouteStore', () => {
     })
 
     it('should update total distance when inserting waypoint', () => {
-      const newWaypoint: [number, number] = [10.05, 50.05]
+      const newWaypoint: Waypoint = { lat: 50.05, lon: 10.05 }
       const newSegments: RouteSegment[] = [
         {
           coordinates: [
@@ -211,7 +219,7 @@ describe('useRouteStore', () => {
       const stats: ElevationStats = { gain: 0, loss: 0, min: 100, max: 100 }
       useRouteStore.getState().setElevationData(profile, stats)
 
-      const newWaypoint: [number, number] = [10.05, 50.05]
+      const newWaypoint: Waypoint = { lat: 50.05, lon: 10.05 }
       const newSegments: RouteSegment[] = [
         {
           coordinates: [
@@ -239,7 +247,7 @@ describe('useRouteStore', () => {
     it('should return unchanged state if no route exists', () => {
       useRouteStore.setState({ route: null })
 
-      const newWaypoint: [number, number] = [10.05, 50.05]
+      const newWaypoint: Waypoint = { lat: 50.05, lon: 10.05 }
       const newSegments: RouteSegment[] = []
 
       useRouteStore.getState().insertWaypoint(1, newWaypoint, newSegments, 0)
@@ -259,12 +267,12 @@ describe('useRouteStore', () => {
         ],
         distance: 1000,
       }
-      useRouteStore.getState().addSegment(segment, [10.0, 50.0])
-      useRouteStore.getState().addSegment(segment, [10.1, 50.1])
+      useRouteStore.getState().addSegment(segment, { lat: 50.0, lon: 10.0 })
+      useRouteStore.getState().addSegment(segment, { lat: 50.1, lon: 10.1 })
     })
 
     it('should update waypoint at specific index', () => {
-      const updatedWaypoint: [number, number] = [10.05, 50.05]
+      const updatedWaypoint: Waypoint = { lat: 50.05, lon: 10.05 }
       const newSegments: RouteSegment[] = [
         {
           coordinates: [
@@ -292,7 +300,7 @@ describe('useRouteStore', () => {
       const stats: ElevationStats = { gain: 0, loss: 0, min: 100, max: 100 }
       useRouteStore.getState().setElevationData(profile, stats)
 
-      const updatedWaypoint: [number, number] = [10.05, 50.05]
+      const updatedWaypoint: Waypoint = { lat: 50.05, lon: 10.05 }
       const newSegments: RouteSegment[] = [
         {
           coordinates: [
@@ -315,7 +323,7 @@ describe('useRouteStore', () => {
     it('should return unchanged state if no route exists', () => {
       useRouteStore.setState({ route: null })
 
-      const updatedWaypoint: [number, number] = [10.05, 50.05]
+      const updatedWaypoint: Waypoint = { lat: 50.05, lon: 10.05 }
       const newSegments: RouteSegment[] = []
 
       useRouteStore
@@ -348,10 +356,13 @@ describe('useRouteStore', () => {
       ] as RouteSegment[]
 
       segments.forEach((seg) => {
-        useRouteStore.getState().addSegment(seg, seg.coordinates[0])
+        useRouteStore.getState().addSegment(seg, {
+          lat: seg.coordinates[0][1],
+          lon: seg.coordinates[0][0],
+        })
       })
       // Add final waypoint
-      useRouteStore.getState().addSegment(segments[0], [10.2, 50.2])
+      useRouteStore.getState().addSegment(segments[0], { lat: 50.2, lon: 10.2 })
     })
 
     it('should remove waypoint at specific index', () => {
@@ -377,7 +388,7 @@ describe('useRouteStore', () => {
       useRouteStore.setState({
         route: {
           segments: [],
-          waypoints: [[10.0, 50.0]],
+          waypoints: [{ lat: 50.0, lon: 10.0 }],
           totalDistance: 0,
         },
       })
@@ -432,7 +443,7 @@ describe('useRouteStore', () => {
         ],
         distance: 1000,
       }
-      useRouteStore.getState().addSegment(segment, [10.0, 50.0])
+      useRouteStore.getState().addSegment(segment, { lat: 50.0, lon: 10.0 })
 
       useRouteStore.getState().clearRoute()
 
@@ -511,7 +522,7 @@ describe('useRouteStore', () => {
         ],
         distance: 1000,
       }
-      useRouteStore.getState().addSegment(segment, [10.0, 50.0])
+      useRouteStore.getState().addSegment(segment, { lat: 50.0, lon: 10.0 })
     })
 
     it('should store elevation profile and stats', () => {
@@ -598,16 +609,19 @@ describe('useRouteStore', () => {
 
   describe('complex scenarios', () => {
     it('should maintain waypoint order through multiple operations', () => {
-      const waypoints: [number, number][] = [
-        [10.0, 50.0],
-        [10.1, 50.1],
-        [10.2, 50.2],
-        [10.3, 50.3],
+      const waypoints: Waypoint[] = [
+        { lat: 50.0, lon: 10.0 },
+        { lat: 50.1, lon: 10.1 },
+        { lat: 50.2, lon: 10.2 },
+        { lat: 50.3, lon: 10.3 },
       ]
 
       waypoints.forEach((wp) => {
         const segment: RouteSegment = {
-          coordinates: [wp, [wp[0] + 0.01, wp[1] + 0.01]],
+          coordinates: [
+            [wp.lon, wp.lat],
+            [wp.lon + 0.01, wp.lat + 0.01],
+          ],
           distance: 100,
         }
         useRouteStore.getState().addSegment(segment, wp)
@@ -626,8 +640,8 @@ describe('useRouteStore', () => {
         ],
         distance: 1000,
       }
-      useRouteStore.getState().addSegment(segment1, [10.0, 50.0])
-      useRouteStore.getState().addSegment(segment1, [10.1, 50.1])
+      useRouteStore.getState().addSegment(segment1, { lat: 50.0, lon: 10.0 })
+      useRouteStore.getState().addSegment(segment1, { lat: 50.1, lon: 10.1 })
 
       // Set elevation data
       const profile: ElevationPoint[] = [
@@ -656,7 +670,7 @@ describe('useRouteStore', () => {
         ],
         distance: 1000,
       }
-      useRouteStore.getState().addSegment(segment, [10.0, 50.0])
+      useRouteStore.getState().addSegment(segment, { lat: 50.0, lon: 10.0 })
       useRouteStore.getState().setError('Failed to fetch elevation')
 
       const state = useRouteStore.getState()

@@ -11,7 +11,7 @@
  */
 
 import L from 'leaflet'
-import { RouteSegment } from '../types'
+import { RouteSegment, Waypoint } from '../types'
 import { Router } from '../services/router'
 
 /**
@@ -47,7 +47,7 @@ export function isPointInBbox(
  * Checks if loading new data would clear the existing route
  */
 export function wouldClearRoute(
-  waypoints: [number, number][],
+  waypoints: Waypoint[],
   newBbox: { south: number; west: number; north: number; east: number }
 ): boolean {
   if (waypoints.length === 0) {
@@ -55,8 +55,8 @@ export function wouldClearRoute(
   }
 
   // Check if all waypoints fit in the new bbox
-  const allWaypointsFit = waypoints.every(([lon, lat]) =>
-    isPointInBbox(lat, lon, newBbox)
+  const allWaypointsFit = waypoints.every((waypoint) =>
+    isPointInBbox(waypoint.lat, waypoint.lon, newBbox)
   )
 
   return !allWaypointsFit
