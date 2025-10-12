@@ -31,8 +31,8 @@ export function getCurrentBbox(map: L.Map) {
  * Checks if a point is within a bounding box
  */
 export function isPointInBbox(
-  lon: number,
   lat: number,
+  lon: number,
   bbox: { south: number; west: number; north: number; east: number }
 ): boolean {
   return (
@@ -56,7 +56,7 @@ export function wouldClearRoute(
 
   // Check if all waypoints fit in the new bbox
   const allWaypointsFit = waypoints.every(([lon, lat]) =>
-    isPointInBbox(lon, lat, newBbox)
+    isPointInBbox(lat, lon, newBbox)
   )
 
   return !allWaypointsFit

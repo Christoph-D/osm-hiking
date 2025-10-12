@@ -81,7 +81,7 @@ export function useMapEvents({
       const needsDataLoad =
         !router ||
         !isDataLoaded ||
-        (loadedBbox && !isPointInBbox(lng, lat, loadedBbox))
+        (loadedBbox && !isPointInBbox(lat, lng, loadedBbox))
 
       if (needsDataLoad) {
         // Store pending click and load data
