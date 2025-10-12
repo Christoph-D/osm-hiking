@@ -21,7 +21,6 @@ import { RouteSegment, Route } from '../types'
 import { getCurrentBbox, wouldClearRoute } from '../utils/mapHelpers'
 import { MIN_ZOOM } from '../constants/map'
 import {
-  shouldPreserveRoute,
   mapWaypointsToNodes,
   recalculateRoute,
 } from '../services/routePreservation'
@@ -72,29 +71,33 @@ export function useDataLoader({
         // Get current bounding box
         const bbox = getCurrentBbox(map)
 
-        // Check if loading would clear existing route and confirm with user
-        if (
-          !skipConfirmation &&
-          route &&
-          wouldClearRoute(route.waypoints, bbox)
-        ) {
-          const confirmed = window.confirm(
-            'Loading hiking paths for this area will clear your current route because some waypoints are outside the visible area. Continue?'
-          )
-          if (!confirmed) {
-            return
-          }
-        }
-
         setLoading(true)
         setError(null)
 
-        // Check if we have an existing route and preserve waypoints if they fit in new bbox
+        // Check if we have an existing route and handle preservation/clearing
         let waypointsToPreserve: [number, number][] = []
+        let wouldClear = false
+
         if (route) {
-          waypointsToPreserve = shouldPreserveRoute(route, bbox)
-          if (waypointsToPreserve.length === 0) {
-            // Route doesn't fit in new bbox, clear it
+          wouldClear = wouldClearRoute(route.waypoints, bbox)
+
+          // Show confirmation if needed
+          if (!skipConfirmation && wouldClear) {
+            const confirmed = window.confirm(
+              'Loading hiking paths for this area will clear your current route because some waypoints are outside the visible area. Continue?'
+            )
+            if (!confirmed) {
+              setLoading(false)
+              return
+            }
+          }
+
+          // If route would NOT be cleared, preserve all waypoints
+          // If route would be cleared, preserve none
+          waypointsToPreserve = wouldClear ? [] : [...route.waypoints]
+
+          // Clear route if needed
+          if (wouldClear) {
             clearRoute()
             console.log('Route does not fit in new bbox, clearing')
           } else {
@@ -115,11 +118,8 @@ export function useDataLoader({
         setLoadedBbox(bbox)
         setIsDataLoaded(true)
 
-        // Track if we successfully preserved waypoints
-        const hadPreservedWaypoints = waypointsToPreserve.length > 0
-
         // Recalculate route if we have preserved waypoints
-        if (hadPreservedWaypoints) {
+        if (waypointsToPreserve.length > 0) {
           // Map waypoints to nodes and recalculate route
           const nodeIds = mapWaypointsToNodes(newRouter, waypointsToPreserve)
           if (!nodeIds) {
