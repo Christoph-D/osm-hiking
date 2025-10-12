@@ -35,8 +35,8 @@ describe('useRouteStore', () => {
     it('should add first segment and waypoint to empty route', () => {
       const segment: RouteSegment = {
         coordinates: [
-          [10.0, 50.0],
-          [10.1, 50.1],
+          { lat: 50.0, lon: 10.0 },
+          { lat: 50.1, lon: 10.1 },
         ],
         distance: 1000,
       }
@@ -55,15 +55,15 @@ describe('useRouteStore', () => {
     it('should add segment to existing route', () => {
       const segment1: RouteSegment = {
         coordinates: [
-          [10.0, 50.0],
-          [10.1, 50.1],
+          { lat: 50.0, lon: 10.0 },
+          { lat: 50.1, lon: 10.1 },
         ],
         distance: 1000,
       }
       const segment2: RouteSegment = {
         coordinates: [
-          [10.1, 50.1],
-          [10.2, 50.2],
+          { lat: 50.1, lon: 10.1 },
+          { lat: 50.2, lon: 10.2 },
         ],
         distance: 1500,
       }
@@ -81,22 +81,22 @@ describe('useRouteStore', () => {
       const segments = [
         {
           coordinates: [
-            [10.0, 50.0],
-            [10.1, 50.1],
+            { lat: 50.0, lon: 10.0 },
+            { lat: 50.1, lon: 10.1 },
           ],
           distance: 500,
         },
         {
           coordinates: [
-            [10.1, 50.1],
-            [10.2, 50.2],
+            { lat: 50.1, lon: 10.1 },
+            { lat: 50.2, lon: 10.2 },
           ],
           distance: 700,
         },
         {
           coordinates: [
-            [10.2, 50.2],
-            [10.3, 50.3],
+            { lat: 50.2, lon: 10.2 },
+            { lat: 50.3, lon: 10.3 },
           ],
           distance: 300,
         },
@@ -104,8 +104,8 @@ describe('useRouteStore', () => {
 
       segments.forEach((seg) => {
         useRouteStore.getState().addSegment(seg, {
-          lat: seg.coordinates[0][1],
-          lon: seg.coordinates[0][0],
+          lat: seg.coordinates[0].lat,
+          lon: seg.coordinates[0].lon,
         })
       })
 
@@ -117,8 +117,8 @@ describe('useRouteStore', () => {
       // Add initial segment with elevation data
       const segment1: RouteSegment = {
         coordinates: [
-          [10.0, 50.0],
-          [10.1, 50.1],
+          { lat: 50.0, lon: 10.0 },
+          { lat: 50.1, lon: 10.1 },
         ],
         distance: 1000,
       }
@@ -133,8 +133,8 @@ describe('useRouteStore', () => {
       // Add another segment
       const segment2: RouteSegment = {
         coordinates: [
-          [10.1, 50.1],
-          [10.2, 50.2],
+          { lat: 50.1, lon: 10.1 },
+          { lat: 50.2, lon: 10.2 },
         ],
         distance: 1000,
       }
@@ -151,8 +151,8 @@ describe('useRouteStore', () => {
       // Set up a route with 2 waypoints
       const segment: RouteSegment = {
         coordinates: [
-          [10.0, 50.0],
-          [10.1, 50.1],
+          { lat: 50.0, lon: 10.0 },
+          { lat: 50.1, lon: 10.1 },
         ],
         distance: 1000,
       }
@@ -165,15 +165,15 @@ describe('useRouteStore', () => {
       const newSegments: RouteSegment[] = [
         {
           coordinates: [
-            [10.0, 50.0],
-            [10.05, 50.05],
+            { lat: 50.0, lon: 10.0 },
+            { lat: 50.05, lon: 10.05 },
           ],
           distance: 500,
         },
         {
           coordinates: [
-            [10.05, 50.05],
-            [10.1, 50.1],
+            { lat: 50.05, lon: 10.05 },
+            { lat: 50.1, lon: 10.1 },
           ],
           distance: 500,
         },
@@ -192,15 +192,15 @@ describe('useRouteStore', () => {
       const newSegments: RouteSegment[] = [
         {
           coordinates: [
-            [10.0, 50.0],
-            [10.05, 50.05],
+            { lat: 50.0, lon: 10.0 },
+            { lat: 50.05, lon: 10.05 },
           ],
           distance: 600,
         },
         {
           coordinates: [
-            [10.05, 50.05],
-            [10.1, 50.1],
+            { lat: 50.05, lon: 10.05 },
+            { lat: 50.1, lon: 10.1 },
           ],
           distance: 700,
         },
@@ -223,15 +223,15 @@ describe('useRouteStore', () => {
       const newSegments: RouteSegment[] = [
         {
           coordinates: [
-            [10.0, 50.0],
-            [10.05, 50.05],
+            { lat: 50.0, lon: 10.0 },
+            { lat: 50.05, lon: 10.05 },
           ],
           distance: 500,
         },
         {
           coordinates: [
-            [10.05, 50.05],
-            [10.1, 50.1],
+            { lat: 50.05, lon: 10.05 },
+            { lat: 50.1, lon: 10.1 },
           ],
           distance: 500,
         },
@@ -262,8 +262,8 @@ describe('useRouteStore', () => {
       // Set up a route with 2 waypoints
       const segment: RouteSegment = {
         coordinates: [
-          [10.0, 50.0],
-          [10.1, 50.1],
+          { lat: 50.0, lon: 10.0 },
+          { lat: 50.1, lon: 10.1 },
         ],
         distance: 1000,
       }
@@ -276,8 +276,8 @@ describe('useRouteStore', () => {
       const newSegments: RouteSegment[] = [
         {
           coordinates: [
-            [10.05, 50.05],
-            [10.1, 50.1],
+            { lat: 50.05, lon: 10.05 },
+            { lat: 50.1, lon: 10.1 },
           ],
           distance: 700,
         },
@@ -304,8 +304,8 @@ describe('useRouteStore', () => {
       const newSegments: RouteSegment[] = [
         {
           coordinates: [
-            [10.05, 50.05],
-            [10.1, 50.1],
+            { lat: 50.05, lon: 10.05 },
+            { lat: 50.1, lon: 10.1 },
           ],
           distance: 700,
         },
@@ -341,15 +341,15 @@ describe('useRouteStore', () => {
       const segments = [
         {
           coordinates: [
-            [10.0, 50.0],
-            [10.1, 50.1],
+            { lat: 50.0, lon: 10.0 },
+            { lat: 50.1, lon: 10.1 },
           ],
           distance: 1000,
         },
         {
           coordinates: [
-            [10.1, 50.1],
-            [10.2, 50.2],
+            { lat: 50.1, lon: 10.1 },
+            { lat: 50.2, lon: 10.2 },
           ],
           distance: 1000,
         },
@@ -357,8 +357,8 @@ describe('useRouteStore', () => {
 
       segments.forEach((seg) => {
         useRouteStore.getState().addSegment(seg, {
-          lat: seg.coordinates[0][1],
-          lon: seg.coordinates[0][0],
+          lat: seg.coordinates[0].lat,
+          lon: seg.coordinates[0].lon,
         })
       })
       // Add final waypoint
@@ -369,8 +369,8 @@ describe('useRouteStore', () => {
       const newSegments: RouteSegment[] = [
         {
           coordinates: [
-            [10.0, 50.0],
-            [10.2, 50.2],
+            { lat: 50.0, lon: 10.0 },
+            { lat: 50.2, lon: 10.2 },
           ],
           distance: 1500,
         },
@@ -410,8 +410,8 @@ describe('useRouteStore', () => {
       const newSegments: RouteSegment[] = [
         {
           coordinates: [
-            [10.0, 50.0],
-            [10.2, 50.2],
+            { lat: 50.0, lon: 10.0 },
+            { lat: 50.2, lon: 10.2 },
           ],
           distance: 1500,
         },
@@ -438,8 +438,8 @@ describe('useRouteStore', () => {
     it('should reset route to null', () => {
       const segment: RouteSegment = {
         coordinates: [
-          [10.0, 50.0],
-          [10.1, 50.1],
+          { lat: 50.0, lon: 10.0 },
+          { lat: 50.1, lon: 10.1 },
         ],
         distance: 1000,
       }
@@ -517,8 +517,8 @@ describe('useRouteStore', () => {
       // Set up a route first
       const segment: RouteSegment = {
         coordinates: [
-          [10.0, 50.0],
-          [10.1, 50.1],
+          { lat: 50.0, lon: 10.0 },
+          { lat: 50.1, lon: 10.1 },
         ],
         distance: 1000,
       }
@@ -619,8 +619,8 @@ describe('useRouteStore', () => {
       waypoints.forEach((wp) => {
         const segment: RouteSegment = {
           coordinates: [
-            [wp.lon, wp.lat],
-            [wp.lon + 0.01, wp.lat + 0.01],
+            { lat: wp.lat, lon: wp.lon },
+            { lat: wp.lat + 0.01, lon: wp.lon + 0.01 },
           ],
           distance: 100,
         }
@@ -635,8 +635,8 @@ describe('useRouteStore', () => {
       // Add segments
       const segment1: RouteSegment = {
         coordinates: [
-          [10.0, 50.0],
-          [10.1, 50.1],
+          { lat: 50.0, lon: 10.0 },
+          { lat: 50.1, lon: 10.1 },
         ],
         distance: 1000,
       }
@@ -665,8 +665,8 @@ describe('useRouteStore', () => {
     it('should handle error state with route data', () => {
       const segment: RouteSegment = {
         coordinates: [
-          [10.0, 50.0],
-          [10.1, 50.1],
+          { lat: 50.0, lon: 10.0 },
+          { lat: 50.1, lon: 10.1 },
         ],
         distance: 1000,
       }

@@ -69,7 +69,7 @@ export function useRouteManagement({
       if (waypointNodeIds.current.length === 0) {
         waypointNodeIds.current = [nodeId]
         addSegment(
-          { coordinates: [[node.lon, node.lat]], distance: 0 },
+          { coordinates: [{ lat: node.lat, lon: node.lon }], distance: 0 },
           { lat: node.lat, lon: node.lon }
         )
         return

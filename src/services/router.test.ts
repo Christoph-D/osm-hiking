@@ -151,8 +151,8 @@ describe('Router', () => {
 
       expect(segment).not.toBeNull()
       expect(segment?.coordinates).toHaveLength(3)
-      expect(segment?.coordinates[0]).toEqual([10.0, 50.0])
-      expect(segment?.coordinates[2]).toEqual([10.002, 50.002])
+      expect(segment?.coordinates[0]).toEqual({ lat: 50.0, lon: 10.0 })
+      expect(segment?.coordinates[2]).toEqual({ lat: 50.002, lon: 10.002 })
       expect(segment?.distance).toBeGreaterThan(0)
     })
 
@@ -262,8 +262,8 @@ describe('Router', () => {
 
       expect(segment).not.toBeNull()
       expect(segment?.coordinates).toHaveLength(2)
-      expect(segment?.coordinates[0]).toEqual([10.0, 50.0])
-      expect(segment?.coordinates[1]).toEqual([10.001, 50.001])
+      expect(segment?.coordinates[0]).toEqual({ lat: 50.0, lon: 10.0 })
+      expect(segment?.coordinates[1]).toEqual({ lat: 50.001, lon: 10.001 })
       expect(segment?.distance).toBeGreaterThan(0)
       expect(segment?.distance).toBeLessThan(200) // Should be ~157m
     })
@@ -403,10 +403,11 @@ describe('Router', () => {
       const segment = router.route('node1', 'node3')
 
       expect(segment).not.toBeNull()
-      expect(segment?.coordinates[0]).toEqual([10.0, 50.0])
-      expect(segment?.coordinates[segment.coordinates.length - 1]).toEqual([
-        10.002, 50.002,
-      ])
+      expect(segment?.coordinates[0]).toEqual({ lat: 50.0, lon: 10.0 })
+      expect(segment?.coordinates[segment.coordinates.length - 1]).toEqual({
+        lat: 50.002,
+        lon: 10.002,
+      })
     })
   })
 })

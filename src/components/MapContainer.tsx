@@ -167,7 +167,7 @@ function RouteLayer() {
         <>
           {route.segments.map((segment, i) => {
             const positions = segment.coordinates.map(
-              ([lon, lat]) => [lat, lon] as [number, number]
+              (waypoint) => [waypoint.lat, waypoint.lon] as [number, number]
             )
             return (
               <Polyline

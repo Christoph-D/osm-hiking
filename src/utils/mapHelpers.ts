@@ -83,10 +83,10 @@ export function findNodeOnRoute(
     const segment = segments[segmentIdx]
 
     // Check if this node's coordinates match any coordinate in this segment
-    for (const [lon, lat] of segment.coordinates) {
+    for (const waypoint of segment.coordinates) {
       if (
-        Math.abs(lon - node.lon) < 0.000001 &&
-        Math.abs(lat - node.lat) < 0.000001
+        Math.abs(waypoint.lon - node.lon) < 0.000001 &&
+        Math.abs(waypoint.lat - node.lat) < 0.000001
       ) {
         // Node is on this segment, so it should be inserted after waypoint at segmentIdx-1
         // and before waypoint at segmentIdx
@@ -114,7 +114,7 @@ export function recalculateSegments(
       const firstNode = router.getNode(waypointNodeIds[i])
       if (firstNode) {
         newSegments.push({
-          coordinates: [[firstNode.lon, firstNode.lat]],
+          coordinates: [{ lat: firstNode.lat, lon: firstNode.lon }],
           distance: 0,
         })
       }

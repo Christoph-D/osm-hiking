@@ -1,18 +1,20 @@
 import { Route } from '../types'
 import { fetchElevations } from './elevation'
 
+import { Waypoint } from '../types'
+
 function createGPX(
-  coordinates: [number, number][],
+  coordinates: Waypoint[],
   metadata: { name: string; desc: string; creator: string },
   elevations?: number[]
 ): string {
   const trackPoints = coordinates
-    .map(([lon, lat], i) => {
+    .map((waypoint, i) => {
       const eleTag =
         elevations && elevations[i] !== undefined
           ? `<ele>${elevations[i].toFixed(1)}</ele>`
           : ''
-      return `      <trkpt lat="${lat}" lon="${lon}">${eleTag}</trkpt>`
+      return `      <trkpt lat="${waypoint.lat}" lon="${waypoint.lon}">${eleTag}</trkpt>`
     })
     .join('\n')
 
@@ -36,16 +38,21 @@ export async function exportRouteAsGPX(
   filename: string = 'hiking-route.gpx'
 ): Promise<void> {
   // Flatten all segments into a single line
-  const allCoordinates: [number, number][] = []
+  const allCoordinates: Waypoint[] = []
 
   route.segments.forEach((segment) => {
     allCoordinates.push(...segment.coordinates)
   })
 
+  // Convert to [lon, lat] format for elevation API
+  const coordinatesForElevation: [number, number][] = allCoordinates.map(
+    (waypoint) => [waypoint.lon, waypoint.lat]
+  )
+
   // Fetch elevations for all coordinates
   let elevations: number[] | undefined
   try {
-    elevations = await fetchElevations(allCoordinates)
+    elevations = await fetchElevations(coordinatesForElevation)
   } catch (error) {
     console.warn(
       'Failed to fetch elevations for GPX export, continuing without elevation data:',

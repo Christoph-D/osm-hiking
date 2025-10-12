@@ -48,8 +48,8 @@ describe('exportRouteAsGPX', () => {
       segments: [
         {
           coordinates: [
-            [10.0, 50.0],
-            [10.1, 50.1],
+            { lat: 50.0, lon: 10.0 },
+            { lat: 50.1, lon: 10.1 },
           ],
           distance: 1000,
         },
@@ -78,15 +78,15 @@ describe('exportRouteAsGPX', () => {
       segments: [
         {
           coordinates: [
-            [10.0, 50.0],
-            [10.1, 50.1],
+            { lat: 50.0, lon: 10.0 },
+            { lat: 50.1, lon: 10.1 },
           ],
           distance: 1000,
         },
         {
           coordinates: [
-            [10.1, 50.1],
-            [10.2, 50.2],
+            { lat: 50.1, lon: 10.1 },
+            { lat: 50.2, lon: 10.2 },
           ],
           distance: 1000,
         },
@@ -119,8 +119,8 @@ describe('exportRouteAsGPX', () => {
       segments: [
         {
           coordinates: [
-            [10.0, 50.0],
-            [10.1, 50.1],
+            { lat: 50.0, lon: 10.0 },
+            { lat: 50.1, lon: 10.1 },
           ],
           distance: 1000,
         },
@@ -151,8 +151,8 @@ describe('exportRouteAsGPX', () => {
       segments: [
         {
           coordinates: [
-            [10.0, 50.0],
-            [10.1, 50.1],
+            { lat: 50.0, lon: 10.0 },
+            { lat: 50.1, lon: 10.1 },
           ],
           distance: 1000,
         },
@@ -187,7 +187,7 @@ describe('exportRouteAsGPX', () => {
     const route: Route = {
       segments: [
         {
-          coordinates: [[10.0, 50.0]],
+          coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 5432.1,
         },
       ],
@@ -215,7 +215,7 @@ describe('exportRouteAsGPX', () => {
     const route: Route = {
       segments: [
         {
-          coordinates: [[10.0, 50.0]],
+          coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 1000,
         },
       ],
@@ -238,7 +238,7 @@ describe('exportRouteAsGPX', () => {
     const route: Route = {
       segments: [
         {
-          coordinates: [[10.0, 50.0]],
+          coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 1000,
         },
       ],
@@ -257,7 +257,7 @@ describe('exportRouteAsGPX', () => {
     const route: Route = {
       segments: [
         {
-          coordinates: [[10.0, 50.0]],
+          coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 1000,
         },
       ],
@@ -307,8 +307,8 @@ describe('exportRouteAsGPX', () => {
       segments: [
         {
           coordinates: [
-            [10.0, 50.0],
-            [10.1, 50.1],
+            { lat: 50.0, lon: 10.0 },
+            { lat: 50.1, lon: 10.1 },
           ],
           distance: 1000,
         },
@@ -337,7 +337,7 @@ describe('exportRouteAsGPX', () => {
     const route: Route = {
       segments: [
         {
-          coordinates: [[10.0, 50.0]],
+          coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 1000,
         },
       ],

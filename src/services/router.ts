@@ -1,7 +1,7 @@
 import { aStar } from 'ngraph.path'
 import { RoutingGraph } from './graphBuilder'
 import { distance } from '@turf/turf'
-import { RouteSegment } from '../types'
+import { RouteSegment, Waypoint } from '../types'
 
 export class Router {
   private graph: RoutingGraph
@@ -102,7 +102,7 @@ export class Router {
 
     const orderedPath = needsReverse ? [...path].reverse() : path
 
-    const coordinates: [number, number][] = []
+    const coordinates: Waypoint[] = []
     let totalDistance = 0
 
     for (let i = 0; i < orderedPath.length; i++) {
@@ -110,7 +110,7 @@ export class Router {
       const node = this.graph.nodes.get(nodeId)
 
       if (node) {
-        coordinates.push([node.lon, node.lat])
+        coordinates.push({ lat: node.lat, lon: node.lon })
 
         if (i > 0) {
           const prevNode = this.graph.nodes.get(orderedPath[i - 1].id as string)

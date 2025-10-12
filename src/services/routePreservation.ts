@@ -47,7 +47,7 @@ export function recalculateRoute(
       const firstNode = router.getNode(waypointNodeIds[i])
       if (firstNode) {
         newSegments.push({
-          coordinates: [[firstNode.lon, firstNode.lat]],
+          coordinates: [{ lat: firstNode.lat, lon: firstNode.lon }],
           distance: 0,
         })
       }

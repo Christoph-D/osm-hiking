@@ -250,22 +250,32 @@ export function collectRouteCoordinates(route: Route): [number, number][] {
     const segment = route.segments[i]
     if (i === 0) {
       // First segment: include all coordinates (usually just one point)
-      allCoordinates.push(...segment.coordinates)
+      allCoordinates.push(
+        ...segment.coordinates.map((wp) => [wp.lon, wp.lat] as [number, number])
+      )
     } else {
       // Check if this segment connects to the previous one
       const prevLastCoord = allCoordinates[allCoordinates.length - 1]
       const currFirstCoord = segment.coordinates[0]
       const coordsMatch =
         prevLastCoord &&
-        Math.abs(prevLastCoord[0] - currFirstCoord[0]) < 0.000001 &&
-        Math.abs(prevLastCoord[1] - currFirstCoord[1]) < 0.000001
+        Math.abs(prevLastCoord[0] - currFirstCoord.lon) < 0.000001 &&
+        Math.abs(prevLastCoord[1] - currFirstCoord.lat) < 0.0000001
 
       if (coordsMatch) {
         // Skip the first coordinate (it's the same as the last coordinate of the previous segment)
-        allCoordinates.push(...segment.coordinates.slice(1))
+        allCoordinates.push(
+          ...segment.coordinates
+            .slice(1)
+            .map((wp) => [wp.lon, wp.lat] as [number, number])
+        )
       } else {
         // Segments don't connect, include all coordinates
-        allCoordinates.push(...segment.coordinates)
+        allCoordinates.push(
+          ...segment.coordinates.map(
+            (wp) => [wp.lon, wp.lat] as [number, number]
+          )
+        )
       }
     }
   }

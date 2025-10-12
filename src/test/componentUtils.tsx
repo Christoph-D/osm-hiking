@@ -43,14 +43,14 @@ export function createMockRoute(overrides?: Partial<Route>): Route {
   return {
     segments: [
       {
-        coordinates: [[10.0, 50.0]],
+        coordinates: [{ lat: 50.0, lon: 10.0 }],
         distance: 0,
       },
       {
         coordinates: [
-          [10.0, 50.0],
-          [10.001, 50.001],
-          [10.002, 50.002],
+          { lat: 50.0, lon: 10.0 },
+          { lat: 50.001, lon: 10.001 },
+          { lat: 50.002, lon: 10.002 },
         ],
         distance: 314,
       },

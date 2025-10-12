@@ -29,7 +29,7 @@ export interface GraphEdge {
 }
 
 export interface RouteSegment {
-  coordinates: [number, number][]
+  coordinates: Waypoint[]
   distance: number
 }
 
