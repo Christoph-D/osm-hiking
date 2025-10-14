@@ -14,13 +14,7 @@
 
 import { useCallback, useRef } from 'react'
 import { Router } from '../services/router'
-import {
-  RouteSegment,
-  Route,
-  Waypoint,
-  RouteWaypoint,
-  NodeWaypoint,
-} from '../types'
+import { RouteSegment, Route, Waypoint, RouteWaypoint } from '../types'
 import {
   determineWaypointType,
   recalculateMixedSegments,
@@ -39,12 +33,10 @@ export function useRouteManagement({
   clearRouteStore,
   setError,
 }: UseRouteManagementParams) {
-  const waypointNodeIds = useRef<string[]>([])
   const preservedWaypoints = useRef<Waypoint[]>([])
 
   const clearRoute = useCallback(() => {
     clearRouteStore()
-    waypointNodeIds.current = []
     preservedWaypoints.current = []
   }, [clearRouteStore])
 
@@ -61,10 +53,7 @@ export function useRouteManagement({
       setError(null)
 
       // First waypoint - just mark it
-      if (waypointNodeIds.current.length === 0) {
-        if (routeWaypoint.type === 'node') {
-          waypointNodeIds.current = [(routeWaypoint as NodeWaypoint).nodeId]
-        }
+      if (!route || route.waypoints.length === 0) {
         addSegment(
           {
             coordinates: [{ lat: routeWaypoint.lat, lon: routeWaypoint.lon }],
@@ -79,14 +68,6 @@ export function useRouteManagement({
       const currentRouteWaypoints = route?.waypoints || []
       const newRouteWaypoints = [...currentRouteWaypoints, routeWaypoint]
 
-      // Update node IDs list for compatibility with existing functions
-      if (routeWaypoint.type === 'node') {
-        waypointNodeIds.current.push((routeWaypoint as NodeWaypoint).nodeId)
-      } else {
-        // For custom waypoints, we don't have a node ID
-        waypointNodeIds.current.push('')
-      }
-
       // Recalculate segments using mixed routing
       const { segments: newSegments } = recalculateMixedSegments(
         newRouteWaypoints,
@@ -100,7 +81,6 @@ export function useRouteManagement({
   )
 
   return {
-    waypointNodeIds,
     preservedWaypointsRef: preservedWaypoints,
     clearRoute,
     processMapClick,

@@ -13,7 +13,7 @@
 import { useCallback, RefObject } from 'react'
 import { LeafletEvent } from 'leaflet'
 import { Router } from '../services/router'
-import { Route, RouteSegment, RouteWaypoint, NodeWaypoint } from '../types'
+import { Route, RouteSegment, RouteWaypoint } from '../types'
 import {
   isNearNode,
   createNodeWaypoint,
@@ -24,7 +24,6 @@ import {
 interface UseMarkerHandlersParams {
   router: Router | null
   route: Route | null
-  waypointNodeIdsRef: RefObject<string[]>
   isDraggingMarkerRef: RefObject<boolean>
   updateWaypoint: (
     index: number,
@@ -43,7 +42,6 @@ interface UseMarkerHandlersParams {
 export function useMarkerHandlers({
   router,
   route,
-  waypointNodeIdsRef,
   isDraggingMarkerRef,
   updateWaypoint,
   deleteWaypoint,
@@ -119,15 +117,6 @@ export function useMarkerHandlers({
         marker.setLatLng([lat, lon])
       }
 
-      // Update the waypoint node IDs list for compatibility
-      if (newRouteWaypoint.type === 'node') {
-        waypointNodeIdsRef.current[index] = (
-          newRouteWaypoint as NodeWaypoint
-        ).nodeId
-      } else {
-        waypointNodeIdsRef.current[index] = ''
-      }
-
       // Update route waypoint with final coordinates
       const updatedRouteWaypoint = {
         ...newRouteWaypoint,
@@ -154,7 +143,7 @@ export function useMarkerHandlers({
         isDraggingMarkerRef.current = false
       }, 100)
     },
-    [router, route, waypointNodeIdsRef, isDraggingMarkerRef, updateWaypoint]
+    [router, route, isDraggingMarkerRef, updateWaypoint]
   )
 
   const handleMarkerClick = useCallback((event: LeafletEvent) => {
@@ -177,9 +166,6 @@ export function useMarkerHandlers({
         origEvent.stopPropagation()
       }
 
-      // Remove this waypoint from the node IDs list
-      waypointNodeIdsRef.current.splice(index, 1)
-
       // Create new array without the deleted waypoint
       const newRouteWaypoints = [...route.waypoints]
       newRouteWaypoints.splice(index, 1)
@@ -199,7 +185,7 @@ export function useMarkerHandlers({
       // Update the route store
       deleteWaypoint(index, newSegments, totalDistance)
     },
-    [router, route, waypointNodeIdsRef, deleteWaypoint, clearRoute]
+    [router, route, deleteWaypoint, clearRoute]
   )
 
   return {

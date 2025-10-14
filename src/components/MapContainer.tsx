@@ -116,17 +116,13 @@ function RouteLayer() {
   const isDraggingMarkerRef = useRef(false)
 
   // Route management hook
-  const {
-    waypointNodeIds,
-    preservedWaypointsRef,
-    clearRoute,
-    processMapClick,
-  } = useRouteManagement({
-    route,
-    addSegment,
-    clearRouteStore,
-    setError,
-  })
+  const { preservedWaypointsRef, clearRoute, processMapClick } =
+    useRouteManagement({
+      route,
+      addSegment,
+      clearRouteStore,
+      setError,
+    })
 
   // Data loading hook
   const { router, isDataLoaded, loadedBbox, loadData, isLoading } =
@@ -148,7 +144,6 @@ function RouteLayer() {
   } = useMarkerHandlers({
     router,
     route,
-    waypointNodeIdsRef: waypointNodeIds,
     isDraggingMarkerRef,
     updateWaypoint,
     deleteWaypoint,
