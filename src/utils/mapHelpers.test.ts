@@ -84,11 +84,11 @@ describe('Custom Waypoint Utilities', () => {
       const nodeId = 'node123'
       const node = { id: nodeId, lat: 50.001, lon: 10.001 }
 
-      router.findNearestNodeWithDistance = vi.fn().mockReturnValue({
+      router.findNearestNode = vi.fn().mockReturnValue({
         nodeId,
         distance: 50, // Within threshold
+        node,
       })
-      router.getNode = vi.fn().mockReturnValue(node)
 
       const result = determineWaypointType(lat, lon, router)
 
@@ -101,7 +101,7 @@ describe('Custom Waypoint Utilities', () => {
       const lat = 50.0
       const lon = 10.0
 
-      router.findNearestNodeWithDistance = vi.fn().mockReturnValue({
+      router.findNearestNode = vi.fn().mockReturnValue({
         nodeId: 'node123',
         distance: 150, // Beyond threshold
       })
@@ -116,7 +116,7 @@ describe('Custom Waypoint Utilities', () => {
       const lat = 50.0
       const lon = 10.0
 
-      router.findNearestNodeWithDistance = vi.fn().mockReturnValue(null)
+      router.findNearestNode = vi.fn().mockReturnValue(null)
 
       const result = determineWaypointType(lat, lon, router)
 
@@ -221,10 +221,12 @@ describe('Custom Waypoint Utilities', () => {
       it('should return node info when waypoint is near a node', () => {
         const waypoint = { lat: 50.0, lon: 10.0 }
         const nodeId = 'node123'
+        const node = { id: nodeId, lat: 50.001, lon: 10.001 }
 
-        router.findNearestNodeWithDistance = vi.fn().mockReturnValue({
+        router.findNearestNode = vi.fn().mockReturnValue({
           nodeId,
           distance: 30, // Within snapping threshold
+          node,
         })
 
         const result = isNearNode(waypoint, router)
@@ -232,13 +234,14 @@ describe('Custom Waypoint Utilities', () => {
         expect(result).toEqual({
           nodeId,
           distance: 30,
+          node,
         })
       })
 
       it('should return null when waypoint is far from any node', () => {
         const waypoint = { lat: 50.0, lon: 10.0 }
 
-        router.findNearestNodeWithDistance = vi.fn().mockReturnValue(null)
+        router.findNearestNode = vi.fn().mockReturnValue(null)
 
         const result = isNearNode(waypoint, router)
 
@@ -252,11 +255,11 @@ describe('Custom Waypoint Utilities', () => {
         const nodeId = 'node123'
         const node = { id: nodeId, lat: 50.001, lon: 10.001 }
 
-        router.findNearestNodeWithDistance = vi.fn().mockReturnValue({
+        router.findNearestNode = vi.fn().mockReturnValue({
           nodeId,
           distance: 30,
+          node,
         })
-        router.getNode = vi.fn().mockReturnValue(node)
 
         const result = convertWaypointType(customWaypoint, router)
 
@@ -267,7 +270,7 @@ describe('Custom Waypoint Utilities', () => {
       it('should convert node waypoint to custom waypoint when far from nodes', () => {
         const nodeWaypoint = createNodeWaypoint(50.0, 10.0, 'node123')
 
-        router.findNearestNodeWithDistance = vi.fn().mockReturnValue(null)
+        router.findNearestNode = vi.fn().mockReturnValue(null)
 
         const result = convertWaypointType(nodeWaypoint, router)
 
@@ -278,7 +281,7 @@ describe('Custom Waypoint Utilities', () => {
       it('should keep waypoint type when no conversion needed', () => {
         const customWaypoint = createCustomWaypoint(50.0, 10.0)
 
-        router.findNearestNodeWithDistance = vi.fn().mockReturnValue(null)
+        router.findNearestNode = vi.fn().mockReturnValue(null)
 
         const result = convertWaypointType(customWaypoint, router)
 
@@ -299,7 +302,7 @@ describe('Custom Waypoint Utilities', () => {
         const nodeId = 'node123'
 
         // Test clicking behavior - should create custom waypoint when beyond threshold
-        router.findNearestNodeWithDistance = vi.fn().mockReturnValue({
+        router.findNearestNode = vi.fn().mockReturnValue({
           nodeId,
           distance: WAYPOINT_CONSTANTS.CUSTOM_WAYPOINT_THRESHOLD + 1, // Just beyond threshold
         })
@@ -310,7 +313,7 @@ describe('Custom Waypoint Utilities', () => {
         // Test dragging behavior - should convert node to custom when no nodes found within threshold
         const nodeWaypoint = createNodeWaypoint(lat, lon, nodeId)
 
-        router.findNearestNodeWithDistance = vi.fn().mockReturnValue(null) // No nodes within threshold
+        router.findNearestNode = vi.fn().mockReturnValue(null) // No nodes within threshold
 
         const dragResult = convertWaypointType(nodeWaypoint, router)
         expect(dragResult.type).toBe('custom')
@@ -323,11 +326,11 @@ describe('Custom Waypoint Utilities', () => {
         const node = { id: nodeId, lat: 50.001, lon: 10.001 }
 
         // Test clicking behavior - should create node waypoint when within threshold
-        router.findNearestNodeWithDistance = vi.fn().mockReturnValue({
+        router.findNearestNode = vi.fn().mockReturnValue({
           nodeId,
           distance: WAYPOINT_CONSTANTS.CUSTOM_WAYPOINT_THRESHOLD - 1, // Just within threshold
+          node,
         })
-        router.getNode = vi.fn().mockReturnValue(node)
 
         const clickResult = determineWaypointType(lat, lon, router)
         expect(clickResult!.type).toBe('node')
@@ -335,11 +338,11 @@ describe('Custom Waypoint Utilities', () => {
         // Test dragging behavior - should snap custom to node when within different threshold
         const customWaypoint = createCustomWaypoint(lat, lon)
 
-        router.findNearestNodeWithDistance = vi.fn().mockReturnValue({
+        router.findNearestNode = vi.fn().mockReturnValue({
           nodeId,
           distance: WAYPOINT_CONSTANTS.SNAP_TO_NODE_THRESHOLD - 1, // Just within snap threshold
+          node,
         })
-        router.getNode = vi.fn().mockReturnValue(node)
 
         const dragResult = convertWaypointType(customWaypoint, router)
         expect(dragResult.type).toBe('node')
@@ -360,11 +363,11 @@ describe('Custom Waypoint Utilities', () => {
         const testDistance = WAYPOINT_CONSTANTS.CUSTOM_WAYPOINT_THRESHOLD
 
         // At exactly the threshold distance, clicking should create a node waypoint
-        router.findNearestNodeWithDistance = vi.fn().mockReturnValue({
+        router.findNearestNode = vi.fn().mockReturnValue({
           nodeId,
           distance: testDistance,
+          node,
         })
-        router.getNode = vi.fn().mockReturnValue(node)
 
         const clickResult = determineWaypointType(lat, lon, router)
         expect(clickResult!.type).toBe('node')
@@ -372,11 +375,11 @@ describe('Custom Waypoint Utilities', () => {
         // At exactly the same threshold distance, dragging should keep as node waypoint
         const nodeWaypoint = createNodeWaypoint(lat, lon, nodeId)
 
-        router.findNearestNodeWithDistance = vi.fn().mockReturnValue({
+        router.findNearestNode = vi.fn().mockReturnValue({
           nodeId,
           distance: testDistance,
+          node,
         })
-        router.getNode = vi.fn().mockReturnValue(node)
 
         const dragResult = convertWaypointType(nodeWaypoint, router)
         expect(dragResult.type).toBe('node')
@@ -389,7 +392,7 @@ describe('Custom Waypoint Utilities', () => {
         const node = { id: nodeId, lat: 50.001, lon: 10.001 }
 
         // Test just 1 meter beyond creation threshold
-        router.findNearestNodeWithDistance = vi.fn().mockReturnValue({
+        router.findNearestNode = vi.fn().mockReturnValue({
           nodeId,
           distance: WAYPOINT_CONSTANTS.CUSTOM_WAYPOINT_THRESHOLD + 1,
         })
@@ -400,27 +403,27 @@ describe('Custom Waypoint Utilities', () => {
         // Test just 1 meter beyond un-snapping threshold (should be same behavior)
         const nodeWaypoint = createNodeWaypoint(lat, lon, nodeId)
 
-        router.findNearestNodeWithDistance = vi.fn().mockReturnValue(null) // No nodes within threshold
+        router.findNearestNode = vi.fn().mockReturnValue(null) // No nodes within threshold
 
         const dragResultBeyond = convertWaypointType(nodeWaypoint, router)
         expect(dragResultBeyond.type).toBe('custom')
 
         // Test just 1 meter within creation threshold
-        router.findNearestNodeWithDistance = vi.fn().mockReturnValue({
+        router.findNearestNode = vi.fn().mockReturnValue({
           nodeId,
           distance: WAYPOINT_CONSTANTS.CUSTOM_WAYPOINT_THRESHOLD - 1,
+          node,
         })
-        router.getNode = vi.fn().mockReturnValue(node)
 
         const clickResultWithin = determineWaypointType(lat, lon, router)
         expect(clickResultWithin!.type).toBe('node')
 
         // Test just 1 meter within un-snapping threshold
-        router.findNearestNodeWithDistance = vi.fn().mockReturnValue({
+        router.findNearestNode = vi.fn().mockReturnValue({
           nodeId,
           distance: WAYPOINT_CONSTANTS.UNSNAP_FROM_NODE_THRESHOLD - 1,
+          node,
         })
-        router.getNode = vi.fn().mockReturnValue(node)
 
         const dragResultWithin = convertWaypointType(nodeWaypoint, router)
         expect(dragResultWithin.type).toBe('node')

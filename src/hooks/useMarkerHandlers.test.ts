@@ -13,7 +13,6 @@ import { NodeWaypoint, CustomWaypoint } from '../types'
 
 // Mock the mapHelpers
 vi.mock('../utils/mapHelpers', () => ({
-  isNearNode: vi.fn(),
   createNodeWaypoint: vi.fn(),
   createCustomWaypoint: vi.fn(),
   recalculateMixedSegments: vi.fn(),
@@ -26,13 +25,11 @@ vi.mock('../utils/debounce', () => ({
 
 // Import mocked functions
 import {
-  isNearNode,
   createNodeWaypoint,
   createCustomWaypoint,
   recalculateMixedSegments,
 } from '../utils/mapHelpers'
 
-const mockIsNearNode = isNearNode as ReturnType<typeof vi.fn>
 const mockCreateNodeWaypoint = createNodeWaypoint as ReturnType<typeof vi.fn>
 const mockCreateCustomWaypoint = createCustomWaypoint as ReturnType<
   typeof vi.fn
@@ -109,7 +106,7 @@ describe('useMarkerHandlers', () => {
         lat: 50,
         lon: 8,
       } as CustomWaypoint
-      mockIsNearNode.mockReturnValue(null)
+      mockRouter.findNearestNode = vi.fn().mockReturnValue(null)
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
@@ -143,8 +140,11 @@ describe('useMarkerHandlers', () => {
         lat: 50,
         lon: 8,
       } as CustomWaypoint
-      mockIsNearNode.mockReturnValue({ nodeId: 'node456', distance: 50 })
-      mockRouter.getNode = vi.fn().mockReturnValue({ lat: 51, lon: 9 })
+      mockRouter.findNearestNode = vi.fn().mockReturnValue({
+        nodeId: 'node456',
+        distance: 50,
+        node: { lat: 51, lon: 9 },
+      })
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
@@ -166,8 +166,7 @@ describe('useMarkerHandlers', () => {
         result.current.handleMarkerDrag(0, mockEvent)
       })
 
-      expect(mockIsNearNode).toHaveBeenCalled()
-      expect(mockRouter.getNode).toHaveBeenCalledWith('node456')
+      expect(mockRouter.findNearestNode).toHaveBeenCalled()
       expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(51, 9, 'node456')
       expect(mockMarker.setLatLng).not.toHaveBeenCalled()
       expect(mockSetTempRoute).toHaveBeenCalled()
@@ -181,7 +180,7 @@ describe('useMarkerHandlers', () => {
         lat: 50,
         lon: 8,
       } as NodeWaypoint
-      mockIsNearNode.mockReturnValue(null)
+      mockRouter.findNearestNode = vi.fn().mockReturnValue(null)
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
@@ -216,8 +215,11 @@ describe('useMarkerHandlers', () => {
         lat: 50,
         lon: 8,
       } as NodeWaypoint
-      mockIsNearNode.mockReturnValue({ nodeId: 'node789', distance: 30 })
-      mockRouter.getNode = vi.fn().mockReturnValue({ lat: 52, lon: 10 })
+      mockRouter.findNearestNode = vi.fn().mockReturnValue({
+        nodeId: 'node789',
+        distance: 30,
+        node: { lat: 52, lon: 10 },
+      })
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
@@ -239,8 +241,7 @@ describe('useMarkerHandlers', () => {
         result.current.handleMarkerDrag(0, mockEvent)
       })
 
-      expect(mockIsNearNode).toHaveBeenCalled()
-      expect(mockRouter.getNode).toHaveBeenCalledWith('node789')
+      expect(mockRouter.findNearestNode).toHaveBeenCalled()
       expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(52, 10, 'node789')
       // During drag, marker position should NOT be updated (performance optimization)
       expect(mockMarker.setLatLng).not.toHaveBeenCalled()
@@ -315,7 +316,7 @@ describe('useMarkerHandlers', () => {
 
       // Reset mocks to ensure clean state
       vi.clearAllMocks()
-      mockIsNearNode.mockReturnValue(null)
+      mockRouter.findNearestNode = vi.fn().mockReturnValue(null)
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
@@ -353,8 +354,11 @@ describe('useMarkerHandlers', () => {
       }
 
       vi.clearAllMocks()
-      mockIsNearNode.mockReturnValue({ nodeId: 'node456', distance: 50 })
-      mockRouter.getNode = vi.fn().mockReturnValue({ lat: 51, lon: 9 })
+      mockRouter.findNearestNode = vi.fn().mockReturnValue({
+        nodeId: 'node456',
+        distance: 50,
+        node: { lat: 51, lon: 9 },
+      })
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
@@ -376,8 +380,7 @@ describe('useMarkerHandlers', () => {
         result.current.handleMarkerDragEnd(0, mockEvent)
       })
 
-      expect(mockIsNearNode).toHaveBeenCalled()
-      expect(mockRouter.getNode).toHaveBeenCalledWith('node456')
+      expect(mockRouter.findNearestNode).toHaveBeenCalled()
       expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(51, 9, 'node456')
       expect(mockMarker.setLatLng).toHaveBeenCalledWith([51, 9]) // Marker should snap to node
       expect(mockUpdateWaypoint).toHaveBeenCalled()
@@ -399,8 +402,11 @@ describe('useMarkerHandlers', () => {
       }
 
       vi.clearAllMocks()
-      mockIsNearNode.mockReturnValue({ nodeId: 'node789', distance: 30 })
-      mockRouter.getNode = vi.fn().mockReturnValue({ lat: 52, lon: 10 })
+      mockRouter.findNearestNode = vi.fn().mockReturnValue({
+        nodeId: 'node789',
+        distance: 30,
+        node: { lat: 52, lon: 10 },
+      })
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
@@ -422,8 +428,7 @@ describe('useMarkerHandlers', () => {
         result.current.handleMarkerDragEnd(0, mockEvent)
       })
 
-      expect(mockIsNearNode).toHaveBeenCalled()
-      expect(mockRouter.getNode).toHaveBeenCalledWith('node789')
+      expect(mockRouter.findNearestNode).toHaveBeenCalled()
       expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(52, 10, 'node789')
       expect(mockMarker.setLatLng).toHaveBeenCalledWith([52, 10]) // Marker should snap to new node
       expect(mockUpdateWaypoint).toHaveBeenCalled()
@@ -445,7 +450,7 @@ describe('useMarkerHandlers', () => {
       }
 
       vi.clearAllMocks()
-      mockIsNearNode.mockReturnValue(null) // No nearby node
+      mockRouter.findNearestNode = vi.fn().mockReturnValue(null) // No nearby node
 
       const { result } = renderHook(() =>
         useMarkerHandlers({

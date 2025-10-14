@@ -15,11 +15,11 @@ import { LeafletEvent } from 'leaflet'
 import { Router } from '../services/router'
 import { Route, RouteSegment, RouteWaypoint } from '../types'
 import {
-  isNearNode,
   createNodeWaypoint,
   createCustomWaypoint,
   recalculateMixedSegments,
 } from '../utils/mapHelpers'
+import { WAYPOINT_CONSTANTS } from '../constants/waypoints'
 
 interface UseMarkerHandlersParams {
   router: Router | null
@@ -65,26 +65,24 @@ export function useMarkerHandlers({
       if (!currentWaypoint) return
 
       // Create temporary waypoint at new position
-      const tempWaypoint = { lat, lon }
-      const nearestResult = isNearNode(tempWaypoint, router)
+      const nearestResult = router.findNearestNode(
+        lat,
+        lon,
+        WAYPOINT_CONSTANTS.SNAP_TO_NODE_THRESHOLD
+      )
 
       let newRouteWaypoint: RouteWaypoint
       let finalLat = lat
       let finalLon = lon
 
       if (nearestResult) {
-        const node = router.getNode(nearestResult.nodeId)
-        if (node) {
-          newRouteWaypoint = createNodeWaypoint(
-            node.lat,
-            node.lon,
-            nearestResult.nodeId
-          )
-          finalLat = node.lat
-          finalLon = node.lon
-        } else {
-          return
-        }
+        newRouteWaypoint = createNodeWaypoint(
+          nearestResult.node.lat,
+          nearestResult.node.lon,
+          nearestResult.nodeId
+        )
+        finalLat = nearestResult.node.lat
+        finalLon = nearestResult.node.lon
       } else {
         newRouteWaypoint = createCustomWaypoint(lat, lon)
       }
@@ -129,37 +127,24 @@ export function useMarkerHandlers({
         return
       }
 
-      const tempWaypoint = { lat, lon }
-      const nearestResult = isNearNode(tempWaypoint, router)
+      const nearestResult = router.findNearestNode(
+        lat,
+        lon,
+        WAYPOINT_CONSTANTS.SNAP_TO_NODE_THRESHOLD
+      )
 
       let newRouteWaypoint: RouteWaypoint = createCustomWaypoint(lat, lon)
       let finalLat = lat
       let finalLon = lon
 
-      if (currentWaypoint.type === 'custom' && nearestResult) {
-        const node = router.getNode(nearestResult.nodeId)
-        if (node) {
-          newRouteWaypoint = createNodeWaypoint(
-            node.lat,
-            node.lon,
-            nearestResult.nodeId
-          )
-          finalLat = node.lat
-          finalLon = node.lon
-        }
-      } else if (currentWaypoint.type === 'node' && nearestResult) {
-        const node = router.getNode(nearestResult.nodeId)
-        if (node) {
-          newRouteWaypoint = createNodeWaypoint(
-            node.lat,
-            node.lon,
-            nearestResult.nodeId
-          )
-          finalLat = node.lat
-          finalLon = node.lon
-        }
-      } else if (currentWaypoint.type === 'node' && !nearestResult) {
-        newRouteWaypoint = createCustomWaypoint(lat, lon)
+      if (nearestResult) {
+        newRouteWaypoint = createNodeWaypoint(
+          nearestResult.node.lat,
+          nearestResult.node.lon,
+          nearestResult.nodeId
+        )
+        finalLat = nearestResult.node.lat
+        finalLon = nearestResult.node.lon
       } else {
         newRouteWaypoint = createCustomWaypoint(lat, lon)
       }

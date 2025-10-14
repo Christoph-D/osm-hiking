@@ -21,16 +21,16 @@ export function mapWaypointsToNodes(
       continue
     }
 
-    const nodeId = router.findNearestNode(waypoint.lat, waypoint.lon, 500)
+    const nearestNode = router.findNearestNode(waypoint.lat, waypoint.lon, 500)
 
-    if (nodeId) {
+    if (nearestNode) {
       // Successfully mapped to node - create NodeWaypoint
       routeWaypoints.push({
         type: 'node' as const,
         id: `preserved-node-${Date.now()}-${i}`,
-        lat: waypoint.lat,
-        lon: waypoint.lon,
-        nodeId: nodeId,
+        lat: nearestNode.node.lat,
+        lon: nearestNode.node.lon,
+        nodeId: nearestNode.nodeId,
       })
     } else {
       // Couldn't map to node - create CustomWaypoint

@@ -1,7 +1,7 @@
 import { aStar } from 'ngraph.path'
 import { RoutingGraph } from './graphBuilder'
 import { distance } from '@turf/turf'
-import { RouteSegment, Waypoint } from '../types'
+import { RouteSegment, Waypoint, GraphNode } from '../types'
 
 export class Router {
   private graph: RoutingGraph
@@ -15,32 +15,17 @@ export class Router {
     return this.graph.nodes.get(nodeId)
   }
 
-  // Find the nearest node to a clicked point
+  // Find the nearest node and return node ID, distance, and node data
   findNearestNode(
     lat: number,
     lon: number,
     maxDistance: number
-  ): string | null {
-    const result = this.findNearestNodeWithDistance(lat, lon, maxDistance)
-    return result?.nodeId || null
-  }
-
-  // Find the nearest node and return both node ID and distance
-  findNearestNodeWithDistance(
-    lat: number,
-    lon: number,
-    maxDistance: number
-  ): { nodeId: string; distance: number } | null {
+  ): { nodeId: string; distance: number; node: GraphNode } | null {
     let nearestId: string | null = null
     let minDist = Infinity
+    let nearestNode: GraphNode | null = null
 
-    let sampleCount = 0
     this.graph.nodes.forEach((node, id) => {
-      // Log first node to verify coordinate format
-      if (sampleCount === 0) {
-        sampleCount++
-      }
-
       const dist = distance([lon, lat], [node.lon, node.lat], {
         units: 'meters',
       })
@@ -48,6 +33,7 @@ export class Router {
       if (dist < minDist) {
         minDist = dist
         nearestId = id
+        nearestNode = node
       }
     })
 
@@ -56,7 +42,7 @@ export class Router {
       return null
     }
 
-    return { nodeId: nearestId!, distance: minDist }
+    return { nodeId: nearestId!, distance: minDist, node: nearestNode! }
   }
 
   // Route between two nodes

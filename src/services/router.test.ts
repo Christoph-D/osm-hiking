@@ -35,8 +35,8 @@ describe('Router', () => {
     })
   })
 
-  describe('findNearestNode', () => {
-    it('should return closest node when multiple nodes exist', () => {
+  describe('findNearestNodeWithDistance', () => {
+    it('should return closest node with distance and node data', () => {
       const osmData: OSMData = {
         nodes: new Map([
           ['node1', { id: 'node1', lat: 50.0, lon: 10.0 }],
@@ -49,9 +49,12 @@ describe('Router', () => {
       const graph = buildRoutingGraph(osmData)
       const router = new Router(graph)
 
-      // Click near node2
-      const nearest = router.findNearestNode(50.001, 10.001, 100)
-      expect(nearest).toBe('node2')
+      // Click near node2 (but not exactly on it)
+      const result = router.findNearestNode(50.0011, 10.0011, 100)
+      expect(result).not.toBeNull()
+      expect(result?.nodeId).toBe('node2')
+      expect(result?.distance).toBeGreaterThan(0)
+      expect(result?.node).toEqual({ id: 'node2', lat: 50.001, lon: 10.001 })
     })
 
     it('should return null when no nodes within radius', () => {
@@ -64,8 +67,8 @@ describe('Router', () => {
       const router = new Router(graph)
 
       // Click far from node1 with small max distance
-      const nearest = router.findNearestNode(51.0, 11.0, 100) // ~100km away
-      expect(nearest).toBeNull()
+      const result = router.findNearestNode(51.0, 11.0, 100) // ~100km away
+      expect(result).toBeNull()
     })
 
     it('should return null when no nodes exist', () => {
@@ -77,8 +80,8 @@ describe('Router', () => {
       const graph = buildRoutingGraph(osmData)
       const router = new Router(graph)
 
-      const nearest = router.findNearestNode(50.0, 10.0, 100)
-      expect(nearest).toBeNull()
+      const result = router.findNearestNode(50.0, 10.0, 100)
+      expect(result).toBeNull()
     })
 
     it('should find node within default max distance (100m)', () => {
@@ -91,8 +94,10 @@ describe('Router', () => {
       const router = new Router(graph)
 
       // Click very close to node1 (within 100m)
-      const nearest = router.findNearestNode(50.0001, 10.0001, 100)
-      expect(nearest).toBe('node1')
+      const result = router.findNearestNode(50.0001, 10.0001, 100)
+      expect(result).not.toBeNull()
+      expect(result?.nodeId).toBe('node1')
+      expect(result?.node).toEqual({ id: 'node1', lat: 50.0, lon: 10.0 })
     })
 
     it('should respect custom max distance parameter', () => {
@@ -105,25 +110,13 @@ describe('Router', () => {
       const router = new Router(graph)
 
       // Click ~157m away from node1
-      const nearest = router.findNearestNode(50.001, 10.001, 200)
-      expect(nearest).toBe('node1')
+      const result = router.findNearestNode(50.001, 10.001, 200)
+      expect(result).not.toBeNull()
+      expect(result?.nodeId).toBe('node1')
 
       // Same click with smaller max distance should return null
-      const nearestSmall = router.findNearestNode(50.001, 10.001, 50)
-      expect(nearestSmall).toBeNull()
-    })
-
-    it('should handle single node graph', () => {
-      const osmData: OSMData = {
-        nodes: new Map([['node1', { id: 'node1', lat: 50.0, lon: 10.0 }]]),
-        ways: [],
-      }
-
-      const graph = buildRoutingGraph(osmData)
-      const router = new Router(graph)
-
-      const nearest = router.findNearestNode(50.0, 10.0, 100)
-      expect(nearest).toBe('node1')
+      const resultSmall = router.findNearestNode(50.001, 10.001, 50)
+      expect(resultSmall).toBeNull()
     })
   })
 

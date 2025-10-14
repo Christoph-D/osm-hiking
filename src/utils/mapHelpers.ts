@@ -17,6 +17,7 @@ import {
   RouteWaypoint,
   CustomWaypoint,
   NodeWaypoint,
+  GraphNode,
 } from '../types'
 import { Router } from '../services/router'
 import { WAYPOINT_CONSTANTS } from '../constants/waypoints'
@@ -51,16 +52,13 @@ export function isPointInBbox(
 }
 
 /**
- * Checks if loading new data would clear the existing route
+ * Checks if loading new data would clear the current route
+ * Returns true if any waypoint would be outside the new bounding box
  */
 export function wouldClearRoute(
-  waypoints: Waypoint[] | RouteWaypoint[],
+  waypoints: Waypoint[],
   newBbox: { south: number; west: number; north: number; east: number }
 ): boolean {
-  if (waypoints.length === 0) {
-    return false
-  }
-
   // Check if all waypoints fit in the new bbox
   const allWaypointsFit = waypoints.every((waypoint) =>
     isPointInBbox(waypoint.lat, waypoint.lon, newBbox)
@@ -145,12 +143,8 @@ export function isNearNode(
   waypoint: Waypoint,
   router: Router,
   threshold: number = WAYPOINT_CONSTANTS.SNAP_TO_NODE_THRESHOLD
-): { nodeId: string; distance: number } | null {
-  const result = router.findNearestNodeWithDistance(
-    waypoint.lat,
-    waypoint.lon,
-    threshold
-  )
+): { nodeId: string; distance: number; node: GraphNode } | null {
+  const result = router.findNearestNode(waypoint.lat, waypoint.lon, threshold)
   return result
 }
 
@@ -191,7 +185,7 @@ export function determineWaypointType(
   lon: number,
   router: Router
 ): RouteWaypoint | null {
-  const result = router.findNearestNodeWithDistance(
+  const result = router.findNearestNode(
     lat,
     lon,
     WAYPOINT_CONSTANTS.CUSTOM_WAYPOINT_THRESHOLD
@@ -202,10 +196,7 @@ export function determineWaypointType(
     result.distance <= WAYPOINT_CONSTANTS.CUSTOM_WAYPOINT_THRESHOLD
   ) {
     // Close enough to a node - create node waypoint
-    const node = router.getNode(result.nodeId)
-    if (!node) return null
-
-    return createNodeWaypoint(node.lat, node.lon, result.nodeId)
+    return createNodeWaypoint(result.node.lat, result.node.lon, result.nodeId)
   } else {
     // Too far from any node - create custom waypoint
     return createCustomWaypoint(lat, lon)
@@ -275,14 +266,15 @@ export function convertWaypointType(
 
     if (nearestResult) {
       // Custom waypoint near a node - convert to node waypoint
-      const node = router.getNode(nearestResult.nodeId)
-      if (node) {
-        return createNodeWaypoint(node.lat, node.lon, nearestResult.nodeId)
-      }
+      return createNodeWaypoint(
+        nearestResult.node.lat,
+        nearestResult.node.lon,
+        nearestResult.nodeId
+      )
     }
   } else if (waypoint.type === 'node') {
     // Node waypoint - check if it should convert to custom (dragged too far)
-    const nearestResult = router.findNearestNodeWithDistance(
+    const nearestResult = router.findNearestNode(
       waypoint.lat,
       waypoint.lon,
       WAYPOINT_CONSTANTS.UNSNAP_FROM_NODE_THRESHOLD
