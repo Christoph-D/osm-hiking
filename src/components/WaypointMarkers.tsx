@@ -12,6 +12,7 @@
  * interaction logic to provided event handlers.
  */
 
+import { memo } from 'react'
 import { Marker } from 'react-leaflet'
 import { LeafletEvent } from 'leaflet'
 import L from 'leaflet'
@@ -23,17 +24,19 @@ interface WaypointMarkersProps {
   onMarkerClick: (event: LeafletEvent) => void
   onMarkerDragStart: () => void
   onMarkerDrag: (index: number, event: LeafletEvent) => void
+  onMarkerDragEnd: (index: number, event: LeafletEvent) => void
   onMarkerDoubleClick: (index: number, event: LeafletEvent) => void
 }
 
 /**
  * Component that renders draggable waypoint markers on the map
  */
-export function WaypointMarkers({
+export const WaypointMarkers = memo(function WaypointMarkers({
   waypoints,
   onMarkerClick,
   onMarkerDragStart,
   onMarkerDrag,
+  onMarkerDragEnd,
   onMarkerDoubleClick,
 }: WaypointMarkersProps) {
   return (
@@ -50,7 +53,8 @@ export function WaypointMarkers({
             eventHandlers={{
               click: onMarkerClick,
               dragstart: onMarkerDragStart,
-              dragend: (e: LeafletEvent) => onMarkerDrag(i, e),
+              drag: (e: LeafletEvent) => onMarkerDrag(i, e),
+              dragend: (e: LeafletEvent) => onMarkerDragEnd(i, e),
               dblclick: (e: LeafletEvent) => onMarkerDoubleClick(i, e),
               contextmenu: (e: LeafletEvent) => onMarkerDoubleClick(i, e),
             }}
@@ -59,4 +63,4 @@ export function WaypointMarkers({
       })}
     </>
   )
-}
+})

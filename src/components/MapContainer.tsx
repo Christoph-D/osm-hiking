@@ -1,9 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Waypoint } from '../types'
 import {
   MapContainer as LeafletMapContainer,
   TileLayer,
-  Polyline,
   CircleMarker,
   useMap,
   useMapEvents,
@@ -14,6 +13,7 @@ import { useRouteStore } from '../store/useRouteStore'
 import { Controls } from './Controls'
 import { ElevationProfile } from './ElevationProfile'
 import { LoadedAreaOverlay } from './LoadedAreaOverlay'
+import { RouteSegments } from './RouteSegments'
 import { WaypointMarkers } from './WaypointMarkers'
 import { useElevationLoader } from '../hooks/useElevationLoader'
 import { useDataLoader } from '../hooks/useDataLoader'
@@ -115,6 +115,9 @@ function RouteLayer() {
   // Track if a marker is currently being dragged
   const isDraggingMarkerRef = useRef(false)
 
+  // Temporary route state for dragging
+  const [tempRoute, setTempRoute] = useState<typeof route>(null)
+
   // Route management hook
   const { preservedWaypointsRef, clearRoute, processMapClick } =
     useRouteManagement({
@@ -135,10 +138,10 @@ function RouteLayer() {
       setError,
     })
 
-  // Marker handlers hook
   const {
     handleMarkerDragStart,
     handleMarkerDrag,
+    handleMarkerDragEnd,
     handleMarkerClick,
     handleMarkerDoubleClick,
   } = useMarkerHandlers({
@@ -148,6 +151,7 @@ function RouteLayer() {
     updateWaypoint,
     deleteWaypoint,
     clearRoute,
+    setTempRoute,
   })
 
   // Map events hook
@@ -181,25 +185,13 @@ function RouteLayer() {
 
       {route && (
         <>
-          {route.segments.map((segment, i) => {
-            const positions = segment.coordinates.map(
-              (waypoint) => [waypoint.lat, waypoint.lon] as [number, number]
-            )
-            return (
-              <Polyline
-                key={i}
-                positions={positions}
-                color="blue"
-                weight={4}
-                opacity={0.7}
-              />
-            )
-          })}
+          <RouteSegments route={route} tempRoute={tempRoute} />
           <WaypointMarkers
             waypoints={route.waypoints}
             onMarkerClick={handleMarkerClick}
             onMarkerDragStart={handleMarkerDragStart}
             onMarkerDrag={handleMarkerDrag}
+            onMarkerDragEnd={handleMarkerDragEnd}
             onMarkerDoubleClick={handleMarkerDoubleClick}
           />
         </>

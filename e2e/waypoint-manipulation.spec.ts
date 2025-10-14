@@ -583,4 +583,49 @@ test.describe('Waypoint Manipulation', () => {
     expect(Math.abs(200 - markerBox.x)).toBeLessThanOrEqual(40)
     expect(Math.abs(200 - markerBox.y)).toBeLessThanOrEqual(40)
   })
+
+  test('should drag marker and return to original position', async ({
+    page,
+  }) => {
+    await loadHikingPaths(page)
+
+    const markers = page.locator('.leaflet-marker-icon')
+
+    // Click to create one marker
+    await clickMap(page, 400, 300)
+    await expect(markers).toHaveCount(1)
+
+    const marker = markers.first()
+    const initialBox = await marker.boundingBox()
+    if (!initialBox) {
+      throw new Error('Marker not found')
+    }
+
+    const initialX = initialBox.x + initialBox.width / 2
+    const initialY = initialBox.y + initialBox.height / 2
+
+    // Drag the marker 300px to the right, keep holding the mouse button
+    await page.mouse.move(initialX, initialY)
+    await page.mouse.down()
+    await page.mouse.move(initialX + 300, initialY, { steps: 20 })
+
+    // Wait for 500ms while still holding the mouse button
+    await page.waitForTimeout(500)
+
+    // Drag marker back to its original place
+    await page.mouse.move(initialX, initialY, { steps: 20 })
+    await page.mouse.up()
+
+    // Verify that the marker's position is at its original location
+    const finalBox = await marker.boundingBox()
+    if (!finalBox) {
+      throw new Error('Marker not found after drag')
+    }
+
+    const finalX = finalBox.x + finalBox.width / 2
+    const finalY = finalBox.y + finalBox.height / 2
+
+    expect(Math.abs(finalX - initialX)).toBeLessThanOrEqual(20)
+    expect(Math.abs(finalY - initialY)).toBeLessThanOrEqual(20)
+  })
 })
