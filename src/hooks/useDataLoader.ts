@@ -94,22 +94,14 @@ export function useDataLoader({
             ? []
             : route.waypoints.map((wp) => ({ lat: wp.lat, lon: wp.lon }))
 
-          // Clear route if needed
           if (wouldClear) {
             clearRoute()
-            console.log('Route does not fit in new bbox, clearing')
-          } else {
-            console.log('Preserving route with waypoints:', waypointsToPreserve)
           }
         }
 
         const osmData = await fetchOSMData(bbox)
 
         const graph = buildRoutingGraph(osmData)
-        console.log(
-          `Loaded ${osmData.nodes.size} nodes, ${osmData.ways.length} ways`
-        )
-        console.log(`Built graph with ${graph.nodes.size} nodes`)
 
         const newRouter = new Router(graph)
         setRouter(newRouter)
