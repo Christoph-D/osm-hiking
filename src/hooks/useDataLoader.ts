@@ -100,6 +100,7 @@ export function useDataLoader({
         }
 
         const osmData = await fetchOSMData(bbox)
+        setIsLoading(false)
 
         const graph = buildRoutingGraph(osmData)
 
@@ -114,7 +115,6 @@ export function useDataLoader({
           const nodeIds = mapWaypointsToNodes(newRouter, waypointsToPreserve)
           if (!nodeIds) {
             clearRoute()
-            setIsLoading(false)
             return { router: newRouter, waypointNodeIds: [] }
           }
 
@@ -128,11 +128,8 @@ export function useDataLoader({
 
           if (newSegments.length === 0) {
             clearRoute()
-            setIsLoading(false)
             return { router: newRouter, waypointNodeIds: [] }
           }
-
-          setIsLoading(false)
 
           // Call success callback if provided
           if (onSuccess) {
@@ -141,8 +138,6 @@ export function useDataLoader({
 
           return { router: newRouter, waypointNodeIds: nodeIds }
         }
-
-        setIsLoading(false)
 
         // Call success callback
         if (onSuccess) {
