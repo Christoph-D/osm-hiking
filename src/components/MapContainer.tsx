@@ -104,7 +104,6 @@ function RouteLayer() {
   const {
     route,
     addSegment,
-    insertWaypoint,
     updateWaypoint,
     deleteWaypoint,
     clearRoute: clearRouteStore,
@@ -125,7 +124,6 @@ function RouteLayer() {
   } = useRouteManagement({
     route,
     addSegment,
-    insertWaypoint,
     clearRouteStore,
     setError,
   })
@@ -178,7 +176,7 @@ function RouteLayer() {
   // Synchronize preservedWaypoints with route changes for data reloading
   useEffect(() => {
     if (route && route.waypoints.length > 0) {
-      preservedWaypointsRef.current = [...route.waypoints]
+      preservedWaypointsRef.current = route.waypoints
     }
   }, [route, preservedWaypointsRef])
 

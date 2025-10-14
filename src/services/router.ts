@@ -19,8 +19,18 @@ export class Router {
   findNearestNode(
     lat: number,
     lon: number,
-    maxDistance: number = 100
+    maxDistance: number
   ): string | null {
+    const result = this.findNearestNodeWithDistance(lat, lon, maxDistance)
+    return result?.nodeId || null
+  }
+
+  // Find the nearest node and return both node ID and distance
+  findNearestNodeWithDistance(
+    lat: number,
+    lon: number,
+    maxDistance: number
+  ): { nodeId: string; distance: number } | null {
     let nearestId: string | null = null
     let minDist = Infinity
 
@@ -62,7 +72,7 @@ export class Router {
       return null
     }
 
-    return nearestId
+    return { nodeId: nearestId!, distance: minDist }
   }
 
   // Route between two nodes
@@ -124,6 +134,24 @@ export class Router {
         }
       }
     }
+
+    return {
+      coordinates,
+      distance: totalDistance,
+    }
+  }
+
+  // Create a straight-line segment between two waypoints (for custom waypoints)
+  createStraightSegment(
+    fromWaypoint: Waypoint,
+    toWaypoint: Waypoint
+  ): RouteSegment {
+    const coordinates = [fromWaypoint, toWaypoint]
+    const totalDistance = distance(
+      [fromWaypoint.lon, fromWaypoint.lat],
+      [toWaypoint.lon, toWaypoint.lat],
+      { units: 'meters' }
+    )
 
     return {
       coordinates,

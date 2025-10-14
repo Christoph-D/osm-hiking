@@ -145,11 +145,11 @@ test.describe('Waypoint Manipulation', () => {
     const markers = page.locator('.leaflet-marker-icon')
 
     // Create a route with 3 waypoints
-    await clickMap(page, 350, 300)
+    await clickMap(page, 200, 150)
     await expect(markers).toHaveCount(1)
     await clickMap(page, 400, 300)
     await expect(markers).toHaveCount(2)
-    await clickMap(page, 450, 300)
+    await clickMap(page, 700, 250)
     await expect(markers).toHaveCount(3)
 
     // Get the middle marker
@@ -171,7 +171,7 @@ test.describe('Waypoint Manipulation', () => {
       initialBox.y + initialBox.height / 2
     )
     await page.mouse.down()
-    await page.mouse.move(initialBox.x + 300, initialBox.y + 300, { steps: 10 })
+    await page.mouse.move(initialBox.x + 300, initialBox.y + 150)
     await page.mouse.up()
 
     // Wait for route to recalculate by checking if distance changes

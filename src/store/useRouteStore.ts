@@ -4,7 +4,7 @@ import {
   RouteSegment,
   ElevationPoint,
   ElevationStats,
-  Waypoint,
+  RouteWaypoint,
 } from '../types'
 
 interface RouteState {
@@ -12,16 +12,16 @@ interface RouteState {
   error: string | null
   hoveredElevationPoint: ElevationPoint | null
 
-  addSegment: (segment: RouteSegment, waypoint: Waypoint) => void
+  addSegment: (segment: RouteSegment, routeWaypoint: RouteWaypoint) => void
   insertWaypoint: (
     index: number,
-    waypoint: Waypoint,
+    routeWaypoint: RouteWaypoint,
     segments: RouteSegment[],
     totalDistance: number
   ) => void
   updateWaypoint: (
     index: number,
-    waypoint: Waypoint,
+    routeWaypoint: RouteWaypoint,
     segments: RouteSegment[],
     totalDistance: number
   ) => void
@@ -41,17 +41,18 @@ export const useRouteStore = create<RouteState>((set) => ({
   error: null,
   hoveredElevationPoint: null,
 
-  addSegment: (segment, waypoint) =>
+  addSegment: (segment, routeWaypoint) =>
     set((state) => {
       const currentRoute = state.route || {
         segments: [],
         waypoints: [],
         totalDistance: 0,
       }
+
       return {
         route: {
           segments: [...currentRoute.segments, segment],
-          waypoints: [...currentRoute.waypoints, waypoint],
+          waypoints: [...currentRoute.waypoints, routeWaypoint],
           totalDistance: currentRoute.totalDistance + segment.distance,
           // Clear elevation data when route changes
           elevationProfile: undefined,
@@ -60,15 +61,17 @@ export const useRouteStore = create<RouteState>((set) => ({
       }
     }),
 
-  insertWaypoint: (index, waypoint, segments, totalDistance) =>
+  insertWaypoint: (index, routeWaypoint, segments, totalDistance) =>
     set((state) => {
       if (!state.route) return state
-      const newWaypoints = [...state.route.waypoints]
-      newWaypoints.splice(index, 0, waypoint)
+      const newRouteWaypoints = [...state.route.waypoints]
+
+      newRouteWaypoints.splice(index, 0, routeWaypoint)
+
       return {
         route: {
           segments,
-          waypoints: newWaypoints,
+          waypoints: newRouteWaypoints,
           totalDistance,
           // Clear elevation data when route changes
           elevationProfile: undefined,
@@ -77,15 +80,17 @@ export const useRouteStore = create<RouteState>((set) => ({
       }
     }),
 
-  updateWaypoint: (index, waypoint, segments, totalDistance) =>
+  updateWaypoint: (index, routeWaypoint, segments, totalDistance) =>
     set((state) => {
       if (!state.route) return state
-      const newWaypoints = [...state.route.waypoints]
-      newWaypoints[index] = waypoint
+      const newRouteWaypoints = [...state.route.waypoints]
+
+      newRouteWaypoints[index] = routeWaypoint
+
       return {
         route: {
           segments,
-          waypoints: newWaypoints,
+          waypoints: newRouteWaypoints,
           totalDistance,
           // Clear elevation data when route changes
           elevationProfile: undefined,
@@ -97,18 +102,19 @@ export const useRouteStore = create<RouteState>((set) => ({
   deleteWaypoint: (index, segments, totalDistance) =>
     set((state) => {
       if (!state.route) return state
-      const newWaypoints = [...state.route.waypoints]
-      newWaypoints.splice(index, 1)
+      const newRouteWaypoints = [...state.route.waypoints]
+
+      newRouteWaypoints.splice(index, 1)
 
       // If no waypoints left, clear the route
-      if (newWaypoints.length === 0) {
+      if (newRouteWaypoints.length === 0) {
         return { route: null, error: null }
       }
 
       return {
         route: {
           segments,
-          waypoints: newWaypoints,
+          waypoints: newRouteWaypoints,
           totalDistance,
           // Clear elevation data when route changes
           elevationProfile: undefined,

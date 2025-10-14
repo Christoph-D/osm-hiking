@@ -1,5 +1,5 @@
 import { Router } from './router'
-import { RouteSegment, Waypoint } from '../types'
+import { RouteSegment, Waypoint, CustomWaypoint } from '../types'
 
 /**
  * Map waypoint coordinates to nearest nodes in the routing graph
@@ -35,7 +35,7 @@ export function mapWaypointsToNodes(
 export function recalculateRoute(
   router: Router,
   waypointNodeIds: string[],
-  addSegment: (segment: RouteSegment, waypoint: Waypoint) => void,
+  addSegment: (segment: RouteSegment, routeWaypoint: CustomWaypoint) => void,
   clearRouteStore: () => void,
   waypoints: Waypoint[]
 ): RouteSegment[] {
@@ -66,7 +66,14 @@ export function recalculateRoute(
   // Clear the route first then rebuild it
   clearRouteStore()
   for (let i = 0; i < waypoints.length; i++) {
-    addSegment(newSegments[i], waypoints[i])
+    // Create a basic custom waypoint for route preservation
+    const routeWaypoint: CustomWaypoint = {
+      type: 'custom',
+      id: `preserved-${Date.now()}-${i}`,
+      lat: waypoints[i].lat,
+      lon: waypoints[i].lon,
+    }
+    addSegment(newSegments[i], routeWaypoint)
   }
 
   return newSegments

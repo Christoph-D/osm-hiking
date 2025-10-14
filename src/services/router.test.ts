@@ -50,7 +50,7 @@ describe('Router', () => {
       const router = new Router(graph)
 
       // Click near node2
-      const nearest = router.findNearestNode(50.001, 10.001)
+      const nearest = router.findNearestNode(50.001, 10.001, 100)
       expect(nearest).toBe('node2')
     })
 
@@ -77,7 +77,7 @@ describe('Router', () => {
       const graph = buildRoutingGraph(osmData)
       const router = new Router(graph)
 
-      const nearest = router.findNearestNode(50.0, 10.0)
+      const nearest = router.findNearestNode(50.0, 10.0, 100)
       expect(nearest).toBeNull()
     })
 
@@ -91,7 +91,7 @@ describe('Router', () => {
       const router = new Router(graph)
 
       // Click very close to node1 (within 100m)
-      const nearest = router.findNearestNode(50.0001, 10.0001)
+      const nearest = router.findNearestNode(50.0001, 10.0001, 100)
       expect(nearest).toBe('node1')
     })
 

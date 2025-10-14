@@ -52,9 +52,22 @@ export interface Waypoint {
   lon: number
 }
 
+export interface CustomWaypoint extends Waypoint {
+  type: 'custom'
+  id: string // Unique UUID
+}
+
+export interface NodeWaypoint extends Waypoint {
+  type: 'node'
+  id: string // Unique UUID
+  nodeId: string
+}
+
+export type RouteWaypoint = CustomWaypoint | NodeWaypoint
+
 export interface Route {
   segments: RouteSegment[]
-  waypoints: Waypoint[]
+  waypoints: RouteWaypoint[]
   totalDistance: number
   elevationProfile?: ElevationPoint[]
   elevationStats?: ElevationStats

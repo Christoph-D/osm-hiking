@@ -54,8 +54,8 @@ export function createMockRoute(overrides?: Partial<Route>): Route {
       },
     ],
     waypoints: [
-      { lat: 50.0, lon: 10.0 },
-      { lat: 50.002, lon: 10.002 },
+      { type: 'custom', id: 'mock-1', lat: 50.0, lon: 10.0 },
+      { type: 'custom', id: 'mock-2', lat: 50.002, lon: 10.002 },
     ],
     totalDistance: 314,
     elevationProfile: undefined,

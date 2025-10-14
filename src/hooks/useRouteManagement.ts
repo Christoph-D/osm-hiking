@@ -14,18 +14,21 @@
 
 import { useCallback, useRef } from 'react'
 import { Router } from '../services/router'
-import { RouteSegment, Route, Waypoint } from '../types'
-import { findNodeOnRoute, recalculateSegments } from '../utils/mapHelpers'
+import {
+  RouteSegment,
+  Route,
+  Waypoint,
+  RouteWaypoint,
+  NodeWaypoint,
+} from '../types'
+import {
+  determineWaypointType,
+  recalculateMixedSegments,
+} from '../utils/mapHelpers'
 
 interface UseRouteManagementParams {
   route: Route | null
-  addSegment: (segment: RouteSegment, waypoint: Waypoint) => void
-  insertWaypoint: (
-    index: number,
-    waypoint: Waypoint,
-    segments: RouteSegment[],
-    totalDistance: number
-  ) => void
+  addSegment: (segment: RouteSegment, routeWaypoint: RouteWaypoint) => void
   clearRouteStore: () => void
   setError: (error: string | null) => void
 }
@@ -33,7 +36,6 @@ interface UseRouteManagementParams {
 export function useRouteManagement({
   route,
   addSegment,
-  insertWaypoint,
   clearRouteStore,
   setError,
 }: UseRouteManagementParams) {
@@ -48,72 +50,53 @@ export function useRouteManagement({
 
   const processMapClick = useCallback(
     (router: Router, lat: number, lng: number) => {
-      // Find nearest node with increased search radius
-      const nodeId = router.findNearestNode(lat, lng, 500)
+      // Determine waypoint type based on distance to nearest node
+      const routeWaypoint = determineWaypointType(lat, lng, router)
 
-      if (!nodeId) {
-        setError('No path found nearby. Click closer to a hiking trail.')
+      if (!routeWaypoint) {
+        setError('Invalid location selected.')
         return
       }
 
       setError(null)
 
-      // Get the actual node coordinates
-      const node = router.getNode(nodeId)
-      if (!node) {
-        setError('Invalid node selected.')
-        return
-      }
-
       // First waypoint - just mark it
       if (waypointNodeIds.current.length === 0) {
-        waypointNodeIds.current = [nodeId]
+        if (routeWaypoint.type === 'node') {
+          waypointNodeIds.current = [(routeWaypoint as NodeWaypoint).nodeId]
+        }
         addSegment(
-          { coordinates: [{ lat: node.lat, lon: node.lon }], distance: 0 },
-          { lat: node.lat, lon: node.lon }
+          {
+            coordinates: [{ lat: routeWaypoint.lat, lon: routeWaypoint.lon }],
+            distance: 0,
+          },
+          routeWaypoint
         )
         return
       }
 
-      // Check if this node is on the existing route
-      const insertIndex = findNodeOnRoute(nodeId, router, route?.segments || [])
+      // For subsequent waypoints, we need to handle mixed routing
+      const currentRouteWaypoints = route?.waypoints || []
+      const newRouteWaypoints = [...currentRouteWaypoints, routeWaypoint]
 
-      if (insertIndex !== null) {
-        // Node is on the route - insert it at the correct position
-        // Insert the node ID in the waypoint list
-        waypointNodeIds.current.splice(insertIndex, 0, nodeId)
-
-        // Recalculate all segments
-        const { segments: newSegments, totalDistance } = recalculateSegments(
-          waypointNodeIds.current,
-          router
-        )
-
-        // Update the route store
-        insertWaypoint(
-          insertIndex,
-          { lat: node.lat, lon: node.lon },
-          newSegments,
-          totalDistance
-        )
-        return
+      // Update node IDs list for compatibility with existing functions
+      if (routeWaypoint.type === 'node') {
+        waypointNodeIds.current.push((routeWaypoint as NodeWaypoint).nodeId)
+      } else {
+        // For custom waypoints, we don't have a node ID
+        waypointNodeIds.current.push('')
       }
 
-      // Node is not on the route - add to the end
-      const segment = router.route(
-        waypointNodeIds.current[waypointNodeIds.current.length - 1],
-        nodeId
+      // Recalculate segments using mixed routing
+      const { segments: newSegments } = recalculateMixedSegments(
+        newRouteWaypoints,
+        router
       )
 
-      if (!segment) {
-        setError('Could not find a route between these points.')
-        return
-      }
-
-      waypointNodeIds.current.push(nodeId)
-      addSegment(segment, { lat: node.lat, lon: node.lon })
+      // Update the route store
+      addSegment(newSegments[newSegments.length - 1], routeWaypoint)
     },
-    [route, addSegment, insertWaypoint, setError]
+    [route, addSegment, setError]
   )
 
   return {
