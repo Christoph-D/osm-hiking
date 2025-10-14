@@ -9,7 +9,7 @@ interface RouteSegmentsProps {
 export function RouteSegments({ route, tempRoute }: RouteSegmentsProps) {
   const activeRoute = tempRoute || route
 
-  if (!activeRoute) {
+  if (!activeRoute || activeRoute.segments.length < 2) {
     return null
   }
 

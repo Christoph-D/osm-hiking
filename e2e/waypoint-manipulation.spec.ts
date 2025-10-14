@@ -584,6 +584,53 @@ test.describe('Waypoint Manipulation', () => {
     expect(Math.abs(200 - markerBox.y)).toBeLessThanOrEqual(40)
   })
 
+  test('should clear the route and add a new waypoint when clicking in a new area', async ({
+    page,
+  }) => {
+    await loadHikingPaths(page)
+
+    await clickMap(page, 300, 300)
+    await clickMap(page, 400, 300)
+
+    const markers = page.locator('.leaflet-marker-icon')
+    await expect(markers).toHaveCount(2)
+
+    // Drag the map to pan the markers out of view
+    await page.mouse.move(100, 100)
+    await page.mouse.down()
+    await page.mouse.move(1000, 1000, { steps: 20 })
+    await page.mouse.up()
+    // Wait for pan animation to start
+    await page.waitForFunction(() => {
+      const mapPane = document.querySelector('.leaflet-map-pane')
+      return mapPane && mapPane.classList.contains('leaflet-pan-anim')
+    })
+    // Wait for pan animation to complete
+    await page.waitForFunction(() => {
+      const mapPane = document.querySelector('.leaflet-map-pane')
+      return mapPane && !mapPane.classList.contains('leaflet-pan-anim')
+    })
+
+    // Accept the warning about the route being cleared
+    page.on('dialog', (dialog) => dialog.accept())
+    await clickMap(page, 200, 200)
+
+    // Check that a new waypoint was added
+    await expect(markers).toHaveCount(1)
+
+    // Verify the marker is in the expected position
+    const marker = markers.first()
+    const markerBox = await marker.boundingBox()
+    if (!markerBox) {
+      throw new Error('Marker bounding box not found')
+    }
+    expect(Math.abs(200 - markerBox.x)).toBeLessThanOrEqual(50)
+    expect(Math.abs(200 - markerBox.y)).toBeLessThanOrEqual(50)
+
+    // Verify no polyline
+    expect(await getPolylineCount(page)).toBe(0)
+  })
+
   test('should drag marker and return to original position', async ({
     page,
   }) => {
