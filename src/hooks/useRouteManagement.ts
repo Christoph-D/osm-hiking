@@ -14,25 +14,21 @@
 
 import { useCallback, useRef } from 'react'
 import { Router } from '../services/router'
-import { RouteSegment, Route, Waypoint, RouteWaypoint } from '../types'
+import { Waypoint } from '../types'
 import {
   determineWaypointType,
   recalculateMixedSegments,
 } from '../utils/mapHelpers'
+import { useRouteStore } from '../store/useRouteStore'
 
-interface UseRouteManagementParams {
-  route: Route | null
-  addSegment: (segment: RouteSegment, routeWaypoint: RouteWaypoint) => void
-  clearRouteStore: () => void
-  setError: (error: string | null) => void
-}
+export function useRouteManagement() {
+  const {
+    route,
+    addSegment,
+    clearRoute: clearRouteStore,
+    setError,
+  } = useRouteStore()
 
-export function useRouteManagement({
-  route,
-  addSegment,
-  clearRouteStore,
-  setError,
-}: UseRouteManagementParams) {
   const preservedWaypoints = useRef<Waypoint[]>([])
 
   const clearRoute = useCallback(() => {

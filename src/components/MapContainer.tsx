@@ -120,12 +120,7 @@ function RouteLayer() {
 
   // Route management hook
   const { preservedWaypointsRef, clearRoute, processMapClick } =
-    useRouteManagement({
-      route,
-      addSegment,
-      clearRouteStore,
-      setError,
-    })
+    useRouteManagement()
 
   // Data loading hook
   const { router, isDataLoaded, loadedBbox, loadData, isLoading } =
