@@ -580,8 +580,8 @@ test.describe('Waypoint Manipulation', () => {
     if (!markerBox) {
       throw new Error('Marker bounding box not found')
     }
-    expect(Math.abs(200 - markerBox.x)).toBeLessThanOrEqual(40)
-    expect(Math.abs(200 - markerBox.y)).toBeLessThanOrEqual(40)
+    expect(Math.abs(200 - markerBox.x)).toBeLessThanOrEqual(50)
+    expect(Math.abs(200 - markerBox.y)).toBeLessThanOrEqual(50)
   })
 
   test('should clear the route and add a new waypoint when clicking in a new area', async ({

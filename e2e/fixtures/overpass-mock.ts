@@ -125,7 +125,7 @@ function translateMockData(
  * This intercepts all requests to overpass-api.de and returns cached fixture data
  */
 export async function setupOverpassMock(page: Page) {
-  await page.route('**/overpass-api.de/api/interpreter', async (route) => {
+  await page.route('**/*overpass*/api/interpreter', async (route) => {
     // Store the request data for testing
     const request = route.request()
     const postData = request.postData()
