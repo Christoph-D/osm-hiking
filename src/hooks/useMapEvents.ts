@@ -15,11 +15,13 @@ import { useState, useEffect, RefObject } from 'react'
 import { useMapEvents as useLeafletMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { Router } from '../services/router'
+import { Route, RouteWaypoint } from '../types'
 import { isPointInBbox, getCurrentBbox } from '../utils/mapHelpers'
 
 interface UseMapEventsParams {
   map: L.Map
   router: Router | null
+  route: Route | null
   isDataLoaded: boolean
   loadedBbox: {
     south: number
@@ -28,11 +30,16 @@ interface UseMapEventsParams {
     east: number
   } | null
   isDraggingMarkerRef: RefObject<boolean>
-  processMapClick: (router: Router, lat: number, lng: number) => void
+  processMapClick: (
+    router: Router,
+    lat: number,
+    lng: number,
+    route: Route | null
+  ) => void
   loadData: (
-    onSuccess?: (router: Router) => void,
+    onSuccess?: (router: Router, currentRoute: Route | null) => void,
     skipConfirmation?: boolean
-  ) => Promise<{ router: Router; waypointNodeIds: string[] } | undefined>
+  ) => Promise<{ router: Router; waypointNodeIds: RouteWaypoint[] } | undefined>
 }
 
 interface MapBounds {
@@ -45,6 +52,7 @@ interface MapBounds {
 export function useMapEvents({
   map,
   router,
+  route,
   isDataLoaded,
   loadedBbox,
   isDraggingMarkerRef,
@@ -93,17 +101,17 @@ export function useMapEvents({
       if (needsDataLoad) {
         // Store pending click and load data
         // loadData will handle zoom validation and route clearing confirmation
-        loadData((loadedRouter) => {
+        loadData((loadedRouter, currentRoute) => {
           // Process the pending click after data loads
-          // Process with the loaded router
-          processMapClick(loadedRouter, lat, lng)
+          // Process with the loaded router and current route
+          processMapClick(loadedRouter, lat, lng, currentRoute)
         })
         return
       }
 
       // Process the click normally
       if (router) {
-        processMapClick(router, lat, lng)
+        processMapClick(router, lat, lng, route)
       }
     },
 

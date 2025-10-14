@@ -17,13 +17,11 @@ import L from 'leaflet'
 import { Router } from '../services/router'
 import { fetchOSMData } from '../services/overpass'
 import { buildRoutingGraph } from '../services/graphBuilder'
-import { RouteSegment, Route, Waypoint, CustomWaypoint } from '../types'
+import { RouteSegment, Route, CustomWaypoint, RouteWaypoint } from '../types'
 import { getCurrentBbox, wouldClearRoute } from '../utils/mapHelpers'
 import { MIN_ZOOM } from '../constants/map'
-import {
-  mapWaypointsToNodes,
-  recalculateRoute,
-} from '../services/routePreservation'
+import { mapWaypointsToNodes } from '../services/routePreservation'
+import { recalculateMixedSegments } from '../utils/mapHelpers'
 
 interface UseDataLoaderParams {
   map: L.Map
@@ -55,7 +53,10 @@ export function useDataLoader({
   const [isLoading, setIsLoading] = useState(false)
 
   const loadData = useCallback(
-    async (onSuccess?: (router: Router) => void, skipConfirmation = false) => {
+    async (
+      onSuccess?: (router: Router, currentRoute: Route | null) => void,
+      skipConfirmation = false
+    ) => {
       try {
         // Check zoom level - only load if zoomed in enough
         if (map.getZoom() < MIN_ZOOM) {
@@ -71,7 +72,7 @@ export function useDataLoader({
         setError(null)
 
         // Check if we have an existing route and handle preservation/clearing
-        let waypointsToPreserve: Waypoint[] = []
+        let waypointsToPreserve: RouteWaypoint[] = []
         let wouldClear = false
 
         if (route) {
@@ -90,9 +91,7 @@ export function useDataLoader({
 
           // If route would NOT be cleared, preserve all waypoints
           // If route would be cleared, preserve none
-          waypointsToPreserve = wouldClear
-            ? []
-            : route.waypoints.map((wp) => ({ lat: wp.lat, lon: wp.lon }))
+          waypointsToPreserve = wouldClear ? [] : route.waypoints
 
           if (wouldClear) {
             clearRoute()
@@ -112,36 +111,52 @@ export function useDataLoader({
         // Recalculate route if we have preserved waypoints
         if (waypointsToPreserve.length > 0) {
           // Map waypoints to nodes and recalculate route
-          const nodeIds = mapWaypointsToNodes(newRouter, waypointsToPreserve)
-          if (!nodeIds) {
-            clearRoute()
-            return { router: newRouter, waypointNodeIds: [] }
-          }
-
-          const newSegments = recalculateRoute(
+          const routeWaypoints = mapWaypointsToNodes(
             newRouter,
-            nodeIds,
-            addSegment,
-            clearRouteStore,
             waypointsToPreserve
           )
+
+          const { segments: newSegments, totalDistance } =
+            recalculateMixedSegments(routeWaypoints, newRouter)
 
           if (newSegments.length === 0) {
             clearRoute()
             return { router: newRouter, waypointNodeIds: [] }
           }
 
-          // Call success callback if provided
-          if (onSuccess) {
-            onSuccess(newRouter)
+          // Construct the new route object
+          const newRoute: Route = {
+            segments: newSegments,
+            waypoints: routeWaypoints,
+            totalDistance,
           }
 
-          return { router: newRouter, waypointNodeIds: nodeIds }
+          // Clear the route store and set the new recalculated route
+          clearRouteStore()
+          // We need to add each segment with its corresponding waypoint
+          for (let i = 0; i < newRoute.waypoints.length; i++) {
+            addSegment(
+              newRoute.segments[i],
+              newRoute.waypoints[i] as CustomWaypoint
+            )
+          }
+
+          // Call success callback if provided
+          if (onSuccess) {
+            onSuccess(newRouter, newRoute)
+          }
+
+          return { router: newRouter, waypointNodeIds: routeWaypoints }
         }
 
         // Call success callback
         if (onSuccess) {
-          onSuccess(newRouter)
+          const emptyRoute: Route = {
+            segments: [],
+            waypoints: [],
+            totalDistance: 0,
+          }
+          onSuccess(newRouter, emptyRoute)
         }
 
         return { router: newRouter, waypointNodeIds: [] }

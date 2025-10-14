@@ -154,6 +154,7 @@ function RouteLayer() {
     useMapEventsHandler({
       map,
       router,
+      route,
       isDataLoaded,
       loadedBbox,
       isDraggingMarkerRef,

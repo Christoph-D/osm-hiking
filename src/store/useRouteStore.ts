@@ -13,6 +13,7 @@ interface RouteState {
   hoveredElevationPoint: ElevationPoint | null
 
   addSegment: (segment: RouteSegment, routeWaypoint: RouteWaypoint) => void
+  setRoute: (route: Route) => void
   insertWaypoint: (
     index: number,
     routeWaypoint: RouteWaypoint,
@@ -59,6 +60,16 @@ export const useRouteStore = create<RouteState>((set) => ({
           elevationStats: undefined,
         },
       }
+    }),
+
+  setRoute: (route) =>
+    set({
+      route: {
+        ...route,
+        // Clear elevation data when route changes
+        elevationProfile: undefined,
+        elevationStats: undefined,
+      },
     }),
 
   insertWaypoint: (index, routeWaypoint, segments, totalDistance) =>

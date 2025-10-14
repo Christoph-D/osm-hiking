@@ -14,7 +14,7 @@
 
 import { useCallback, useRef } from 'react'
 import { Router } from '../services/router'
-import { Waypoint } from '../types'
+import { Route, Waypoint } from '../types'
 import {
   determineWaypointType,
   recalculateMixedSegments,
@@ -22,12 +22,7 @@ import {
 import { useRouteStore } from '../store/useRouteStore'
 
 export function useRouteManagement() {
-  const {
-    route,
-    addSegment,
-    clearRoute: clearRouteStore,
-    setError,
-  } = useRouteStore()
+  const { setRoute, clearRoute: clearRouteStore, setError } = useRouteStore()
 
   const preservedWaypoints = useRef<Waypoint[]>([])
 
@@ -37,7 +32,7 @@ export function useRouteManagement() {
   }, [clearRouteStore])
 
   const processMapClick = useCallback(
-    (router: Router, lat: number, lng: number) => {
+    (router: Router, lat: number, lng: number, route: Route | null) => {
       // Determine waypoint type based on distance to nearest node
       const routeWaypoint = determineWaypointType(lat, lng, router)
 
@@ -50,13 +45,17 @@ export function useRouteManagement() {
 
       // First waypoint - just mark it
       if (!route || route.waypoints.length === 0) {
-        addSegment(
-          {
-            coordinates: [{ lat: routeWaypoint.lat, lon: routeWaypoint.lon }],
-            distance: 0,
-          },
-          routeWaypoint
-        )
+        const newRoute: Route = {
+          segments: [
+            {
+              coordinates: [{ lat: routeWaypoint.lat, lon: routeWaypoint.lon }],
+              distance: 0,
+            },
+          ],
+          waypoints: [routeWaypoint],
+          totalDistance: 0,
+        }
+        setRoute(newRoute)
         return
       }
 
@@ -65,15 +64,27 @@ export function useRouteManagement() {
       const newRouteWaypoints = [...currentRouteWaypoints, routeWaypoint]
 
       // Recalculate segments using mixed routing
-      const { segments: newSegments } = recalculateMixedSegments(
-        newRouteWaypoints,
-        router
-      )
+      try {
+        const result = recalculateMixedSegments(newRouteWaypoints, router)
+        const { segments: newSegments } = result
 
-      // Update the route store
-      addSegment(newSegments[newSegments.length - 1], routeWaypoint)
+        const totalDistance = newSegments.reduce(
+          (sum, segment) => sum + segment.distance,
+          0
+        )
+
+        const newRoute: Route = {
+          segments: newSegments,
+          waypoints: newRouteWaypoints,
+          totalDistance,
+        }
+        setRoute(newRoute)
+      } catch (error) {
+        console.error('Error in recalculateMixedSegments:', error)
+        setError('Failed to calculate route segment')
+      }
     },
-    [route, addSegment, setError]
+    [setRoute, setError]
   )
 
   return {
