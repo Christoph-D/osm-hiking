@@ -17,8 +17,10 @@ import { INITIAL_POSITION } from '../../src/constants/map'
 
 interface OverpassElement {
   type: 'node' | 'way' | 'relation'
+  id?: number
   lat?: number
   lon?: number
+  nodes?: number[]
 }
 
 interface OverpassResponse {
@@ -91,6 +93,10 @@ function translateMockData(
   // Create a deep copy of the data to avoid modifying the original
   const translatedData = JSON.parse(JSON.stringify(data)) as OverpassResponse
 
+  // Add an integer derived from lat/lon to all ids
+  const idOffset =
+    Math.floor(offsetLat * 10000) + Math.floor(offsetLon * 100000)
+
   // Translate all node coordinates
   for (const element of translatedData.elements) {
     if (element.type === 'node') {
@@ -99,6 +105,14 @@ function translateMockData(
       }
       if (element.lon) {
         element.lon += offsetLon
+      }
+      if (element.id) {
+        element.id += idOffset
+      }
+    }
+    if (element.type === 'way') {
+      if (element.nodes) {
+        element.nodes = element.nodes.map((id) => id + idOffset)
       }
     }
   }
