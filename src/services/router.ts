@@ -34,16 +34,10 @@ export class Router {
     let nearestId: string | null = null
     let minDist = Infinity
 
-    console.log(
-      `Searching for nearest node among ${this.graph.nodes.size} nodes`
-    )
-    console.log(`Click coords: lat=${lat}, lon=${lon}`)
-
     let sampleCount = 0
     this.graph.nodes.forEach((node, id) => {
       // Log first node to verify coordinate format
       if (sampleCount === 0) {
-        console.log(`Sample node: id=${id}, lat=${node.lat}, lon=${node.lon}`)
         sampleCount++
       }
 
@@ -56,16 +50,6 @@ export class Router {
         nearestId = id
       }
     })
-
-    if (nearestId) {
-      const nearestNode = this.graph.nodes.get(nearestId)
-      console.log(
-        `Nearest node: ${nearestId} at ${minDist.toFixed(2)}m (max: ${maxDistance}m)`
-      )
-      console.log(
-        `Nearest node coords: lat=${nearestNode?.lat}, lon=${nearestNode?.lon}`
-      )
-    }
 
     // Return null if the nearest node is too far away
     if (minDist > maxDistance) {
