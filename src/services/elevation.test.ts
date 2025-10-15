@@ -277,6 +277,8 @@ describe('fetchElevations', () => {
   })
 
   it('should return zeros on API error', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
     const mockFetch = global.fetch as ReturnType<typeof vi.fn>
     mockFetch.mockResolvedValueOnce({
       ok: false,
@@ -293,6 +295,8 @@ describe('fetchElevations', () => {
   })
 
   it('should return zeros on network error', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
     const mockFetch = global.fetch as ReturnType<typeof vi.fn>
     mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
