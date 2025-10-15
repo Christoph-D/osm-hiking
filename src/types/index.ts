@@ -19,6 +19,8 @@ export interface GraphNode {
   id: string
   lat: number
   lon: number
+  originalWayId?: string
+  isIntermediate?: boolean
 }
 
 export interface RouteSegment {
