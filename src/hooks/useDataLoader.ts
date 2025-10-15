@@ -28,7 +28,6 @@ interface UseDataLoaderParams {
   route: Route | null
   clearRoute: () => void
   addSegment: (segment: RouteSegment, routeWaypoint: CustomWaypoint) => void
-  clearRouteStore: () => void
   setError: (error: string | null) => void
 }
 
@@ -44,7 +43,6 @@ export function useDataLoader({
   route,
   clearRoute,
   addSegment,
-  clearRouteStore,
   setError,
 }: UseDataLoaderParams) {
   const [router, setRouter] = useState<Router | null>(null)
@@ -132,7 +130,7 @@ export function useDataLoader({
           }
 
           // Clear the route store and set the new recalculated route
-          clearRouteStore()
+          clearRoute()
           // We need to add each segment with its corresponding waypoint
           for (let i = 0; i < newRoute.waypoints.length; i++) {
             addSegment(
@@ -174,7 +172,7 @@ export function useDataLoader({
         setIsLoading(false)
       }
     },
-    [map, route, clearRoute, addSegment, clearRouteStore, setError]
+    [map, route, clearRoute, addSegment, setError]
   )
 
   return {

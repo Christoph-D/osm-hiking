@@ -22,11 +22,7 @@ import {
 import { useRouteStore } from '../store/useRouteStore'
 
 export function useRouteManagement() {
-  const { setRoute, clearRoute: clearRouteStore, setError } = useRouteStore()
-
-  const clearRoute = useCallback(() => {
-    clearRouteStore()
-  }, [clearRouteStore])
+  const { setRoute, setError } = useRouteStore()
 
   const processMapClick = useCallback(
     (router: Router, lat: number, lng: number, route: Route | null) => {
@@ -85,7 +81,6 @@ export function useRouteManagement() {
   )
 
   return {
-    clearRoute,
     processMapClick,
   }
 }

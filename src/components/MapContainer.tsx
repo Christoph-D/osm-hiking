@@ -106,7 +106,7 @@ function RouteLayer() {
     addSegment,
     updateWaypoint,
     deleteWaypoint,
-    clearRoute: clearRouteStore,
+    clearRoute,
     setError,
     setElevationData,
     hoveredElevationPoint,
@@ -119,7 +119,7 @@ function RouteLayer() {
   const [tempRoute, setTempRoute] = useState<typeof route>(null)
 
   // Route management hook
-  const { clearRoute, processMapClick } = useRouteManagement()
+  const { processMapClick } = useRouteManagement()
 
   // Data loading hook
   const { router, isDataLoaded, loadedBbox, loadData, isLoading } =
@@ -128,7 +128,6 @@ function RouteLayer() {
       route,
       clearRoute,
       addSegment,
-      clearRouteStore,
       setError,
     })
 
