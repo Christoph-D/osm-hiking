@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react'
-import { Waypoint } from '../types'
 import {
   MapContainer as LeafletMapContainer,
   TileLayer,
@@ -20,38 +19,7 @@ import { useDataLoader } from '../hooks/useDataLoader'
 import { useRouteManagement } from '../hooks/useRouteManagement'
 import { useMarkerHandlers } from '../hooks/useMarkerHandlers'
 import { useMapEvents as useMapEventsHandler } from '../hooks/useMapEvents'
-import { INITIAL_POSITION } from '../constants/map'
-
-const MAP_POSITION_KEY = 'osm-hiking-map-position'
-
-interface MapPosition {
-  center: Waypoint
-  zoom: number
-}
-
-function getInitialMapPosition(): MapPosition {
-  const saved = localStorage.getItem(MAP_POSITION_KEY)
-  const defaultPosition = { center: INITIAL_POSITION, zoom: 5 }
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved)
-      if (
-        typeof parsed?.center?.lat !== 'number' ||
-        typeof parsed?.center?.lon !== 'number' ||
-        typeof parsed?.zoom !== 'number'
-      ) {
-        return defaultPosition
-      }
-      return {
-        center: { lat: parsed.center.lat, lon: parsed.center.lon },
-        zoom: parsed.zoom,
-      }
-    } catch {
-      return defaultPosition
-    }
-  }
-  return defaultPosition
-}
+import { getMapPosition, setMapPosition } from '../utils/mapPositionStorage'
 
 function MapPositionSaver() {
   const map = useMap()
@@ -60,13 +28,7 @@ function MapPositionSaver() {
     moveend() {
       const center = map.getCenter()
       const zoom = map.getZoom()
-      localStorage.setItem(
-        MAP_POSITION_KEY,
-        JSON.stringify({
-          center: { lat: center.lat, lon: center.lng },
-          zoom,
-        })
-      )
+      setMapPosition({ lat: center.lat, lon: center.lng }, zoom)
     },
   })
 
@@ -74,7 +36,7 @@ function MapPositionSaver() {
 }
 
 export function MapContainer() {
-  const initialPosition = getInitialMapPosition()
+  const initialPosition = getMapPosition()
 
   return (
     <LeafletMapContainer
