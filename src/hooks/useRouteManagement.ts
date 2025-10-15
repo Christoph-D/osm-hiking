@@ -14,9 +14,10 @@
 
 import { useCallback } from 'react'
 import { Router } from '../services/router'
-import { Route } from '../types'
+import { Route, RouteWaypoint } from '../types'
 import {
   determineWaypointType,
+  findInsertionIndex,
   recalculateMixedSegments,
 } from '../utils/mapHelpers'
 import { useRouteStore } from '../store/useRouteStore'
@@ -54,7 +55,19 @@ export function useRouteManagement() {
 
       // For subsequent waypoints, we need to handle mixed routing
       const currentRouteWaypoints = route?.waypoints || []
-      const newRouteWaypoints = [...currentRouteWaypoints, routeWaypoint]
+
+      // Check if this waypoint should be inserted into the existing route
+      const insertIndex = findInsertionIndex(routeWaypoint, route, router)
+
+      let newRouteWaypoints: RouteWaypoint[]
+      if (insertIndex !== null) {
+        // Insert waypoint at the correct position
+        newRouteWaypoints = [...currentRouteWaypoints]
+        newRouteWaypoints.splice(insertIndex, 0, routeWaypoint)
+      } else {
+        // Append to end
+        newRouteWaypoints = [...currentRouteWaypoints, routeWaypoint]
+      }
 
       // Recalculate segments using mixed routing
       try {

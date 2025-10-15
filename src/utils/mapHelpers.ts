@@ -130,6 +130,44 @@ export function calculateTotalDistance(segments: RouteSegment[]): number {
 }
 
 /**
+ * Finds the insertion index for a waypoint if it's on an existing route
+ * Returns the index where the waypoint should be inserted, or null if it should be appended
+ */
+export function findInsertionIndex(
+  routeWaypoint: RouteWaypoint,
+  route: Route,
+  router: Router
+): number | null {
+  if (!route || route.segments.length < 2) {
+    return null
+  }
+
+  // Only node waypoints can be inserted - custom waypoints are always appended
+  if (routeWaypoint.type !== 'node') {
+    return null
+  }
+
+  const node = router.getNode(routeWaypoint.nodeId)
+  if (!node) return null
+
+  // Check each segment (skip first segment which is just the starting waypoint marker)
+  for (let segmentIdx = 1; segmentIdx < route.segments.length; segmentIdx++) {
+    const segment = route.segments[segmentIdx]
+
+    // Check if this node's coordinates match any coordinate in this segment
+    for (const coordinate of segment.coordinates) {
+      if (coordinate.lon === node.lon && coordinate.lat === node.lat) {
+        // Node is on this segment, so it should be inserted after waypoint at segmentIdx-1
+        // and before waypoint at segmentIdx
+        return segmentIdx
+      }
+    }
+  }
+
+  return null
+}
+
+/**
  * Recalculates route segments for mixed waypoint types (node + custom)
  */
 export function recalculateMixedSegments(

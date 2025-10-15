@@ -254,15 +254,22 @@ test.describe('Waypoint Manipulation', () => {
     const markers = page.locator('.leaflet-marker-icon')
 
     // Create a simple A-to-B route with points close together
-    await clickMap(page, 350, 300)
+    await clickMap(page, 50, 100)
     await expect(markers).toHaveCount(1)
-    await clickMap(page, 450, 300)
+    await clickMap(page, 600, 100)
     await expect(markers).toHaveCount(2)
 
-    // Click on the route line (approximately in the middle)
+    const distanceText = page.locator('text=/Distance:\\s*\\d+\\.\\d+ km/')
+    const initialDistance = await distanceText.textContent()
+
+    // Click on the route line
     // This should insert a waypoint on the route
-    await clickMap(page, 400, 300)
+    await clickMap(page, 470, 90)
     await expect(markers).toHaveCount(3)
+
+    // Verify that route distance is unchanged
+    const newDistance = await distanceText.textContent()
+    expect(initialDistance).toEqual(newDistance)
 
     // Verify waypoint count text
     const waypointText = page.locator('text=/Waypoints:\\s*3/')

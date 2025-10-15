@@ -35,3 +35,17 @@ Follow conventional commit format: `type: description`
 - `cleanup: Remove unnecessary function deleteWaypoint`
 - `build: Add "validate" script to run the build, tests, linter`
 - `test: Fix test for Overpass mock`
+
+## Debugging
+
+### E2E Test Debugging
+
+To see console logs from the page during Playwright e2e tests, add this to your
+test:
+
+```javascript
+page.on('console', (msg) => console.log('PAGE: ', msg.text()))
+```
+
+This will output all console messages from the page to your test output, helping
+you debug what's happening in the browser.
