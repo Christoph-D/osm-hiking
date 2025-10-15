@@ -23,6 +23,8 @@ Follow conventional commit format: `type: description`
 - Keep subjects concise and clear
 - Use imperative mood (e.g., "Add feature" not "Added feature")
 - No period at the end of the subject line
+- Never include "Generated with Claude Code" or "Co-Authored-By" in commit
+  messages
 
 **Examples:**
 
