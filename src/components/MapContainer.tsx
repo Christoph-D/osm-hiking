@@ -103,7 +103,6 @@ function RouteLayer() {
   const map = useMap()
   const {
     route,
-    addSegment,
     clearRoute,
     setError,
     setElevationData,
@@ -125,7 +124,6 @@ function RouteLayer() {
       map,
       route,
       clearRoute,
-      addSegment,
       setError,
     })
 
