@@ -26,7 +26,7 @@ vi.mock('../utils/debounce', () => ({
 // Mock useRouteStore
 vi.mock('../store/useRouteStore', () => ({
   useRouteStore: vi.fn(() => ({
-    updateWaypoint: vi.fn(),
+    setRoute: vi.fn(),
     deleteWaypoint: vi.fn(),
     clearRoute: vi.fn(),
   })),
@@ -58,7 +58,7 @@ describe('useMarkerHandlers', () => {
     createStraightSegment: vi.fn(),
   } as unknown as Router
 
-  const mockUpdateWaypoint = vi.fn()
+  const mockSetRoute = vi.fn()
   const mockDeleteWaypoint = vi.fn()
   const mockClearRoute = vi.fn()
 
@@ -69,7 +69,7 @@ describe('useMarkerHandlers', () => {
 
   beforeEach(() => {
     mockUseRouteStore.mockReturnValue({
-      updateWaypoint: mockUpdateWaypoint,
+      setRoute: mockSetRoute,
       deleteWaypoint: mockDeleteWaypoint,
       clearRoute: mockClearRoute,
     })
@@ -276,7 +276,7 @@ describe('useMarkerHandlers', () => {
       })
 
       expect(mockCreateCustomWaypoint).not.toHaveBeenCalled()
-      expect(mockUpdateWaypoint).not.toHaveBeenCalled()
+      expect(mockSetRoute).not.toHaveBeenCalled()
     })
 
     it('should handle missing waypoint gracefully', () => {
@@ -300,7 +300,7 @@ describe('useMarkerHandlers', () => {
       })
 
       expect(mockSetTempRoute).not.toHaveBeenCalled()
-      expect(mockUpdateWaypoint).not.toHaveBeenCalled()
+      expect(mockSetRoute).not.toHaveBeenCalled()
 
       consoleSpy.mockRestore()
     })
@@ -340,7 +340,7 @@ describe('useMarkerHandlers', () => {
 
       expect(mockCreateCustomWaypoint).toHaveBeenCalledWith(50.5, 8.5)
       expect(mockRecalculateMixedSegments).toHaveBeenCalled()
-      expect(mockUpdateWaypoint).toHaveBeenCalled()
+      expect(mockSetRoute).toHaveBeenCalled()
       expect(mockMarker.setLatLng).toHaveBeenCalledWith([50.5, 8.5])
     })
 
@@ -380,7 +380,7 @@ describe('useMarkerHandlers', () => {
       expect(mockRouter.findNearestNode).toHaveBeenCalled()
       expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(51, 9, 'node456')
       expect(mockMarker.setLatLng).toHaveBeenCalledWith([51, 9]) // Marker should snap to node
-      expect(mockUpdateWaypoint).toHaveBeenCalled()
+      expect(mockSetRoute).toHaveBeenCalled()
     })
 
     it('should snap node waypoint to different node and update marker on drag end', () => {
@@ -425,7 +425,7 @@ describe('useMarkerHandlers', () => {
       expect(mockRouter.findNearestNode).toHaveBeenCalled()
       expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(52, 10, 'node789')
       expect(mockMarker.setLatLng).toHaveBeenCalledWith([52, 10]) // Marker should snap to new node
-      expect(mockUpdateWaypoint).toHaveBeenCalled()
+      expect(mockSetRoute).toHaveBeenCalled()
     })
 
     it('should convert node waypoint to custom and update marker on drag end', () => {
@@ -465,7 +465,7 @@ describe('useMarkerHandlers', () => {
 
       expect(mockCreateCustomWaypoint).toHaveBeenCalledWith(50.5, 8.5)
       expect(mockMarker.setLatLng).toHaveBeenCalledWith([50.5, 8.5]) // Marker should stay at drag position
-      expect(mockUpdateWaypoint).toHaveBeenCalled()
+      expect(mockSetRoute).toHaveBeenCalled()
     })
 
     it('should clear dragging flag after delay', () => {

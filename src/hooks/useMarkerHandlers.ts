@@ -83,7 +83,7 @@ export function useMarkerHandlers({
   isDraggingMarkerRef,
   setTempRoute,
 }: UseMarkerHandlersParams) {
-  const { updateWaypoint, deleteWaypoint, clearRoute } = useRouteStore()
+  const { setRoute, deleteWaypoint, clearRoute } = useRouteStore()
   const handleMarkerDragStart = useCallback(() => {
     isDraggingMarkerRef.current = true
   }, [isDraggingMarkerRef])
@@ -117,12 +117,7 @@ export function useMarkerHandlers({
         const updatedWaypoint = routeData.route.waypoints[routeData.index]
 
         marker.setLatLng([updatedWaypoint.lat, updatedWaypoint.lon])
-        updateWaypoint(
-          routeData.index,
-          updatedWaypoint,
-          routeData.route.segments,
-          routeData.route.totalDistance
-        )
+        setRoute(routeData.route)
 
         setTempRoute(null)
 
@@ -135,7 +130,7 @@ export function useMarkerHandlers({
         console.error('Error processing marker drag end:', error)
       }
     },
-    [router, route, setTempRoute, isDraggingMarkerRef, updateWaypoint]
+    [router, route, setTempRoute, isDraggingMarkerRef, setRoute]
   )
 
   const handleMarkerClick = useCallback((event: LeafletEvent) => {

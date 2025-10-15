@@ -20,12 +20,6 @@ interface RouteState {
     segments: RouteSegment[],
     totalDistance: number
   ) => void
-  updateWaypoint: (
-    index: number,
-    routeWaypoint: RouteWaypoint,
-    segments: RouteSegment[],
-    totalDistance: number
-  ) => void
   deleteWaypoint: (
     index: number,
     segments: RouteSegment[],
@@ -78,25 +72,6 @@ export const useRouteStore = create<RouteState>((set) => ({
       const newRouteWaypoints = [...state.route.waypoints]
 
       newRouteWaypoints.splice(index, 0, routeWaypoint)
-
-      return {
-        route: {
-          segments,
-          waypoints: newRouteWaypoints,
-          totalDistance,
-          // Clear elevation data when route changes
-          elevationProfile: undefined,
-          elevationStats: undefined,
-        },
-      }
-    }),
-
-  updateWaypoint: (index, routeWaypoint, segments, totalDistance) =>
-    set((state) => {
-      if (!state.route) return state
-      const newRouteWaypoints = [...state.route.waypoints]
-
-      newRouteWaypoints[index] = routeWaypoint
 
       return {
         route: {
