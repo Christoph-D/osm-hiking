@@ -21,13 +21,6 @@ export interface GraphNode {
   lon: number
 }
 
-export interface GraphEdge {
-  from: string
-  to: string
-  weight: number
-  geometry: Waypoint[]
-}
-
 export interface RouteSegment {
   coordinates: Waypoint[]
   distance: number

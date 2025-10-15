@@ -44,8 +44,8 @@ export function Controls({
     if (route) {
       try {
         await exportRouteAsGPX(route)
-      } catch (error) {
-        console.error('Failed to export GPX:', error)
+      } catch {
+        // User notification happens through the download failure, no need to log
       }
     }
   }
