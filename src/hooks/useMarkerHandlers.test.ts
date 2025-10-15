@@ -110,10 +110,13 @@ describe('useMarkerHandlers', () => {
         lon,
       })
     )
-    mockRecalculateMixedSegments.mockReturnValue({
-      segments: [],
-      totalDistance: 0,
-    })
+    mockRecalculateMixedSegments.mockImplementation(
+      (waypoints: RouteWaypoint[]) => ({
+        segments: [],
+        waypoints,
+        totalDistance: 0,
+      })
+    )
   })
 
   describe('handleMarkerDrag', () => {

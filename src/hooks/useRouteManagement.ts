@@ -18,7 +18,6 @@ import { Route } from '../types'
 import {
   determineWaypointType,
   recalculateMixedSegments,
-  calculateTotalDistance,
 } from '../utils/mapHelpers'
 import { useRouteStore } from '../store/useRouteStore'
 
@@ -59,16 +58,7 @@ export function useRouteManagement() {
 
       // Recalculate segments using mixed routing
       try {
-        const result = recalculateMixedSegments(newRouteWaypoints, router)
-        const { segments: newSegments } = result
-
-        const totalDistance = calculateTotalDistance(newSegments)
-
-        const newRoute: Route = {
-          segments: newSegments,
-          waypoints: newRouteWaypoints,
-          totalDistance,
-        }
+        const newRoute = recalculateMixedSegments(newRouteWaypoints, router)
         setRoute(newRoute)
       } catch (error) {
         console.error('Error in recalculateMixedSegments:', error)

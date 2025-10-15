@@ -62,17 +62,10 @@ function processMarkerPosition(
   const waypoints = [...route.waypoints]
   waypoints[index] = newWaypoint
 
-  const { segments, totalDistance } = recalculateMixedSegments(
-    waypoints,
-    router
-  )
+  const updatedRoute = recalculateMixedSegments(waypoints, router)
 
   return {
-    route: {
-      segments,
-      waypoints,
-      totalDistance,
-    },
+    route: updatedRoute,
     index,
   }
 }
@@ -164,17 +157,10 @@ export function useMarkerHandlers({
       }
 
       // Recalculate all segments using mixed routing
-      const { segments: newSegments, totalDistance } = recalculateMixedSegments(
-        newRouteWaypoints,
-        router
-      )
+      const newRoute = recalculateMixedSegments(newRouteWaypoints, router)
 
       // Update the route store
-      setRoute({
-        waypoints: newRouteWaypoints,
-        segments: newSegments,
-        totalDistance,
-      })
+      setRoute(newRoute)
     },
     [router, route, setRoute, clearRoute]
   )

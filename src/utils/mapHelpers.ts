@@ -12,6 +12,7 @@
 
 import L from 'leaflet'
 import {
+  Route,
   RouteSegment,
   Waypoint,
   RouteWaypoint,
@@ -134,7 +135,7 @@ export function calculateTotalDistance(segments: RouteSegment[]): number {
 export function recalculateMixedSegments(
   routeWaypoints: RouteWaypoint[],
   router: Router
-): { segments: RouteSegment[]; totalDistance: number } {
+): Route {
   const newSegments: RouteSegment[] = []
 
   for (let i = 0; i < routeWaypoints.length; i++) {
@@ -169,5 +170,9 @@ export function recalculateMixedSegments(
   }
 
   const totalDistance = calculateTotalDistance(newSegments)
-  return { segments: newSegments, totalDistance }
+  return {
+    segments: newSegments,
+    waypoints: routeWaypoints,
+    totalDistance,
+  }
 }
