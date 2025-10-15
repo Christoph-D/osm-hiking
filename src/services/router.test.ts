@@ -22,7 +22,6 @@ describe('Router', () => {
         id: 1,
         lat: 50.0,
         lon: 10.0,
-        isIntermediate: false,
       })
     })
 
@@ -63,7 +62,6 @@ describe('Router', () => {
         id: 2,
         lat: 50.001,
         lon: 10.001,
-        isIntermediate: false,
       })
     })
 
@@ -111,7 +109,6 @@ describe('Router', () => {
         id: 1,
         lat: 50.0,
         lon: 10.0,
-        isIntermediate: false,
       })
     })
 
