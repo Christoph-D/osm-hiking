@@ -104,7 +104,7 @@ function RouteLayer() {
   })
 
   // Map events hook
-  const { currentZoom, isCurrentViewLoaded } = useMapEventsHandler({
+  const { currentZoom } = useMapEventsHandler({
     map,
     router,
     route,
@@ -157,7 +157,6 @@ function RouteLayer() {
         onLoadData={() => loadData(undefined, true)}
         onClearRoute={clearRoute}
         isDataLoaded={isDataLoaded}
-        isCurrentViewLoaded={isCurrentViewLoaded}
         zoom={currentZoom}
         mapBounds={getCurrentBbox(map)}
         isLoading={isLoading}

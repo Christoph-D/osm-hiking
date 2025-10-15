@@ -11,12 +11,13 @@
  * Coordinates between user clicks, data loading, and waypoint processing.
  */
 
-import { useState, useEffect, RefObject } from 'react'
+import { useState, RefObject } from 'react'
 import { useMapEvents as useLeafletMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { Router } from '../services/router'
 import { Route, RouteWaypoint } from '../types'
 import { isPointInBbox } from '../utils/mapHelpers'
+import { useMapDataStore } from '../store/mapDataStore'
 
 interface UseMapEventsParams {
   map: L.Map
@@ -53,15 +54,7 @@ export function useMapEvents({
   loadData,
 }: UseMapEventsParams) {
   const [currentZoom, setCurrentZoom] = useState(map.getZoom())
-  const [isCurrentViewLoaded, setIsCurrentViewLoaded] = useState(false)
-
-  // Update isCurrentViewLoaded when data is loaded
-  useEffect(() => {
-    if (isDataLoaded) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsCurrentViewLoaded(true)
-    }
-  }, [isDataLoaded])
+  const { setIsCurrentViewLoaded } = useMapDataStore()
 
   useLeafletMapEvents({
     click(e) {
@@ -107,6 +100,5 @@ export function useMapEvents({
 
   return {
     currentZoom,
-    isCurrentViewLoaded,
   }
 }
