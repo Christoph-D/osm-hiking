@@ -112,19 +112,11 @@ export function useDataLoader({
             waypointsToPreserve
           )
 
-          const { segments: newSegments, totalDistance } =
-            recalculateMixedSegments(routeWaypoints, newRouter)
+          const newRoute = recalculateMixedSegments(routeWaypoints, newRouter)
 
-          if (newSegments.length === 0) {
+          if (newRoute.segments.length === 0) {
             clearRoute()
             return { router: newRouter, waypointNodeIds: [] }
-          }
-
-          // Construct the new route object
-          const newRoute: Route = {
-            segments: newSegments,
-            waypoints: routeWaypoints,
-            totalDistance,
           }
 
           // Call success callback if provided

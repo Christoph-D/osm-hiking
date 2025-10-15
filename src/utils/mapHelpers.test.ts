@@ -146,6 +146,7 @@ describe('Custom Waypoint Utilities', () => {
       expect(router.route).toHaveBeenCalledWith('node1', 'node2')
       expect(result.segments).toHaveLength(2) // First waypoint marker + route segment
       expect(result.totalDistance).toBe(1000)
+      expect(result.waypoints).toEqual(routeWaypoints)
     })
 
     it('should calculate route with custom waypoints using straight lines', () => {
@@ -169,6 +170,7 @@ describe('Custom Waypoint Utilities', () => {
       )
       expect(result.segments).toHaveLength(2) // First waypoint marker + straight segment
       expect(result.totalDistance).toBe(150000)
+      expect(result.waypoints).toEqual(routeWaypoints)
     })
 
     it('should handle mixed node and custom waypoints', () => {
@@ -203,6 +205,7 @@ describe('Custom Waypoint Utilities', () => {
       expect(router.route).not.toHaveBeenCalled() // No consecutive node waypoints
       expect(result.segments).toHaveLength(3) // First waypoint + 2 segments
       expect(result.totalDistance).toBe(300000) // Sum of straight segments
+      expect(result.waypoints).toEqual(routeWaypoints)
     })
   })
 })
