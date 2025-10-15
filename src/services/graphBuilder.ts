@@ -84,7 +84,6 @@ function generateIntermediateNodes(
       lat: destinationPoint.geometry.coordinates[1],
       lon: destinationPoint.geometry.coordinates[0],
       originalWayId: wayId,
-      isIntermediate: true,
     }
     nodes.push(node)
   }
@@ -135,7 +134,6 @@ export function buildRoutingGraph(osmData: OSMData): RoutingGraph {
       id,
       lat: node.lat,
       lon: node.lon,
-      isIntermediate: false,
     })
   })
 
