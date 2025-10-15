@@ -40,6 +40,54 @@ interface UseMarkerHandlersParams {
   setTempRoute: (route: Route | null) => void
 }
 
+// Helper function to process marker position and calculate route segments
+function processMarkerPosition(
+  lat: number,
+  lon: number,
+  router: Router,
+  route: Route,
+  index: number
+): { route: Route; index: number } {
+  if (!route.waypoints[index]) {
+    throw new Error(`No waypoint found at index ${index}`)
+  }
+
+  const nearestResult = router.findNearestNode(
+    lat,
+    lon,
+    WAYPOINT_CONSTANTS.SNAP_TO_NODE_THRESHOLD
+  )
+
+  let newWaypoint: RouteWaypoint
+
+  if (nearestResult) {
+    newWaypoint = createNodeWaypoint(
+      nearestResult.node.lat,
+      nearestResult.node.lon,
+      nearestResult.nodeId
+    )
+  } else {
+    newWaypoint = createCustomWaypoint(lat, lon)
+  }
+
+  const waypoints = [...route.waypoints]
+  waypoints[index] = newWaypoint
+
+  const { segments, totalDistance } = recalculateMixedSegments(
+    waypoints,
+    router
+  )
+
+  return {
+    route: {
+      segments,
+      waypoints,
+      totalDistance,
+    },
+    index,
+  }
+}
+
 export function useMarkerHandlers({
   router,
   route,
@@ -60,55 +108,12 @@ export function useMarkerHandlers({
       const marker = event.target
       const { lat, lng: lon } = marker.getLatLng()
 
-      const currentWaypoint = route.waypoints[index]
-
-      if (!currentWaypoint) return
-
-      // Create temporary waypoint at new position
-      const nearestResult = router.findNearestNode(
-        lat,
-        lon,
-        WAYPOINT_CONSTANTS.SNAP_TO_NODE_THRESHOLD
-      )
-
-      let newRouteWaypoint: RouteWaypoint
-      let finalLat = lat
-      let finalLon = lon
-
-      if (nearestResult) {
-        newRouteWaypoint = createNodeWaypoint(
-          nearestResult.node.lat,
-          nearestResult.node.lon,
-          nearestResult.nodeId
-        )
-        finalLat = nearestResult.node.lat
-        finalLon = nearestResult.node.lon
-      } else {
-        newRouteWaypoint = createCustomWaypoint(lat, lon)
+      try {
+        const routeData = processMarkerPosition(lat, lon, router, route, index)
+        setTempRoute(routeData.route)
+      } catch (error) {
+        console.error('Error processing marker drag:', error)
       }
-
-      const updatedRouteWaypoint = {
-        ...newRouteWaypoint,
-        lat: finalLat,
-        lon: finalLon,
-      }
-
-      // Create temporary waypoints with the dragged marker at new position
-      const tempWaypoints = [...route.waypoints]
-      tempWaypoints[index] = updatedRouteWaypoint
-
-      // Calculate temporary route
-      const { segments: newSegments, totalDistance } = recalculateMixedSegments(
-        tempWaypoints,
-        router
-      )
-
-      // Set temporary route for display
-      setTempRoute({
-        segments: newSegments,
-        waypoints: tempWaypoints,
-        totalDistance,
-      })
     },
     [router, route, setTempRoute]
   )
@@ -120,63 +125,28 @@ export function useMarkerHandlers({
       const marker = event.target
       const { lat, lng: lon } = marker.getLatLng()
 
-      // Use the same logic as handleMarkerDrag but update the main store
-      const currentWaypoint = route.waypoints[index]
-      if (!currentWaypoint) {
-        console.error('No waypoint found at index', index)
-        return
-      }
+      try {
+        const routeData = processMarkerPosition(lat, lon, router, route, index)
+        const updatedWaypoint = routeData.route.waypoints[routeData.index]
 
-      const nearestResult = router.findNearestNode(
-        lat,
-        lon,
-        WAYPOINT_CONSTANTS.SNAP_TO_NODE_THRESHOLD
-      )
-
-      let newRouteWaypoint: RouteWaypoint = createCustomWaypoint(lat, lon)
-      let finalLat = lat
-      let finalLon = lon
-
-      if (nearestResult) {
-        newRouteWaypoint = createNodeWaypoint(
-          nearestResult.node.lat,
-          nearestResult.node.lon,
-          nearestResult.nodeId
+        marker.setLatLng([updatedWaypoint.lat, updatedWaypoint.lon])
+        updateWaypoint(
+          routeData.index,
+          updatedWaypoint,
+          routeData.route.segments,
+          routeData.route.totalDistance
         )
-        finalLat = nearestResult.node.lat
-        finalLon = nearestResult.node.lon
-      } else {
-        newRouteWaypoint = createCustomWaypoint(lat, lon)
+
+        setTempRoute(null)
+
+        // Clear the dragging flag after a short delay to prevent map clicks
+        // This delay is necessary because the mouseup event fires after dragend
+        setTimeout(() => {
+          isDraggingMarkerRef.current = false
+        }, 100)
+      } catch (error) {
+        console.error('Error processing marker drag end:', error)
       }
-
-      const updatedRouteWaypoint = {
-        ...newRouteWaypoint,
-        lat: finalLat,
-        lon: finalLon,
-      }
-
-      // Update marker position to final coordinates
-      marker.setLatLng([finalLat, finalLon])
-
-      // Update main route store
-      const newRouteWaypoints = [...route.waypoints]
-      newRouteWaypoints[index] = updatedRouteWaypoint
-
-      const { segments: newSegments, totalDistance } = recalculateMixedSegments(
-        newRouteWaypoints,
-        router
-      )
-
-      updateWaypoint(index, updatedRouteWaypoint, newSegments, totalDistance)
-
-      // Clear temporary state
-      setTempRoute(null)
-
-      // Clear the dragging flag after a short delay to prevent map clicks
-      // This delay is necessary because the mouseup event fires after dragend
-      setTimeout(() => {
-        isDraggingMarkerRef.current = false
-      }, 100)
     },
     [router, route, updateWaypoint, setTempRoute, isDraggingMarkerRef]
   )
