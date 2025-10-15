@@ -19,6 +19,18 @@ import { Route, RouteWaypoint } from '../types'
 import { isPointInBbox } from '../utils/mapHelpers'
 import { useMapDataStore } from '../store/mapDataStore'
 
+interface MapBounds {
+  south: number
+  west: number
+  north: number
+  east: number
+}
+
+interface MapCenter {
+  lat: number
+  lng: number
+}
+
 interface UseMapEventsParams {
   map: L.Map
   router: Router | null
@@ -54,6 +66,19 @@ export function useMapEvents({
   loadData,
 }: UseMapEventsParams) {
   const [currentZoom, setCurrentZoom] = useState(map.getZoom())
+  const [currentBounds, setCurrentBounds] = useState<MapBounds>(() => {
+    const bounds = map.getBounds()
+    return {
+      south: bounds.getSouth(),
+      west: bounds.getWest(),
+      north: bounds.getNorth(),
+      east: bounds.getEast(),
+    }
+  })
+  const [mapCenter, setMapCenter] = useState<MapCenter>(() => {
+    const center = map.getCenter()
+    return { lat: center.lat, lng: center.lng }
+  })
   const { setIsCurrentViewLoaded } = useMapDataStore()
 
   useLeafletMapEvents({
@@ -93,6 +118,18 @@ export function useMapEvents({
       const zoom = map.getZoom()
       setCurrentZoom(zoom)
 
+      // Update bounds and center
+      const bounds = map.getBounds()
+      setCurrentBounds({
+        south: bounds.getSouth(),
+        west: bounds.getWest(),
+        north: bounds.getNorth(),
+        east: bounds.getEast(),
+      })
+
+      const center = map.getCenter()
+      setMapCenter({ lat: center.lat, lng: center.lng })
+
       // Mark that the view has changed, so button can be re-enabled
       setIsCurrentViewLoaded(false)
     },
@@ -100,5 +137,7 @@ export function useMapEvents({
 
   return {
     currentZoom,
+    currentBounds,
+    mapCenter,
   }
 }

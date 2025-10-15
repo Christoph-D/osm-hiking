@@ -20,7 +20,7 @@ import {
   NodeWaypoint,
 } from '../types'
 import { Router } from '../services/router'
-import { WAYPOINT_CONSTANTS } from '../constants/waypoints'
+import { getCustomWaypointThreshold } from '../constants/waypoints'
 
 /**
  * Gets the current bounding box from the map
@@ -100,18 +100,14 @@ export function createNodeWaypoint(
 export function determineWaypointType(
   lat: number,
   lon: number,
-  router: Router
+  router: Router,
+  mapCenter: { lat: number; lng: number },
+  currentZoom: number
 ): RouteWaypoint | null {
-  const result = router.findNearestNode(
-    lat,
-    lon,
-    WAYPOINT_CONSTANTS.CUSTOM_WAYPOINT_THRESHOLD
-  )
+  const customThreshold = getCustomWaypointThreshold(mapCenter.lat, currentZoom)
+  const result = router.findNearestNode(lat, lon, customThreshold)
 
-  if (
-    result &&
-    result.distance <= WAYPOINT_CONSTANTS.CUSTOM_WAYPOINT_THRESHOLD
-  ) {
+  if (result && result.distance <= customThreshold) {
     // Close enough to a node - create node waypoint
     return createNodeWaypoint(result.node.lat, result.node.lon, result.nodeId)
   } else {

@@ -90,6 +90,30 @@ function RouteLayer() {
       setError,
     })
 
+  // Map events hook
+  const { currentZoom, mapCenter } = useMapEventsHandler({
+    map,
+    router,
+    route,
+    isDataLoaded,
+    loadedBbox,
+    isDraggingMarkerRef,
+    processMapClick: (router, lat, lng, route) => {
+      // Get current map state for the click handler
+      const zoom = map.getZoom()
+      const center = map.getCenter()
+      return processMapClick(
+        router,
+        lat,
+        lng,
+        route,
+        { lat: center.lat, lng: center.lng },
+        zoom
+      )
+    },
+    loadData,
+  })
+
   const {
     handleMarkerDragStart,
     handleMarkerDrag,
@@ -101,18 +125,8 @@ function RouteLayer() {
     route,
     isDraggingMarkerRef,
     setTempRoute,
-  })
-
-  // Map events hook
-  const { currentZoom } = useMapEventsHandler({
-    map,
-    router,
-    route,
-    isDataLoaded,
-    loadedBbox,
-    isDraggingMarkerRef,
-    processMapClick,
-    loadData,
+    mapCenter,
+    currentZoom,
   })
 
   // Elevation data loader hook
