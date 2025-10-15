@@ -17,7 +17,7 @@ import L from 'leaflet'
 import { Router } from '../services/router'
 import { fetchOSMData } from '../services/overpass'
 import { buildRoutingGraph } from '../services/graphBuilder'
-import { RouteSegment, Route, CustomWaypoint, RouteWaypoint } from '../types'
+import { Route, RouteWaypoint } from '../types'
 import { getCurrentBbox, wouldClearRoute } from '../utils/mapHelpers'
 import { MIN_ZOOM } from '../constants/map'
 import { mapWaypointsToNodes } from '../services/routePreservation'
@@ -27,7 +27,6 @@ interface UseDataLoaderParams {
   map: L.Map
   route: Route | null
   clearRoute: () => void
-  addSegment: (segment: RouteSegment, routeWaypoint: CustomWaypoint) => void
   setError: (error: string | null) => void
 }
 
@@ -42,7 +41,6 @@ export function useDataLoader({
   map,
   route,
   clearRoute,
-  addSegment,
   setError,
 }: UseDataLoaderParams) {
   const [router, setRouter] = useState<Router | null>(null)
@@ -129,16 +127,6 @@ export function useDataLoader({
             totalDistance,
           }
 
-          // Clear the route store and set the new recalculated route
-          clearRoute()
-          // We need to add each segment with its corresponding waypoint
-          for (let i = 0; i < newRoute.waypoints.length; i++) {
-            addSegment(
-              newRoute.segments[i],
-              newRoute.waypoints[i] as CustomWaypoint
-            )
-          }
-
           // Call success callback if provided
           if (onSuccess) {
             onSuccess(newRouter, newRoute)
@@ -172,7 +160,7 @@ export function useDataLoader({
         setIsLoading(false)
       }
     },
-    [map, route, clearRoute, addSegment, setError]
+    [map, route, clearRoute, setError]
   )
 
   return {
