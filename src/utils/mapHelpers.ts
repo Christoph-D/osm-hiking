@@ -67,39 +67,6 @@ export function wouldClearRoute(
 }
 
 /**
- * Recalculates all route segments from a list of waypoint node IDs
- */
-export function recalculateSegments(
-  waypointNodeIds: string[],
-  router: Router
-): { segments: RouteSegment[]; totalDistance: number } {
-  const newSegments: RouteSegment[] = []
-  let totalDistance = 0
-
-  for (let i = 0; i < waypointNodeIds.length; i++) {
-    if (i === 0) {
-      // First waypoint - just a marker
-      const firstNode = router.getNode(waypointNodeIds[i])
-      if (firstNode) {
-        newSegments.push({
-          coordinates: [{ lat: firstNode.lat, lon: firstNode.lon }],
-          distance: 0,
-        })
-      }
-    } else {
-      // Route from previous waypoint
-      const segment = router.route(waypointNodeIds[i - 1], waypointNodeIds[i])
-      if (segment) {
-        newSegments.push(segment)
-        totalDistance += segment.distance
-      }
-    }
-  }
-
-  return { segments: newSegments, totalDistance }
-}
-
-/**
  * Creates a custom waypoint with a unique ID
  */
 export function createCustomWaypoint(lat: number, lon: number): CustomWaypoint {
