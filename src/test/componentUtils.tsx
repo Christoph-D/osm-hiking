@@ -100,25 +100,3 @@ export function createMockElevationStats(
     ...overrides,
   }
 }
-
-/**
- * Create a mock route with elevation data
- */
-export function createMockRouteWithElevation(): Route {
-  const profile = createMockElevationProfile(10)
-  // Calculate matching stats from the profile
-  const elevations = profile.map((p) => p.elevation)
-  const min = Math.min(...elevations)
-  const max = Math.max(...elevations)
-
-  return createMockRoute({
-    totalDistance: 5000,
-    elevationProfile: profile,
-    elevationStats: createMockElevationStats({
-      min,
-      max,
-      gain: 200,
-      loss: 100,
-    }),
-  })
-}
