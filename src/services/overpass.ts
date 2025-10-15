@@ -46,7 +46,7 @@ interface OSMResponse {
 }
 
 function parseOSMData(osmResponse: OSMResponse): OSMData {
-  const nodes = new Map<string, OSMNode>()
+  const nodes = new Map<number, OSMNode>()
   const ways: OSMWay[] = []
 
   for (const element of osmResponse.elements) {
@@ -55,15 +55,15 @@ function parseOSMData(osmResponse: OSMResponse): OSMData {
       element.lat !== undefined &&
       element.lon !== undefined
     ) {
-      nodes.set(element.id.toString(), {
-        id: element.id.toString(),
+      nodes.set(element.id, {
+        id: element.id,
         lat: element.lat,
         lon: element.lon,
       })
     } else if (element.type === 'way' && element.nodes) {
       ways.push({
-        id: element.id.toString(),
-        nodes: element.nodes.map((n: number) => n.toString()),
+        id: element.id,
+        nodes: element.nodes,
         tags: element.tags || {},
       })
     }

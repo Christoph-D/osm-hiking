@@ -56,7 +56,7 @@ describe('Custom Waypoint Utilities', () => {
     it('should create a node waypoint with correct properties', () => {
       const lat = 50.0
       const lon = 10.0
-      const nodeId = 'node123'
+      const nodeId = 123
 
       const waypoint = createNodeWaypoint(lat, lon, nodeId)
 
@@ -77,7 +77,7 @@ describe('Custom Waypoint Utilities', () => {
     it('should create node waypoint when close to a node', () => {
       const lat = 50.0
       const lon = 10.0
-      const nodeId = 'node123'
+      const nodeId = 123
       const node = { id: nodeId, lat: 50.001, lon: 10.001 }
 
       router.findNearestNode = vi.fn().mockReturnValue({
@@ -98,7 +98,7 @@ describe('Custom Waypoint Utilities', () => {
       const lon = 10.0
 
       router.findNearestNode = vi.fn().mockReturnValue({
-        nodeId: 'node123',
+        nodeId: 123,
         distance: 150, // Beyond threshold
       })
 
@@ -130,8 +130,8 @@ describe('Custom Waypoint Utilities', () => {
 
     it('should calculate route with only node waypoints', () => {
       const routeWaypoints = [
-        createNodeWaypoint(50.0, 10.0, 'node1'),
-        createNodeWaypoint(51.0, 11.0, 'node2'),
+        createNodeWaypoint(50.0, 10.0, 1),
+        createNodeWaypoint(51.0, 11.0, 2),
       ]
 
       const mockSegment = {
@@ -143,7 +143,7 @@ describe('Custom Waypoint Utilities', () => {
 
       const result = recalculateMixedSegments(routeWaypoints, router)
 
-      expect(router.route).toHaveBeenCalledWith('node1', 'node2')
+      expect(router.route).toHaveBeenCalledWith(1, 2)
       expect(result.segments).toHaveLength(2) // First waypoint marker + route segment
       expect(result.totalDistance).toBe(1000)
       expect(result.waypoints).toEqual(routeWaypoints)
@@ -175,9 +175,9 @@ describe('Custom Waypoint Utilities', () => {
 
     it('should handle mixed node and custom waypoints', () => {
       const routeWaypoints = [
-        createNodeWaypoint(50.0, 10.0, 'node1'),
+        createNodeWaypoint(50.0, 10.0, 1),
         createCustomWaypoint(51.0, 11.0),
-        createNodeWaypoint(52.0, 12.0, 'node3'),
+        createNodeWaypoint(52.0, 12.0, 3),
       ]
 
       const mockRouteSegment = {
