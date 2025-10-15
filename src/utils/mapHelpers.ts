@@ -68,12 +68,11 @@ export function wouldClearRoute(
 }
 
 /**
- * Creates a custom waypoint with a unique ID
+ * Creates a custom waypoint
  */
 export function createCustomWaypoint(lat: number, lon: number): CustomWaypoint {
   return {
     type: 'custom',
-    id: `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     lat,
     lon,
   }
@@ -89,7 +88,6 @@ export function createNodeWaypoint(
 ): NodeWaypoint {
   return {
     type: 'node',
-    id: `node-${nodeId}-${Date.now()}`,
     nodeId,
     lat,
     lon,

@@ -27,7 +27,6 @@ export function mapWaypointsToNodes(
       // Successfully mapped to node - create NodeWaypoint
       routeWaypoints.push({
         type: 'node' as const,
-        id: `preserved-node-${Date.now()}-${i}`,
         lat: nearestNode.node.lat,
         lon: nearestNode.node.lon,
         nodeId: nearestNode.nodeId,
@@ -36,7 +35,6 @@ export function mapWaypointsToNodes(
       // Couldn't map to node - create CustomWaypoint
       routeWaypoints.push({
         type: 'custom' as const,
-        id: `preserved-custom-${Date.now()}-${i}`,
         lat: waypoint.lat,
         lon: waypoint.lon,
       })

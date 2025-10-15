@@ -12,7 +12,6 @@ import {
 function createTestWaypoint(lat: number, lon: number): CustomWaypoint {
   return {
     type: 'custom',
-    id: `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     lat,
     lon,
   }

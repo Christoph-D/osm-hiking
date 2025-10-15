@@ -193,8 +193,8 @@ describe('Controls', () => {
       const user = userEvent.setup()
       const mockRoute = createMockRoute({
         waypoints: [
-          { type: 'custom', id: 'test-1', lat: 50.0, lon: 10.0 },
-          { type: 'custom', id: 'test-2', lat: 51.0, lon: 11.0 }, // Outside the current bounds
+          { type: 'custom', lat: 50.0, lon: 10.0 },
+          { type: 'custom', lat: 51.0, lon: 11.0 }, // Outside the current bounds
         ],
       })
       mockRouteStore({ route: mockRoute })
@@ -219,8 +219,8 @@ describe('Controls', () => {
       const user = userEvent.setup()
       const mockRoute = createMockRoute({
         waypoints: [
-          { type: 'custom', id: 'test-1', lat: 50.0, lon: 10.0 },
-          { type: 'custom', id: 'test-2', lat: 51.0, lon: 11.0 }, // Outside the current bounds
+          { type: 'custom', lat: 50.0, lon: 10.0 },
+          { type: 'custom', lat: 51.0, lon: 11.0 }, // Outside the current bounds
         ],
       })
       mockRouteStore({ route: mockRoute })
@@ -242,8 +242,8 @@ describe('Controls', () => {
     it('should be enabled when route has at least 2 waypoints', () => {
       const mockRoute = createMockRoute({
         waypoints: [
-          { type: 'custom', id: 'test-1', lat: 50.0, lon: 10.0 },
-          { type: 'custom', id: 'test-2', lat: 50.001, lon: 10.001 },
+          { type: 'custom', lat: 50.0, lon: 10.0 },
+          { type: 'custom', lat: 50.001, lon: 10.001 },
         ],
       })
       mockRouteStore({ route: mockRoute })
@@ -261,7 +261,7 @@ describe('Controls', () => {
 
     it('should be disabled when route has less than 2 waypoints', () => {
       const mockRoute = createMockRoute({
-        waypoints: [{ type: 'custom', id: 'test-1', lat: 50.0, lon: 10.0 }],
+        waypoints: [{ type: 'custom', lat: 50.0, lon: 10.0 }],
       })
       mockRouteStore({ route: mockRoute })
       render(<Controls {...defaultProps} />)
