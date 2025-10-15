@@ -17,7 +17,6 @@ import {
   RouteWaypoint,
   CustomWaypoint,
   NodeWaypoint,
-  GraphNode,
 } from '../types'
 import { Router } from '../services/router'
 import { WAYPOINT_CONSTANTS } from '../constants/waypoints'
@@ -68,42 +67,6 @@ export function wouldClearRoute(
 }
 
 /**
- * Checks if a node exists on the current route
- * Returns the segment index where the node should be inserted as a waypoint, or null if not on route
- */
-export function findNodeOnRoute(
-  nodeId: string,
-  router: Router,
-  segments: RouteSegment[]
-): number | null {
-  if (segments.length < 2) {
-    return null
-  }
-
-  const node = router.getNode(nodeId)
-  if (!node) return null
-
-  // Check each segment (skip first segment which is just the starting waypoint marker)
-  for (let segmentIdx = 1; segmentIdx < segments.length; segmentIdx++) {
-    const segment = segments[segmentIdx]
-
-    // Check if this node's coordinates match any coordinate in this segment
-    for (const waypoint of segment.coordinates) {
-      if (
-        Math.abs(waypoint.lon - node.lon) < 0.000001 &&
-        Math.abs(waypoint.lat - node.lat) < 0.000001
-      ) {
-        // Node is on this segment, so it should be inserted after waypoint at segmentIdx-1
-        // and before waypoint at segmentIdx
-        return segmentIdx
-      }
-    }
-  }
-
-  return null
-}
-
-/**
  * Recalculates all route segments from a list of waypoint node IDs
  */
 export function recalculateSegments(
@@ -134,18 +97,6 @@ export function recalculateSegments(
   }
 
   return { segments: newSegments, totalDistance }
-}
-
-/**
- * Checks if a waypoint is within snapping distance of any node
- */
-export function isNearNode(
-  waypoint: Waypoint,
-  router: Router,
-  threshold: number = WAYPOINT_CONSTANTS.SNAP_TO_NODE_THRESHOLD
-): { nodeId: string; distance: number; node: GraphNode } | null {
-  const result = router.findNearestNode(waypoint.lat, waypoint.lon, threshold)
-  return result
 }
 
 /**
@@ -247,45 +198,4 @@ export function recalculateMixedSegments(
   }
 
   return { segments: newSegments, totalDistance }
-}
-
-/**
- * Converts a waypoint from one type to another during drag operations
- */
-export function convertWaypointType(
-  waypoint: RouteWaypoint,
-  router: Router
-): RouteWaypoint {
-  if (waypoint.type === 'custom') {
-    // Custom waypoint - check if it should snap to a nearby node
-    const nearestResult = isNearNode(
-      waypoint,
-      router,
-      WAYPOINT_CONSTANTS.SNAP_TO_NODE_THRESHOLD
-    )
-
-    if (nearestResult) {
-      // Custom waypoint near a node - convert to node waypoint
-      return createNodeWaypoint(
-        nearestResult.node.lat,
-        nearestResult.node.lon,
-        nearestResult.nodeId
-      )
-    }
-  } else if (waypoint.type === 'node') {
-    // Node waypoint - check if it should convert to custom (dragged too far)
-    const nearestResult = router.findNearestNode(
-      waypoint.lat,
-      waypoint.lon,
-      WAYPOINT_CONSTANTS.UNSNAP_FROM_NODE_THRESHOLD
-    )
-
-    if (!nearestResult) {
-      // Node waypoint far from any node - convert to custom waypoint
-      return createCustomWaypoint(waypoint.lat, waypoint.lon)
-    }
-  }
-
-  // No conversion needed
-  return waypoint
 }

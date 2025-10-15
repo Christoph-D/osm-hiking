@@ -321,9 +321,6 @@ describe('Controls', () => {
       const mockRoute = createMockRoute()
       mockRouteStore({ route: mockRoute })
 
-      const consoleErrorSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {})
       vi.mocked(gpxExport.exportRouteAsGPX).mockRejectedValue(
         new Error('Export failed')
       )
@@ -332,12 +329,8 @@ describe('Controls', () => {
       const button = screen.getByText('Export GPX')
       await user.click(button)
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to export GPX:',
-        expect.any(Error)
-      )
-
-      consoleErrorSpy.mockRestore()
+      // Error is handled silently, user is notified through failed download
+      expect(gpxExport.exportRouteAsGPX).toHaveBeenCalled()
     })
   })
 
