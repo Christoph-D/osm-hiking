@@ -18,7 +18,12 @@ describe('Router', () => {
       const router = new Router(graph)
 
       const node = router.getNode('node1')
-      expect(node).toEqual({ id: 'node1', lat: 50.0, lon: 10.0 })
+      expect(node).toEqual({
+        id: 'node1',
+        lat: 50.0,
+        lon: 10.0,
+        isIntermediate: false,
+      })
     })
 
     it('should return undefined for non-existent node', () => {
@@ -54,7 +59,12 @@ describe('Router', () => {
       expect(result).not.toBeNull()
       expect(result?.nodeId).toBe('node2')
       expect(result?.distance).toBeGreaterThan(0)
-      expect(result?.node).toEqual({ id: 'node2', lat: 50.001, lon: 10.001 })
+      expect(result?.node).toEqual({
+        id: 'node2',
+        lat: 50.001,
+        lon: 10.001,
+        isIntermediate: false,
+      })
     })
 
     it('should return null when no nodes within radius', () => {
@@ -97,7 +107,12 @@ describe('Router', () => {
       const result = router.findNearestNode(50.0001, 10.0001, 100)
       expect(result).not.toBeNull()
       expect(result?.nodeId).toBe('node1')
-      expect(result?.node).toEqual({ id: 'node1', lat: 50.0, lon: 10.0 })
+      expect(result?.node).toEqual({
+        id: 'node1',
+        lat: 50.0,
+        lon: 10.0,
+        isIntermediate: false,
+      })
     })
 
     it('should respect custom max distance parameter', () => {
@@ -125,8 +140,8 @@ describe('Router', () => {
       const osmData: OSMData = {
         nodes: new Map([
           ['node1', { id: 'node1', lat: 50.0, lon: 10.0 }],
-          ['node2', { id: 'node2', lat: 50.001, lon: 10.001 }],
-          ['node3', { id: 'node3', lat: 50.002, lon: 10.002 }],
+          ['node2', { id: 'node2', lat: 50.0001, lon: 10.0001 }], // ~15m
+          ['node3', { id: 'node3', lat: 50.0002, lon: 10.0002 }], // ~15m
         ]),
         ways: [
           {
@@ -145,7 +160,7 @@ describe('Router', () => {
       expect(segment).not.toBeNull()
       expect(segment?.coordinates).toHaveLength(3)
       expect(segment?.coordinates[0]).toEqual({ lat: 50.0, lon: 10.0 })
-      expect(segment?.coordinates[2]).toEqual({ lat: 50.002, lon: 10.002 })
+      expect(segment?.coordinates[2]).toEqual({ lat: 50.0002, lon: 10.0002 })
       expect(segment?.distance).toBeGreaterThan(0)
     })
 
@@ -237,7 +252,7 @@ describe('Router', () => {
       const osmData: OSMData = {
         nodes: new Map([
           ['node1', { id: 'node1', lat: 50.0, lon: 10.0 }],
-          ['node2', { id: 'node2', lat: 50.001, lon: 10.001 }],
+          ['node2', { id: 'node2', lat: 50.0001, lon: 10.0001 }], // ~15m
         ]),
         ways: [
           {
@@ -256,9 +271,9 @@ describe('Router', () => {
       expect(segment).not.toBeNull()
       expect(segment?.coordinates).toHaveLength(2)
       expect(segment?.coordinates[0]).toEqual({ lat: 50.0, lon: 10.0 })
-      expect(segment?.coordinates[1]).toEqual({ lat: 50.001, lon: 10.001 })
+      expect(segment?.coordinates[1]).toEqual({ lat: 50.0001, lon: 10.0001 })
       expect(segment?.distance).toBeGreaterThan(0)
-      expect(segment?.distance).toBeLessThan(200) // Should be ~157m
+      expect(segment?.distance).toBeLessThan(50) // Should be ~15m
     })
 
     it('should respect edge weights in pathfinding', () => {
@@ -301,9 +316,9 @@ describe('Router', () => {
       const osmData: OSMData = {
         nodes: new Map([
           ['node1', { id: 'node1', lat: 50.0, lon: 10.0 }],
-          ['node2', { id: 'node2', lat: 50.001, lon: 10.001 }],
-          ['node3', { id: 'node3', lat: 50.002, lon: 10.002 }],
-          ['node4', { id: 'node4', lat: 50.003, lon: 10.003 }],
+          ['node2', { id: 'node2', lat: 50.0001, lon: 10.0001 }], // ~15m
+          ['node3', { id: 'node3', lat: 50.0002, lon: 10.0002 }], // ~15m
+          ['node4', { id: 'node4', lat: 50.0003, lon: 10.0003 }], // ~15m
         ]),
         ways: [
           {
@@ -323,8 +338,8 @@ describe('Router', () => {
       expect(segment?.coordinates).toHaveLength(4)
       expect(segment?.distance).toBeGreaterThan(0)
 
-      // Distance should be cumulative across all segments
-      const expectedMinDistance = 350 // Rough estimate (actual ~396m)
+      // Distance should be cumulative across all segments (roughly 45m total)
+      const expectedMinDistance = 30 // Rough estimate (actual ~45m)
       expect(segment?.distance).toBeGreaterThan(expectedMinDistance)
     })
 

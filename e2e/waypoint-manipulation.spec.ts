@@ -262,31 +262,11 @@ test.describe('Waypoint Manipulation', () => {
     // Click on the route line (approximately in the middle)
     // This should insert a waypoint on the route
     await clickMap(page, 400, 300)
+    await expect(markers).toHaveCount(3)
 
-    // Wait for marker count to potentially change (with longer timeout as this is conditional)
-    await page.waitForFunction(() => {
-      const markerElements = document.querySelectorAll('.leaflet-marker-icon')
-      return markerElements.length >= 2
-    })
-
-    const markerCount = await getMarkerCount(page)
-
-    // Note: This test might be flaky depending on where exactly the route line is
-    // If the click lands on the actual route path, it should insert a waypoint
-    // The test validates that waypoint insertion works when clicking on route
-    if (markerCount === 3) {
-      // Successfully inserted a waypoint on the route
-      expect(markerCount).toBe(3)
-
-      // Verify waypoint count text
-      const waypointText = page.locator('text=/Waypoints:\\s*3/')
-      await expect(waypointText).toBeVisible()
-    } else {
-      // If the click didn't land on the route, we should still have 2 waypoints
-      // or we might have added a new endpoint (making it 3)
-      // This is expected behavior - only clicking exactly on the route inserts a waypoint
-      expect(markerCount).toBeGreaterThanOrEqual(2)
-    }
+    // Verify waypoint count text
+    const waypointText = page.locator('text=/Waypoints:\\s*3/')
+    await expect(waypointText).toBeVisible()
   })
 
   test('should clear route when removing waypoints down to one', async ({
@@ -347,67 +327,39 @@ test.describe('Waypoint Manipulation', () => {
   test('should handle multiple waypoint additions and removals', async ({
     page,
   }) => {
-    // Load data first
     await loadHikingPaths(page)
 
     const markers = page.locator('.leaflet-marker-icon')
 
-    // Add 4 waypoints to create a complex route (using closer coordinates)
+    // Add 4 waypoints to create a complex route
     await clickMap(page, 380, 290)
     await expect(markers).toHaveCount(1)
     await clickMap(page, 400, 300)
-    await expect(async () => {
-      expect(await markers.count()).toBeGreaterThanOrEqual(2)
-    }).toPass()
-    await clickMap(page, 420, 310)
-    await expect(async () => {
-      expect(await markers.count()).toBeGreaterThanOrEqual(3)
-    }).toPass()
-    await clickMap(page, 400, 320)
-    await expect(async () => {
-      expect(await markers.count()).toBeGreaterThanOrEqual(3)
-    }).toPass()
+    await expect(markers).toHaveCount(2)
+    await clickMap(page, 500, 310)
+    await expect(markers).toHaveCount(3)
+    await clickMap(page, 200, 320)
+    await expect(markers).toHaveCount(4)
 
-    // Get initial count
-    const initialCount = await getMarkerCount(page)
-    expect(initialCount).toBeGreaterThanOrEqual(3)
+    // Remove the second waypoint
+    await markers.nth(1).dblclick()
+    await expect(markers).toHaveCount(3)
 
-    // Remove the second waypoint - use force to bypass pointer interception
-    await markers.nth(1).dblclick({ force: true })
-    await expect(async () => {
-      expect(await markers.count()).toBe(initialCount - 1)
-    }).toPass()
+    // Remove another waypoint
+    await markers.nth(1).dblclick()
+    await expect(markers).toHaveCount(2)
 
-    // Should have one less waypoint
-    const afterFirstRemoval = await getMarkerCount(page)
-    expect(afterFirstRemoval).toBe(initialCount - 1)
+    // Route should still exist
+    expect(await getPolylineCount(page)).toBeGreaterThan(0)
 
-    // Remove another waypoint - use force to bypass pointer interception
-    await markers.nth(1).dblclick({ force: true })
-    await expect(async () => {
-      expect(await markers.count()).toBe(afterFirstRemoval - 1)
-    }).toPass()
-
-    // Should have one more waypoint removed
-    const afterSecondRemoval = await getMarkerCount(page)
-    expect(afterSecondRemoval).toBe(afterFirstRemoval - 1)
-
-    // Route should still exist if we have at least 2 waypoints
-    if (afterSecondRemoval >= 2) {
-      expect(await getPolylineCount(page)).toBeGreaterThan(0)
-
-      // Verify waypoint count
-      const waypointText = page.locator(
-        `text=/Waypoints:\\s*${afterSecondRemoval}/`
-      )
-      await expect(waypointText).toBeVisible()
-    }
+    // Verify waypoint count text
+    const waypointText = page.locator(`text=/Waypoints:\\s*2/`)
+    await expect(waypointText).toBeVisible()
   })
 
   test('should clear all waypoints when clicking Clear Route button', async ({
     page,
   }) => {
-    // Load data first
     await loadHikingPaths(page)
 
     const markers = page.locator('.leaflet-marker-icon')
@@ -416,26 +368,15 @@ test.describe('Waypoint Manipulation', () => {
     await clickMap(page, 380, 300)
     await expect(markers).toHaveCount(1)
     await clickMap(page, 400, 300)
-    await expect(async () => {
-      expect(await markers.count()).toBeGreaterThanOrEqual(2)
-    }).toPass()
-    await clickMap(page, 420, 300)
-    await expect(async () => {
-      expect(await markers.count()).toBeGreaterThanOrEqual(2)
-    }).toPass()
-
-    // Verify we have at least 2 waypoints (ideally 3, but depends on path availability)
-    const markerCount = await getMarkerCount(page)
-    expect(markerCount).toBeGreaterThanOrEqual(2)
+    await expect(markers).toHaveCount(2)
+    await clickMap(page, 500, 300)
+    await expect(markers).toHaveCount(3)
 
     // Click Clear Route button
     const clearButton = page.getByRole('button', { name: /clear route/i })
     await expect(clearButton).toBeEnabled()
     await clearButton.click()
     await expect(markers).toHaveCount(0)
-
-    // Should have no markers
-    expect(await getMarkerCount(page)).toBe(0)
 
     // No polylines
     expect(await getPolylineCount(page)).toBe(0)
