@@ -19,6 +19,8 @@ Follow conventional commit format: `type: description`
 
 - Subject line should describe **what** was done
 - Rest of the commit (if needed) should explain **why** it was done
+- Insert a blank line between the subject line and the body
+- Write the body using Markdown formatting without paragraph wrapping
 - Use lowercase for the description
 - Keep subjects concise and clear
 - Use imperative mood (e.g., "Add feature" not "Added feature")
