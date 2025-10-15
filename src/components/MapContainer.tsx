@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Waypoint } from '../types'
 import {
   MapContainer as LeafletMapContainer,
@@ -119,8 +119,7 @@ function RouteLayer() {
   const [tempRoute, setTempRoute] = useState<typeof route>(null)
 
   // Route management hook
-  const { preservedWaypointsRef, clearRoute, processMapClick } =
-    useRouteManagement()
+  const { clearRoute, processMapClick } = useRouteManagement()
 
   // Data loading hook
   const { router, isDataLoaded, loadedBbox, loadData, isLoading } =
@@ -167,13 +166,6 @@ function RouteLayer() {
     route,
     setElevationData,
   })
-
-  // Synchronize preservedWaypoints with route changes for data reloading
-  useEffect(() => {
-    if (route && route.waypoints.length > 0) {
-      preservedWaypointsRef.current = route.waypoints
-    }
-  }, [route, preservedWaypointsRef])
 
   return (
     <>

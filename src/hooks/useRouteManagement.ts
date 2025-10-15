@@ -12,9 +12,9 @@
  * This is the central coordination point for route state management.
  */
 
-import { useCallback, useRef } from 'react'
+import { useCallback } from 'react'
 import { Router } from '../services/router'
-import { Route, Waypoint } from '../types'
+import { Route } from '../types'
 import {
   determineWaypointType,
   recalculateMixedSegments,
@@ -24,11 +24,8 @@ import { useRouteStore } from '../store/useRouteStore'
 export function useRouteManagement() {
   const { setRoute, clearRoute: clearRouteStore, setError } = useRouteStore()
 
-  const preservedWaypoints = useRef<Waypoint[]>([])
-
   const clearRoute = useCallback(() => {
     clearRouteStore()
-    preservedWaypoints.current = []
   }, [clearRouteStore])
 
   const processMapClick = useCallback(
@@ -88,7 +85,6 @@ export function useRouteManagement() {
   )
 
   return {
-    preservedWaypointsRef: preservedWaypoints,
     clearRoute,
     processMapClick,
   }
