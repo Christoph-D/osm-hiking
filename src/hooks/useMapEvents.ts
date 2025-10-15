@@ -16,7 +16,7 @@ import { useMapEvents as useLeafletMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { Router } from '../services/router'
 import { Route, RouteWaypoint } from '../types'
-import { isPointInBbox, getCurrentBbox } from '../utils/mapHelpers'
+import { isPointInBbox } from '../utils/mapHelpers'
 
 interface UseMapEventsParams {
   map: L.Map
@@ -42,13 +42,6 @@ interface UseMapEventsParams {
   ) => Promise<{ router: Router; waypointNodeIds: RouteWaypoint[] } | undefined>
 }
 
-interface MapBounds {
-  south: number
-  west: number
-  north: number
-  east: number
-}
-
 export function useMapEvents({
   map,
   router,
@@ -60,20 +53,7 @@ export function useMapEvents({
   loadData,
 }: UseMapEventsParams) {
   const [currentZoom, setCurrentZoom] = useState(map.getZoom())
-  const [currentBounds, setCurrentBounds] = useState<MapBounds | null>(null)
   const [isCurrentViewLoaded, setIsCurrentViewLoaded] = useState(false)
-
-  // Initialize current bounds on mount
-  useEffect(() => {
-    const bounds = map.getBounds()
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCurrentBounds({
-      south: bounds.getSouth(),
-      west: bounds.getWest(),
-      north: bounds.getNorth(),
-      east: bounds.getEast(),
-    })
-  }, [map])
 
   // Update isCurrentViewLoaded when data is loaded
   useEffect(() => {
@@ -120,10 +100,6 @@ export function useMapEvents({
       const zoom = map.getZoom()
       setCurrentZoom(zoom)
 
-      // Update current bounds
-      const bounds = getCurrentBbox(map)
-      setCurrentBounds(bounds)
-
       // Mark that the view has changed, so button can be re-enabled
       setIsCurrentViewLoaded(false)
     },
@@ -131,7 +107,6 @@ export function useMapEvents({
 
   return {
     currentZoom,
-    currentBounds,
     isCurrentViewLoaded,
   }
 }

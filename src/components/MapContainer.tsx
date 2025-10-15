@@ -20,6 +20,7 @@ import { useRouteManagement } from '../hooks/useRouteManagement'
 import { useMarkerHandlers } from '../hooks/useMarkerHandlers'
 import { useMapEvents as useMapEventsHandler } from '../hooks/useMapEvents'
 import { getMapPosition, setMapPosition } from '../utils/mapPositionStorage'
+import { getCurrentBbox } from '../utils/mapHelpers'
 
 function MapPositionSaver() {
   const map = useMap()
@@ -103,17 +104,16 @@ function RouteLayer() {
   })
 
   // Map events hook
-  const { currentZoom, currentBounds, isCurrentViewLoaded } =
-    useMapEventsHandler({
-      map,
-      router,
-      route,
-      isDataLoaded,
-      loadedBbox,
-      isDraggingMarkerRef,
-      processMapClick,
-      loadData,
-    })
+  const { currentZoom, isCurrentViewLoaded } = useMapEventsHandler({
+    map,
+    router,
+    route,
+    isDataLoaded,
+    loadedBbox,
+    isDraggingMarkerRef,
+    processMapClick,
+    loadData,
+  })
 
   // Elevation data loader hook
   useElevationLoader({
@@ -159,7 +159,7 @@ function RouteLayer() {
         isDataLoaded={isDataLoaded}
         isCurrentViewLoaded={isCurrentViewLoaded}
         zoom={currentZoom}
-        mapBounds={currentBounds}
+        mapBounds={getCurrentBbox(map)}
         isLoading={isLoading}
       />
       {route && route.waypoints.length > 1 && (
