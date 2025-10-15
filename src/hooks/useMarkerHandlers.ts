@@ -83,7 +83,7 @@ export function useMarkerHandlers({
   isDraggingMarkerRef,
   setTempRoute,
 }: UseMarkerHandlersParams) {
-  const { setRoute, deleteWaypoint, clearRoute } = useRouteStore()
+  const { setRoute, clearRoute } = useRouteStore()
   const handleMarkerDragStart = useCallback(() => {
     isDraggingMarkerRef.current = true
   }, [isDraggingMarkerRef])
@@ -170,9 +170,13 @@ export function useMarkerHandlers({
       )
 
       // Update the route store
-      deleteWaypoint(index, newSegments, totalDistance)
+      setRoute({
+        waypoints: newRouteWaypoints,
+        segments: newSegments,
+        totalDistance,
+      })
     },
-    [router, route, deleteWaypoint, clearRoute]
+    [router, route, setRoute, clearRoute]
   )
 
   return {

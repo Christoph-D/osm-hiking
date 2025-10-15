@@ -27,7 +27,6 @@ vi.mock('../utils/debounce', () => ({
 vi.mock('../store/useRouteStore', () => ({
   useRouteStore: vi.fn(() => ({
     setRoute: vi.fn(),
-    deleteWaypoint: vi.fn(),
     clearRoute: vi.fn(),
   })),
 }))
@@ -59,7 +58,6 @@ describe('useMarkerHandlers', () => {
   } as unknown as Router
 
   const mockSetRoute = vi.fn()
-  const mockDeleteWaypoint = vi.fn()
   const mockClearRoute = vi.fn()
 
   const mockSetTempRoute = vi.fn()
@@ -70,7 +68,6 @@ describe('useMarkerHandlers', () => {
   beforeEach(() => {
     mockUseRouteStore.mockReturnValue({
       setRoute: mockSetRoute,
-      deleteWaypoint: mockDeleteWaypoint,
       clearRoute: mockClearRoute,
     })
   })
@@ -575,7 +572,19 @@ describe('useMarkerHandlers', () => {
       })
 
       expect(mockRecalculateMixedSegments).toHaveBeenCalled()
-      expect(mockDeleteWaypoint).toHaveBeenCalledWith(0, [], 0)
+      expect(mockSetRoute).toHaveBeenCalledWith({
+        waypoints: [
+          {
+            type: 'node',
+            id: 'node-1',
+            nodeId: 'node123',
+            lat: 51,
+            lon: 9,
+          },
+        ],
+        segments: [],
+        totalDistance: 0,
+      })
     })
 
     it('should clear route when all waypoints are deleted', () => {

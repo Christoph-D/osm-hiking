@@ -20,11 +20,6 @@ interface RouteState {
     segments: RouteSegment[],
     totalDistance: number
   ) => void
-  deleteWaypoint: (
-    index: number,
-    segments: RouteSegment[],
-    totalDistance: number
-  ) => void
   clearRoute: () => void
   setError: (error: string | null) => void
   setElevationData: (profile: ElevationPoint[], stats: ElevationStats) => void
@@ -72,30 +67,6 @@ export const useRouteStore = create<RouteState>((set) => ({
       const newRouteWaypoints = [...state.route.waypoints]
 
       newRouteWaypoints.splice(index, 0, routeWaypoint)
-
-      return {
-        route: {
-          segments,
-          waypoints: newRouteWaypoints,
-          totalDistance,
-          // Clear elevation data when route changes
-          elevationProfile: undefined,
-          elevationStats: undefined,
-        },
-      }
-    }),
-
-  deleteWaypoint: (index, segments, totalDistance) =>
-    set((state) => {
-      if (!state.route) return state
-      const newRouteWaypoints = [...state.route.waypoints]
-
-      newRouteWaypoints.splice(index, 1)
-
-      // If no waypoints left, clear the route
-      if (newRouteWaypoints.length === 0) {
-        return { route: null, error: null }
-      }
 
       return {
         route: {
