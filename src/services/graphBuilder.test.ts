@@ -321,12 +321,11 @@ describe('buildRoutingGraph', () => {
 
       // Check that intermediate nodes have correct properties
       const intermediateNodes = Array.from(result.nodes.values()).filter(
-        (node) => node.id < 0 && node.originalWayId === 1
+        (node) => node.id < 0
       )
       expect(intermediateNodes.length).toBeGreaterThan(0)
 
       intermediateNodes.forEach((node) => {
-        expect(node.originalWayId).toBe(1)
         expect(node.id).toBeLessThan(0) // Should be negative
       })
 
@@ -353,7 +352,7 @@ describe('buildRoutingGraph', () => {
 
       // 222m / 25m = 8.9, so should need 8 intermediate nodes (9 segments)
       const intermediateNodes = Array.from(result.nodes.values()).filter(
-        (node) => node.id < 0 && node.originalWayId === 1
+        (node) => node.id < 0
       )
       expect(intermediateNodes.length).toBe(8)
 
@@ -397,7 +396,7 @@ describe('buildRoutingGraph', () => {
 
       // Should have intermediate nodes for both long segments
       const intermediateNodes = Array.from(result.nodes.values()).filter(
-        (node) => node.id < 0 && node.originalWayId === 1
+        (node) => node.id < 0
       )
       expect(intermediateNodes.length).toBe(16) // 8 for each segment
 
@@ -406,10 +405,9 @@ describe('buildRoutingGraph', () => {
       // we'll verify that we have the right total number of intermediate nodes
       expect(intermediateNodes.length).toBe(16)
 
-      // All intermediate nodes should belong to way 1 and have negative IDs
+      // All intermediate nodes should have negative IDs
       intermediateNodes.forEach((node) => {
         expect(node.id).toBeLessThan(0)
-        expect(node.originalWayId).toBe(1)
       })
     })
 
@@ -432,7 +430,7 @@ describe('buildRoutingGraph', () => {
 
       // Get the first edge (should be from node1 to first intermediate node)
       const intermediateNodes = Array.from(result.nodes.values()).filter(
-        (node) => node.id < 0 && node.originalWayId === 1
+        (node) => node.id < 0
       )
       const firstIntermediateNode = intermediateNodes[0]
 
@@ -468,14 +466,13 @@ describe('buildRoutingGraph', () => {
 
       // Should have intermediate nodes only for the long segment
       const intermediateNodes = Array.from(result.nodes.values()).filter(
-        (node) => node.id < 0 && node.originalWayId === 1
+        (node) => node.id < 0
       )
       expect(intermediateNodes.length).toBe(8) // Only for segment 1 (node2 to node3)
 
-      // All intermediate nodes should belong to way 1 and have negative IDs
+      // All intermediate nodes should have negative IDs
       intermediateNodes.forEach((node) => {
         expect(node.id).toBeLessThan(0)
-        expect(node.originalWayId).toBe(1)
       })
     })
 
@@ -508,14 +505,11 @@ describe('buildRoutingGraph', () => {
       )
       expect(intermediateNodes.length).toBe(16) // 8 for each way
 
-      // Should have nodes from both ways
-      const way1Nodes = intermediateNodes.filter((n) => n.originalWayId === 1)
-      const way2Nodes = intermediateNodes.filter((n) => n.originalWayId === 2)
-      expect(way1Nodes.length).toBe(8)
-      expect(way2Nodes.length).toBe(8)
+      // Should have intermediate nodes from both ways
+      expect(intermediateNodes.length).toBe(16)
     })
 
-    it('should mark original nodes without originalWayId', () => {
+    it('should preserve original node coordinates', () => {
       const osmData: OSMData = {
         nodes: new Map([
           [1, { id: 1, lat: 50.0, lon: 10.0 }],
@@ -535,8 +529,10 @@ describe('buildRoutingGraph', () => {
       const node1 = result.nodes.get(1)
       const node2 = result.nodes.get(2)
 
-      expect(node1?.originalWayId).toBeUndefined()
-      expect(node2?.originalWayId).toBeUndefined()
+      expect(node1?.lat).toBe(50.0)
+      expect(node1?.lon).toBe(10.0)
+      expect(node2?.lat).toBe(50.002)
+      expect(node2?.lon).toBe(10.0)
     })
 
     it('should handle very long segments', () => {
@@ -558,7 +554,7 @@ describe('buildRoutingGraph', () => {
 
       // 1111m / 25m = 44.4, so should need 44 intermediate nodes (45 segments)
       const intermediateNodes = Array.from(result.nodes.values()).filter(
-        (node) => node.id < 0 && node.originalWayId === 1
+        (node) => node.id < 0
       )
       expect(intermediateNodes.length).toBe(44)
 

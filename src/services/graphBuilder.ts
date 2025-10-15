@@ -37,8 +37,7 @@ let intermediateNodeIdCounter = -1
  */
 function generateIntermediateNodes(
   fromNode: OSMNode,
-  toNode: OSMNode,
-  wayId: number
+  toNode: OSMNode
 ): {
   nodes: GraphNode[]
   edges: Array<{ from: number; to: number; distance: number }>
@@ -83,7 +82,6 @@ function generateIntermediateNodes(
       id: nodeId,
       lat: destinationPoint.geometry.coordinates[1],
       lon: destinationPoint.geometry.coordinates[0],
-      originalWayId: wayId,
     }
     nodes.push(node)
   }
@@ -154,8 +152,7 @@ export function buildRoutingGraph(osmData: OSMData): RoutingGraph {
       // Generate intermediate nodes if needed
       const { nodes: intermediateNodes, edges } = generateIntermediateNodes(
         fromNode,
-        toNode,
-        way.id
+        toNode
       )
 
       // Add intermediate nodes to the global nodes map
