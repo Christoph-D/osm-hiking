@@ -22,6 +22,7 @@ import { getCurrentBbox, wouldClearRoute } from '../utils/mapHelpers'
 import { MIN_ZOOM } from '../constants/map'
 import { mapWaypointsToNodes } from '../services/routePreservation'
 import { recalculateMixedSegments } from '../utils/mapHelpers'
+import { useMapDataStore } from '../store/mapDataStore'
 
 interface UseDataLoaderParams {
   map: L.Map
@@ -47,6 +48,7 @@ export function useDataLoader({
   const [isDataLoaded, setIsDataLoaded] = useState(false)
   const [loadedBbox, setLoadedBbox] = useState<LoadedBbox | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const { setIsCurrentViewLoaded } = useMapDataStore()
 
   const loadData = useCallback(
     async (
@@ -103,6 +105,7 @@ export function useDataLoader({
         setRouter(newRouter)
         setLoadedBbox(bbox)
         setIsDataLoaded(true)
+        setIsCurrentViewLoaded(true)
 
         // Recalculate route if we have preserved waypoints
         if (waypointsToPreserve.length > 0) {
@@ -152,7 +155,7 @@ export function useDataLoader({
         setIsLoading(false)
       }
     },
-    [map, route, clearRoute, setError]
+    [map, route, clearRoute, setError, setIsCurrentViewLoaded]
   )
 
   return {

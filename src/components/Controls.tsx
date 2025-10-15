@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react'
 import { DomEvent } from 'leaflet'
 import { useRouteStore } from '../store/useRouteStore'
+import { useMapDataStore } from '../store/mapDataStore'
 import { exportRouteAsGPX } from '../services/gpxExport'
 import { MIN_ZOOM } from '../constants/map'
 import { useProgressiveLoadingMessage } from '../hooks/useProgressiveLoadingMessage'
@@ -9,7 +10,6 @@ interface ControlsProps {
   onLoadData: () => void
   onClearRoute: () => void
   isDataLoaded: boolean
-  isCurrentViewLoaded: boolean
   zoom: number
   mapBounds: { south: number; west: number; north: number; east: number } | null
   isLoading: boolean
@@ -19,12 +19,12 @@ export function Controls({
   onLoadData,
   onClearRoute,
   isDataLoaded,
-  isCurrentViewLoaded,
   zoom,
   mapBounds,
   isLoading,
 }: ControlsProps) {
   const { route, error } = useRouteStore()
+  const { isCurrentViewLoaded } = useMapDataStore()
   const containerRef = useRef<HTMLDivElement>(null)
   const message = useProgressiveLoadingMessage(
     'Loading hiking paths...',

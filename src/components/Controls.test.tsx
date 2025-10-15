@@ -4,10 +4,12 @@ import userEvent from '@testing-library/user-event'
 import { Controls } from './Controls'
 import {
   resetRouteStore,
+  resetMapDataStore,
   createMockRoute,
   mockRouteStore,
 } from '../test/componentUtils'
 import * as gpxExport from '../services/gpxExport'
+import { useMapDataStore } from '../store/mapDataStore'
 
 // Mock the GPX export service
 vi.mock('../services/gpxExport', () => ({
@@ -19,7 +21,6 @@ describe('Controls', () => {
     onLoadData: vi.fn(),
     onClearRoute: vi.fn(),
     isDataLoaded: false,
-    isCurrentViewLoaded: false,
     zoom: 13,
     mapBounds: {
       south: 50.0,
@@ -33,12 +34,16 @@ describe('Controls', () => {
   beforeEach(async () => {
     await act(async () => {
       resetRouteStore()
+      resetMapDataStore()
       vi.clearAllMocks()
     })
   })
 
   afterEach(async () => {
-    await act(async () => resetRouteStore())
+    await act(async () => {
+      resetRouteStore()
+      resetMapDataStore()
+    })
   })
 
   describe('Rendering', () => {
@@ -143,27 +148,13 @@ describe('Controls', () => {
 
   describe('Load Data Button', () => {
     it('should be enabled when zoom is sufficient and current view not loaded', () => {
-      render(
-        <Controls
-          {...defaultProps}
-          zoom={13}
-          isCurrentViewLoaded={false}
-          isDataLoaded={false}
-        />
-      )
+      render(<Controls {...defaultProps} zoom={13} isDataLoaded={false} />)
       const button = screen.getByText('Load Hiking Paths')
       expect(button).not.toBeDisabled()
     })
 
     it('should be disabled when zoom is too low', () => {
-      render(
-        <Controls
-          {...defaultProps}
-          zoom={12}
-          isCurrentViewLoaded={false}
-          isDataLoaded={false}
-        />
-      )
+      render(<Controls {...defaultProps} zoom={12} isDataLoaded={false} />)
       const button = screen.getByText('Load Hiking Paths')
       expect(button).toBeDisabled()
     })
@@ -173,7 +164,6 @@ describe('Controls', () => {
         <Controls
           {...defaultProps}
           zoom={13}
-          isCurrentViewLoaded={false}
           isDataLoaded={false}
           isLoading={true}
         />
@@ -183,28 +173,17 @@ describe('Controls', () => {
     })
 
     it('should be disabled when current view is already loaded', () => {
-      render(
-        <Controls
-          {...defaultProps}
-          zoom={13}
-          isCurrentViewLoaded={true}
-          isDataLoaded={true}
-        />
-      )
+      // Set the map data store to indicate current view is loaded
+      useMapDataStore.setState({ isCurrentViewLoaded: true })
+
+      render(<Controls {...defaultProps} zoom={13} isDataLoaded={true} />)
       const button = screen.getByText('Load Hiking Paths')
       expect(button).toBeDisabled()
     })
 
     it('should call onLoadData when clicked', async () => {
       const user = userEvent.setup()
-      render(
-        <Controls
-          {...defaultProps}
-          zoom={13}
-          isCurrentViewLoaded={false}
-          isDataLoaded={false}
-        />
-      )
+      render(<Controls {...defaultProps} zoom={13} isDataLoaded={false} />)
       const button = screen.getByText('Load Hiking Paths')
       await user.click(button)
       expect(defaultProps.onLoadData).toHaveBeenCalledTimes(1)
@@ -222,14 +201,7 @@ describe('Controls', () => {
 
       const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
 
-      render(
-        <Controls
-          {...defaultProps}
-          zoom={13}
-          isCurrentViewLoaded={false}
-          isDataLoaded={true}
-        />
-      )
+      render(<Controls {...defaultProps} zoom={13} isDataLoaded={true} />)
       const button = screen.getByText('Load Hiking Paths')
       await user.click(button)
 
@@ -255,14 +227,7 @@ describe('Controls', () => {
 
       const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
 
-      render(
-        <Controls
-          {...defaultProps}
-          zoom={13}
-          isCurrentViewLoaded={false}
-          isDataLoaded={true}
-        />
-      )
+      render(<Controls {...defaultProps} zoom={13} isDataLoaded={true} />)
       const button = screen.getByText('Load Hiking Paths')
       await user.click(button)
 

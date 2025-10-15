@@ -1,6 +1,7 @@
 import { render, RenderOptions } from '@testing-library/react'
 import { ReactElement } from 'react'
 import { useRouteStore } from '../store/useRouteStore'
+import { useMapDataStore } from '../store/mapDataStore'
 import { ElevationPoint, ElevationStats, Route } from '../types'
 
 /**
@@ -31,6 +32,15 @@ export function resetRouteStore() {
     route: null,
     error: null,
     hoveredElevationPoint: null,
+  })
+}
+
+/**
+ * Reset the map data store to initial state
+ */
+export function resetMapDataStore() {
+  useMapDataStore.setState({
+    isCurrentViewLoaded: false,
   })
 }
 
