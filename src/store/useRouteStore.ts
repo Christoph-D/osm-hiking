@@ -6,6 +6,7 @@ import {
   ElevationStats,
   RouteWaypoint,
 } from '../types'
+import { calculateTotalDistance } from '../utils/mapHelpers'
 
 interface RouteState {
   route: Route | null
@@ -33,11 +34,14 @@ export const useRouteStore = create<RouteState>((set) => ({
         totalDistance: 0,
       }
 
+      const newSegments = [...currentRoute.segments, segment]
+      const totalDistance = calculateTotalDistance(newSegments)
+
       return {
         route: {
-          segments: [...currentRoute.segments, segment],
+          segments: newSegments,
           waypoints: [...currentRoute.waypoints, routeWaypoint],
-          totalDistance: currentRoute.totalDistance + segment.distance,
+          totalDistance,
           // Clear elevation data when route changes
           elevationProfile: undefined,
           elevationStats: undefined,

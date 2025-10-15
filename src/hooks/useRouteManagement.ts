@@ -18,6 +18,7 @@ import { Route } from '../types'
 import {
   determineWaypointType,
   recalculateMixedSegments,
+  calculateTotalDistance,
 } from '../utils/mapHelpers'
 import { useRouteStore } from '../store/useRouteStore'
 
@@ -61,10 +62,7 @@ export function useRouteManagement() {
         const result = recalculateMixedSegments(newRouteWaypoints, router)
         const { segments: newSegments } = result
 
-        const totalDistance = newSegments.reduce(
-          (sum, segment) => sum + segment.distance,
-          0
-        )
+        const totalDistance = calculateTotalDistance(newSegments)
 
         const newRoute: Route = {
           segments: newSegments,

@@ -122,6 +122,13 @@ export function determineWaypointType(
 }
 
 /**
+ * Calculates total distance from an array of route segments
+ */
+export function calculateTotalDistance(segments: RouteSegment[]): number {
+  return segments.reduce((sum, segment) => sum + segment.distance, 0)
+}
+
+/**
  * Recalculates route segments for mixed waypoint types (node + custom)
  */
 export function recalculateMixedSegments(
@@ -129,7 +136,6 @@ export function recalculateMixedSegments(
   router: Router
 ): { segments: RouteSegment[]; totalDistance: number } {
   const newSegments: RouteSegment[] = []
-  let totalDistance = 0
 
   for (let i = 0; i < routeWaypoints.length; i++) {
     if (i === 0) {
@@ -153,16 +159,15 @@ export function recalculateMixedSegments(
         )
         if (segment) {
           newSegments.push(segment)
-          totalDistance += segment.distance
         }
       } else {
         // At least one is a custom waypoint - use straight line
         const segment = router.createStraightSegment(fromWaypoint, toWaypoint)
         newSegments.push(segment)
-        totalDistance += segment.distance
       }
     }
   }
 
+  const totalDistance = calculateTotalDistance(newSegments)
   return { segments: newSegments, totalDistance }
 }
