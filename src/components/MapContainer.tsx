@@ -98,19 +98,7 @@ function RouteLayer() {
     isDataLoaded,
     loadedBbox,
     isDraggingMarkerRef,
-    processMapClick: (router, lat, lng, route) => {
-      // Get current map state for the click handler
-      const zoom = map.getZoom()
-      const center = map.getCenter()
-      return processMapClick(
-        router,
-        lat,
-        lng,
-        route,
-        { lat: center.lat, lng: center.lng },
-        zoom
-      )
-    },
+    processMapClick,
     loadData,
   })
 

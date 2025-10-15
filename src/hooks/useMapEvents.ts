@@ -19,13 +19,6 @@ import { Route, RouteWaypoint } from '../types'
 import { isPointInBbox } from '../utils/mapHelpers'
 import { useMapDataStore } from '../store/mapDataStore'
 
-interface MapBounds {
-  south: number
-  west: number
-  north: number
-  east: number
-}
-
 interface MapCenter {
   lat: number
   lng: number
@@ -47,7 +40,9 @@ interface UseMapEventsParams {
     router: Router,
     lat: number,
     lng: number,
-    route: Route | null
+    route: Route | null,
+    mapCenter: { lat: number; lng: number },
+    currentZoom: number
   ) => void
   loadData: (
     onSuccess?: (router: Router, currentRoute: Route | null) => void,
@@ -66,15 +61,6 @@ export function useMapEvents({
   loadData,
 }: UseMapEventsParams) {
   const [currentZoom, setCurrentZoom] = useState(map.getZoom())
-  const [currentBounds, setCurrentBounds] = useState<MapBounds>(() => {
-    const bounds = map.getBounds()
-    return {
-      south: bounds.getSouth(),
-      west: bounds.getWest(),
-      north: bounds.getNorth(),
-      east: bounds.getEast(),
-    }
-  })
   const [mapCenter, setMapCenter] = useState<MapCenter>(() => {
     const center = map.getCenter()
     return { lat: center.lat, lng: center.lng }
@@ -102,14 +88,21 @@ export function useMapEvents({
         loadData((loadedRouter, currentRoute) => {
           // Process the pending click after data loads
           // Process with the loaded router and current route
-          processMapClick(loadedRouter, lat, lng, currentRoute)
+          processMapClick(
+            loadedRouter,
+            lat,
+            lng,
+            currentRoute,
+            mapCenter,
+            currentZoom
+          )
         })
         return
       }
 
       // Process the click normally
       if (router) {
-        processMapClick(router, lat, lng, route)
+        processMapClick(router, lat, lng, route, mapCenter, currentZoom)
       }
     },
 
@@ -117,15 +110,6 @@ export function useMapEvents({
       // Update zoom level state and validate
       const zoom = map.getZoom()
       setCurrentZoom(zoom)
-
-      // Update bounds and center
-      const bounds = map.getBounds()
-      setCurrentBounds({
-        south: bounds.getSouth(),
-        west: bounds.getWest(),
-        north: bounds.getNorth(),
-        east: bounds.getEast(),
-      })
 
       const center = map.getCenter()
       setMapCenter({ lat: center.lat, lng: center.lng })
@@ -137,7 +121,6 @@ export function useMapEvents({
 
   return {
     currentZoom,
-    currentBounds,
     mapCenter,
   }
 }
