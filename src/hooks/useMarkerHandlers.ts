@@ -13,30 +13,19 @@
 import { useCallback, RefObject } from 'react'
 import { LeafletEvent } from 'leaflet'
 import { Router } from '../services/router'
-import { Route, RouteSegment, RouteWaypoint } from '../types'
+import { Route, RouteWaypoint } from '../types'
 import {
   createNodeWaypoint,
   createCustomWaypoint,
   recalculateMixedSegments,
 } from '../utils/mapHelpers'
 import { WAYPOINT_CONSTANTS } from '../constants/waypoints'
+import { useRouteStore } from '../store/useRouteStore'
 
 interface UseMarkerHandlersParams {
   router: Router | null
   route: Route | null
   isDraggingMarkerRef: RefObject<boolean>
-  updateWaypoint: (
-    index: number,
-    routeWaypoint: RouteWaypoint,
-    segments: RouteSegment[],
-    totalDistance: number
-  ) => void
-  deleteWaypoint: (
-    index: number,
-    segments: RouteSegment[],
-    totalDistance: number
-  ) => void
-  clearRoute: () => void
   setTempRoute: (route: Route | null) => void
 }
 
@@ -92,11 +81,9 @@ export function useMarkerHandlers({
   router,
   route,
   isDraggingMarkerRef,
-  updateWaypoint,
-  deleteWaypoint,
-  clearRoute,
   setTempRoute,
 }: UseMarkerHandlersParams) {
+  const { updateWaypoint, deleteWaypoint, clearRoute } = useRouteStore()
   const handleMarkerDragStart = useCallback(() => {
     isDraggingMarkerRef.current = true
   }, [isDraggingMarkerRef])
@@ -148,7 +135,7 @@ export function useMarkerHandlers({
         console.error('Error processing marker drag end:', error)
       }
     },
-    [router, route, updateWaypoint, setTempRoute, isDraggingMarkerRef]
+    [router, route, setTempRoute, isDraggingMarkerRef, updateWaypoint]
   )
 
   const handleMarkerClick = useCallback((event: LeafletEvent) => {

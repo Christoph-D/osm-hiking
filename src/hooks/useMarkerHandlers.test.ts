@@ -23,12 +23,24 @@ vi.mock('../utils/debounce', () => ({
   debounce: vi.fn((fn) => fn), // Return the function directly for testing
 }))
 
+// Mock useRouteStore
+vi.mock('../store/useRouteStore', () => ({
+  useRouteStore: vi.fn(() => ({
+    updateWaypoint: vi.fn(),
+    deleteWaypoint: vi.fn(),
+    clearRoute: vi.fn(),
+  })),
+}))
+
 // Import mocked functions
 import {
   createNodeWaypoint,
   createCustomWaypoint,
   recalculateMixedSegments,
 } from '../utils/mapHelpers'
+import { useRouteStore } from '../store/useRouteStore'
+
+const mockUseRouteStore = useRouteStore as unknown as ReturnType<typeof vi.fn>
 
 const mockCreateNodeWaypoint = createNodeWaypoint as ReturnType<typeof vi.fn>
 const mockCreateCustomWaypoint = createCustomWaypoint as ReturnType<
@@ -49,10 +61,19 @@ describe('useMarkerHandlers', () => {
   const mockUpdateWaypoint = vi.fn()
   const mockDeleteWaypoint = vi.fn()
   const mockClearRoute = vi.fn()
+
   const mockSetTempRoute = vi.fn()
   const mockIsDraggingMarkerRef = {
     current: false,
   } as RefObject<boolean>
+
+  beforeEach(() => {
+    mockUseRouteStore.mockReturnValue({
+      updateWaypoint: mockUpdateWaypoint,
+      deleteWaypoint: mockDeleteWaypoint,
+      clearRoute: mockClearRoute,
+    })
+  })
 
   const mockRoute: Route = {
     waypoints: [
@@ -113,9 +134,6 @@ describe('useMarkerHandlers', () => {
           router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          updateWaypoint: mockUpdateWaypoint,
-          deleteWaypoint: mockDeleteWaypoint,
-          clearRoute: mockClearRoute,
           setTempRoute: mockSetTempRoute,
         })
       )
@@ -151,9 +169,6 @@ describe('useMarkerHandlers', () => {
           router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          updateWaypoint: mockUpdateWaypoint,
-          deleteWaypoint: mockDeleteWaypoint,
-          clearRoute: mockClearRoute,
           setTempRoute: mockSetTempRoute,
         })
       )
@@ -187,9 +202,6 @@ describe('useMarkerHandlers', () => {
           router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          updateWaypoint: mockUpdateWaypoint,
-          deleteWaypoint: mockDeleteWaypoint,
-          clearRoute: mockClearRoute,
           setTempRoute: mockSetTempRoute,
         })
       )
@@ -226,9 +238,6 @@ describe('useMarkerHandlers', () => {
           router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          updateWaypoint: mockUpdateWaypoint,
-          deleteWaypoint: mockDeleteWaypoint,
-          clearRoute: mockClearRoute,
           setTempRoute: mockSetTempRoute,
         })
       )
@@ -254,9 +263,6 @@ describe('useMarkerHandlers', () => {
           router: null,
           route: null,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          updateWaypoint: mockUpdateWaypoint,
-          deleteWaypoint: mockDeleteWaypoint,
-          clearRoute: mockClearRoute,
           setTempRoute: mockSetTempRoute,
         })
       )
@@ -279,9 +285,6 @@ describe('useMarkerHandlers', () => {
           router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          updateWaypoint: mockUpdateWaypoint,
-          deleteWaypoint: mockDeleteWaypoint,
-          clearRoute: mockClearRoute,
           setTempRoute: mockSetTempRoute,
         })
       )
@@ -323,9 +326,6 @@ describe('useMarkerHandlers', () => {
           router: mockRouter,
           route: testRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          updateWaypoint: mockUpdateWaypoint,
-          deleteWaypoint: mockDeleteWaypoint,
-          clearRoute: mockClearRoute,
           setTempRoute: mockSetTempRoute,
         })
       )
@@ -365,9 +365,6 @@ describe('useMarkerHandlers', () => {
           router: mockRouter,
           route: testRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          updateWaypoint: mockUpdateWaypoint,
-          deleteWaypoint: mockDeleteWaypoint,
-          clearRoute: mockClearRoute,
           setTempRoute: mockSetTempRoute,
         })
       )
@@ -413,9 +410,6 @@ describe('useMarkerHandlers', () => {
           router: mockRouter,
           route: testRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          updateWaypoint: mockUpdateWaypoint,
-          deleteWaypoint: mockDeleteWaypoint,
-          clearRoute: mockClearRoute,
           setTempRoute: mockSetTempRoute,
         })
       )
@@ -457,9 +451,6 @@ describe('useMarkerHandlers', () => {
           router: mockRouter,
           route: testRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          updateWaypoint: mockUpdateWaypoint,
-          deleteWaypoint: mockDeleteWaypoint,
-          clearRoute: mockClearRoute,
           setTempRoute: mockSetTempRoute,
         })
       )
@@ -485,9 +476,6 @@ describe('useMarkerHandlers', () => {
           router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          updateWaypoint: mockUpdateWaypoint,
-          deleteWaypoint: mockDeleteWaypoint,
-          clearRoute: mockClearRoute,
           setTempRoute: mockSetTempRoute,
         })
       )
@@ -524,9 +512,6 @@ describe('useMarkerHandlers', () => {
           router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          updateWaypoint: mockUpdateWaypoint,
-          deleteWaypoint: mockDeleteWaypoint,
-          clearRoute: mockClearRoute,
           setTempRoute: mockSetTempRoute,
         })
       )
@@ -546,9 +531,6 @@ describe('useMarkerHandlers', () => {
           router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          updateWaypoint: mockUpdateWaypoint,
-          deleteWaypoint: mockDeleteWaypoint,
-          clearRoute: mockClearRoute,
           setTempRoute: mockSetTempRoute,
         })
       )
@@ -576,9 +558,6 @@ describe('useMarkerHandlers', () => {
           router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          updateWaypoint: mockUpdateWaypoint,
-          deleteWaypoint: mockDeleteWaypoint,
-          clearRoute: mockClearRoute,
           setTempRoute: mockSetTempRoute,
         })
       )
@@ -613,9 +592,6 @@ describe('useMarkerHandlers', () => {
           router: mockRouter,
           route: routeWithOneWaypoint,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          updateWaypoint: mockUpdateWaypoint,
-          deleteWaypoint: mockDeleteWaypoint,
-          clearRoute: mockClearRoute,
           setTempRoute: mockSetTempRoute,
         })
       )

@@ -104,8 +104,6 @@ function RouteLayer() {
   const {
     route,
     addSegment,
-    updateWaypoint,
-    deleteWaypoint,
     clearRoute,
     setError,
     setElevationData,
@@ -141,9 +139,6 @@ function RouteLayer() {
     router,
     route,
     isDraggingMarkerRef,
-    updateWaypoint,
-    deleteWaypoint,
-    clearRoute,
     setTempRoute,
   })
 
