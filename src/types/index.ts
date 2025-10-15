@@ -19,7 +19,6 @@ export interface GraphNode {
   id: number
   lat: number
   lon: number
-  originalWayId?: number
 }
 
 export interface RouteSegment {
