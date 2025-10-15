@@ -132,6 +132,8 @@ describe('useMarkerHandlers', () => {
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
+          mapCenter: { lat: 45.0, lng: 9.0 },
+          currentZoom: 10,
         })
       )
 
@@ -166,6 +168,8 @@ describe('useMarkerHandlers', () => {
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
+          mapCenter: { lat: 45.0, lng: 9.0 },
+          currentZoom: 10,
         })
       )
 
@@ -198,6 +202,8 @@ describe('useMarkerHandlers', () => {
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
+          mapCenter: { lat: 45.0, lng: 9.0 },
+          currentZoom: 10,
         })
       )
 
@@ -233,6 +239,8 @@ describe('useMarkerHandlers', () => {
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
+          mapCenter: { lat: 45.0, lng: 9.0 },
+          currentZoom: 10,
         })
       )
 
@@ -258,6 +266,8 @@ describe('useMarkerHandlers', () => {
           route: null,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
+          mapCenter: { lat: 45.0, lng: 9.0 },
+          currentZoom: 10,
         })
       )
 
@@ -280,6 +290,8 @@ describe('useMarkerHandlers', () => {
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
+          mapCenter: { lat: 45.0, lng: 9.0 },
+          currentZoom: 10,
         })
       )
 
@@ -321,6 +333,8 @@ describe('useMarkerHandlers', () => {
           route: testRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
+          mapCenter: { lat: 45.0, lng: 9.0 },
+          currentZoom: 10,
         })
       )
 
@@ -360,6 +374,8 @@ describe('useMarkerHandlers', () => {
           route: testRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
+          mapCenter: { lat: 45.0, lng: 9.0 },
+          currentZoom: 10,
         })
       )
 
@@ -404,6 +420,8 @@ describe('useMarkerHandlers', () => {
           route: testRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
+          mapCenter: { lat: 45.0, lng: 9.0 },
+          currentZoom: 10,
         })
       )
 
@@ -444,6 +462,8 @@ describe('useMarkerHandlers', () => {
           route: testRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
+          mapCenter: { lat: 45.0, lng: 9.0 },
+          currentZoom: 10,
         })
       )
 
@@ -469,6 +489,8 @@ describe('useMarkerHandlers', () => {
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
+          mapCenter: { lat: 45.0, lng: 9.0 },
+          currentZoom: 10,
         })
       )
 
@@ -505,6 +527,8 @@ describe('useMarkerHandlers', () => {
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
+          mapCenter: { lat: 45.0, lng: 9.0 },
+          currentZoom: 10,
         })
       )
 
@@ -524,6 +548,8 @@ describe('useMarkerHandlers', () => {
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
+          mapCenter: { lat: 45.0, lng: 9.0 },
+          currentZoom: 10,
         })
       )
 
@@ -551,6 +577,8 @@ describe('useMarkerHandlers', () => {
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
+          mapCenter: { lat: 45.0, lng: 9.0 },
+          currentZoom: 10,
         })
       )
 
@@ -594,6 +622,8 @@ describe('useMarkerHandlers', () => {
           route: routeWithOneWaypoint,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
+          mapCenter: { lat: 45.0, lng: 9.0 },
+          currentZoom: 10,
         })
       )
 

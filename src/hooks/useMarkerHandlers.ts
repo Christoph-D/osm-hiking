@@ -19,7 +19,7 @@ import {
   createCustomWaypoint,
   recalculateMixedSegments,
 } from '../utils/mapHelpers'
-import { WAYPOINT_CONSTANTS } from '../constants/waypoints'
+import { getSnapToNodeThreshold } from '../constants/waypoints'
 import { useRouteStore } from '../store/useRouteStore'
 
 interface UseMarkerHandlersParams {
@@ -27,6 +27,8 @@ interface UseMarkerHandlersParams {
   route: Route | null
   isDraggingMarkerRef: RefObject<boolean>
   setTempRoute: (route: Route | null) => void
+  mapCenter: { lat: number; lng: number }
+  currentZoom: number
 }
 
 // Helper function to process marker position and calculate route segments
@@ -35,17 +37,16 @@ function processMarkerPosition(
   lon: number,
   router: Router,
   route: Route,
-  index: number
+  index: number,
+  mapCenter: { lat: number; lng: number },
+  currentZoom: number
 ): { route: Route; index: number } {
   if (!route.waypoints[index]) {
     throw new Error(`No waypoint found at index ${index}`)
   }
 
-  const nearestResult = router.findNearestNode(
-    lat,
-    lon,
-    WAYPOINT_CONSTANTS.SNAP_TO_NODE_THRESHOLD
-  )
+  const snapThreshold = getSnapToNodeThreshold(mapCenter.lat, currentZoom)
+  const nearestResult = router.findNearestNode(lat, lon, snapThreshold)
 
   let newWaypoint: RouteWaypoint
 
@@ -75,6 +76,8 @@ export function useMarkerHandlers({
   route,
   isDraggingMarkerRef,
   setTempRoute,
+  mapCenter,
+  currentZoom,
 }: UseMarkerHandlersParams) {
   const { setRoute, clearRoute } = useRouteStore()
   const handleMarkerDragStart = useCallback(() => {
@@ -89,13 +92,21 @@ export function useMarkerHandlers({
       const { lat, lng: lon } = marker.getLatLng()
 
       try {
-        const routeData = processMarkerPosition(lat, lon, router, route, index)
+        const routeData = processMarkerPosition(
+          lat,
+          lon,
+          router,
+          route,
+          index,
+          mapCenter,
+          currentZoom
+        )
         setTempRoute(routeData.route)
       } catch (error) {
         console.error('Error processing marker drag:', error)
       }
     },
-    [router, route, setTempRoute]
+    [router, route, setTempRoute, mapCenter, currentZoom]
   )
 
   const handleMarkerDragEnd = useCallback(
@@ -106,7 +117,15 @@ export function useMarkerHandlers({
       const { lat, lng: lon } = marker.getLatLng()
 
       try {
-        const routeData = processMarkerPosition(lat, lon, router, route, index)
+        const routeData = processMarkerPosition(
+          lat,
+          lon,
+          router,
+          route,
+          index,
+          mapCenter,
+          currentZoom
+        )
         const updatedWaypoint = routeData.route.waypoints[routeData.index]
 
         marker.setLatLng([updatedWaypoint.lat, updatedWaypoint.lon])
@@ -123,7 +142,15 @@ export function useMarkerHandlers({
         console.error('Error processing marker drag end:', error)
       }
     },
-    [router, route, setTempRoute, isDraggingMarkerRef, setRoute]
+    [
+      router,
+      route,
+      setTempRoute,
+      isDraggingMarkerRef,
+      setRoute,
+      mapCenter,
+      currentZoom,
+    ]
   )
 
   const handleMarkerClick = useCallback((event: LeafletEvent) => {

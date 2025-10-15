@@ -86,7 +86,13 @@ describe('Custom Waypoint Utilities', () => {
         node,
       })
 
-      const result = determineWaypointType(lat, lon, router)
+      const result = determineWaypointType(
+        lat,
+        lon,
+        router,
+        { lat: 45.0, lng: 9.0 },
+        10
+      )
 
       expect(result).not.toBeNull()
       expect(result!.type).toBe('node')
@@ -99,10 +105,17 @@ describe('Custom Waypoint Utilities', () => {
 
       router.findNearestNode = vi.fn().mockReturnValue({
         nodeId: 123,
-        distance: 150, // Beyond threshold
+        node: { lat: 50.1, lon: 10.1, id: 123 },
+        distance: 15000, // Beyond custom waypoint threshold (100 pixels = ~10810m at zoom 10, lat 45)
       })
 
-      const result = determineWaypointType(lat, lon, router)
+      const result = determineWaypointType(
+        lat,
+        lon,
+        router,
+        { lat: 45.0, lng: 9.0 },
+        10
+      )
 
       expect(result).not.toBeNull()
       expect(result!.type).toBe('custom')
@@ -114,7 +127,13 @@ describe('Custom Waypoint Utilities', () => {
 
       router.findNearestNode = vi.fn().mockReturnValue(null)
 
-      const result = determineWaypointType(lat, lon, router)
+      const result = determineWaypointType(
+        lat,
+        lon,
+        router,
+        { lat: 45.0, lng: 9.0 },
+        10
+      )
 
       expect(result).not.toBeNull()
       expect(result!.type).toBe('custom')

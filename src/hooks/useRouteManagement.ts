@@ -26,9 +26,22 @@ export function useRouteManagement() {
   const { setRoute, setError } = useRouteStore()
 
   const processMapClick = useCallback(
-    (router: Router, lat: number, lng: number, route: Route | null) => {
+    (
+      router: Router,
+      lat: number,
+      lng: number,
+      route: Route | null,
+      mapCenter: { lat: number; lng: number },
+      currentZoom: number
+    ) => {
       // Determine waypoint type based on distance to nearest node
-      const routeWaypoint = determineWaypointType(lat, lng, router)
+      const routeWaypoint = determineWaypointType(
+        lat,
+        lng,
+        router,
+        mapCenter,
+        currentZoom
+      )
 
       if (!routeWaypoint) {
         setError('Invalid location selected.')
