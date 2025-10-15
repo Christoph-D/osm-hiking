@@ -11,7 +11,7 @@ export class Router {
   }
 
   // Get a node by ID
-  getNode(nodeId: string) {
+  getNode(nodeId: number) {
     return this.graph.nodes.get(nodeId)
   }
 
@@ -20,8 +20,8 @@ export class Router {
     lat: number,
     lon: number,
     maxDistance: number
-  ): { nodeId: string; distance: number; node: GraphNode } | null {
-    let nearestId: string | null = null
+  ): { nodeId: number; distance: number; node: GraphNode } | null {
+    let nearestId: number | null = null
     let minDist = Infinity
     let nearestNode: GraphNode | null = null
 
@@ -46,15 +46,15 @@ export class Router {
   }
 
   // Route between two nodes
-  route(fromId: string, toId: string): RouteSegment | null {
+  route(fromId: number, toId: number): RouteSegment | null {
     const graph = this.graph
     const pathFinder = aStar(this.graph.graph, {
       distance(_fromNode, _toNode, link) {
         return link.data || 0
       },
       heuristic(fromNode, toNode) {
-        const from = fromNode.id as string
-        const to = toNode.id as string
+        const from = fromNode.id as number
+        const to = toNode.id as number
         const fromData = graph.nodes.get(from)
         const toData = graph.nodes.get(to)
 
@@ -76,8 +76,8 @@ export class Router {
 
     // The ngraph.path library returns the path from toId to fromId (reversed)
     // We need to reverse it to get fromId to toId
-    const firstNodeId = path[0].id as string
-    const lastNodeId = path[path.length - 1].id as string
+    const firstNodeId = path[0].id as number
+    const lastNodeId = path[path.length - 1].id as number
     const needsReverse = firstNodeId === toId && lastNodeId === fromId
 
     const orderedPath = needsReverse ? [...path].reverse() : path
@@ -86,14 +86,14 @@ export class Router {
     let totalDistance = 0
 
     for (let i = 0; i < orderedPath.length; i++) {
-      const nodeId = orderedPath[i].id as string
+      const nodeId = orderedPath[i].id as number
       const node = this.graph.nodes.get(nodeId)
 
       if (node) {
         coordinates.push({ lat: node.lat, lon: node.lon })
 
         if (i > 0) {
-          const prevNode = this.graph.nodes.get(orderedPath[i - 1].id as string)
+          const prevNode = this.graph.nodes.get(orderedPath[i - 1].id as number)
           if (prevNode) {
             totalDistance += distance(
               [prevNode.lon, prevNode.lat],

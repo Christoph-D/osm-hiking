@@ -4,7 +4,7 @@ import { distance, bearing, destination } from '@turf/turf'
 
 export interface RoutingGraph {
   graph: Graph
-  nodes: Map<string, GraphNode>
+  nodes: Map<number, GraphNode>
 }
 
 const HIGHWAY_WEIGHTS: Record<string, number> = {
@@ -29,17 +29,19 @@ const HIGHWAY_WEIGHTS: Record<string, number> = {
 // Maximum distance in meters between connected nodes
 const MAX_SEGMENT_LENGTH = 25
 
+// Global counter for intermediate node IDs (negative numbers)
+let intermediateNodeIdCounter = -1
+
 /**
  * Generate intermediate nodes between two points if the distance exceeds MAX_SEGMENT_LENGTH
  */
 function generateIntermediateNodes(
   fromNode: OSMNode,
   toNode: OSMNode,
-  wayId: string,
-  segmentIndex: number
+  wayId: number
 ): {
   nodes: GraphNode[]
-  edges: Array<{ from: string; to: string; distance: number }>
+  edges: Array<{ from: number; to: number; distance: number }>
 } {
   const dist = distance(
     [fromNode.lon, fromNode.lat],
@@ -76,7 +78,7 @@ function generateIntermediateNodes(
       { units: 'meters' }
     )
 
-    const nodeId = `${wayId}_seg${segmentIndex}_int${i}`
+    const nodeId = intermediateNodeIdCounter--
     const node: GraphNode = {
       id: nodeId,
       lat: destinationPoint.geometry.coordinates[1],
@@ -94,7 +96,7 @@ function generateIntermediateNodes(
     toNode,
   ]
 
-  const edges: Array<{ from: string; to: string; distance: number }> = []
+  const edges: Array<{ from: number; to: number; distance: number }> = []
   for (let i = 0; i < allPoints.length - 1; i++) {
     const from = allPoints[i]
     const to = allPoints[i + 1]
@@ -102,8 +104,8 @@ function generateIntermediateNodes(
       units: 'meters',
     })
 
-    let fromId: string
-    let toId: string
+    let fromId: number
+    let toId: number
 
     if (i === 0) {
       fromId = fromNode.id
@@ -125,7 +127,7 @@ function generateIntermediateNodes(
 
 export function buildRoutingGraph(osmData: OSMData): RoutingGraph {
   const graph = createGraph()
-  const nodes = new Map<string, GraphNode>()
+  const nodes = new Map<number, GraphNode>()
 
   // Add all original OSM nodes to our lookup
   osmData.nodes.forEach((node, id) => {
@@ -155,8 +157,7 @@ export function buildRoutingGraph(osmData: OSMData): RoutingGraph {
       const { nodes: intermediateNodes, edges } = generateIntermediateNodes(
         fromNode,
         toNode,
-        way.id,
-        i
+        way.id
       )
 
       // Add intermediate nodes to the global nodes map

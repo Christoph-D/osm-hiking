@@ -75,7 +75,7 @@ describe('useMarkerHandlers', () => {
   const mockRoute: Route = {
     waypoints: [
       { type: 'custom', lat: 50, lon: 8 },
-      { type: 'node', nodeId: 'node123', lat: 51, lon: 9 },
+      { type: 'node', nodeId: 123, lat: 51, lon: 9 },
     ] as RouteWaypoint[],
     segments: [],
     totalDistance: 100,
@@ -101,7 +101,7 @@ describe('useMarkerHandlers', () => {
       lon,
     }))
     mockCreateNodeWaypoint.mockImplementation(
-      (lat: number, lon: number, nodeId: string) => ({
+      (lat: number, lon: number, nodeId: number) => ({
         type: 'node',
         nodeId,
         lat,
@@ -155,7 +155,7 @@ describe('useMarkerHandlers', () => {
         lon: 8,
       } as CustomWaypoint
       mockRouter.findNearestNode = vi.fn().mockReturnValue({
-        nodeId: 'node456',
+        nodeId: 456,
         distance: 50,
         node: { lat: 51, lon: 9 },
       })
@@ -178,7 +178,7 @@ describe('useMarkerHandlers', () => {
       })
 
       expect(mockRouter.findNearestNode).toHaveBeenCalled()
-      expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(51, 9, 'node456')
+      expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(51, 9, 456)
       expect(mockMarker.setLatLng).not.toHaveBeenCalled()
       expect(mockSetTempRoute).toHaveBeenCalled()
     })
@@ -186,7 +186,7 @@ describe('useMarkerHandlers', () => {
     it('should convert node waypoint to custom when dragged far', () => {
       mockRoute.waypoints[0] = {
         type: 'node',
-        nodeId: 'node123',
+        nodeId: 123,
         lat: 50,
         lon: 8,
       } as NodeWaypoint
@@ -217,12 +217,12 @@ describe('useMarkerHandlers', () => {
     it('should handle node waypoint snapping to different node', () => {
       mockRoute.waypoints[0] = {
         type: 'node',
-        nodeId: 'node123',
+        nodeId: 123,
         lat: 50,
         lon: 8,
       } as NodeWaypoint
       mockRouter.findNearestNode = vi.fn().mockReturnValue({
-        nodeId: 'node789',
+        nodeId: 789,
         distance: 30,
         node: { lat: 52, lon: 10 },
       })
@@ -245,7 +245,7 @@ describe('useMarkerHandlers', () => {
       })
 
       expect(mockRouter.findNearestNode).toHaveBeenCalled()
-      expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(52, 10, 'node789')
+      expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(52, 10, 789)
       // During drag, marker position should NOT be updated (performance optimization)
       expect(mockMarker.setLatLng).not.toHaveBeenCalled()
       expect(mockSetTempRoute).toHaveBeenCalled()
@@ -349,7 +349,7 @@ describe('useMarkerHandlers', () => {
 
       vi.clearAllMocks()
       mockRouter.findNearestNode = vi.fn().mockReturnValue({
-        nodeId: 'node456',
+        nodeId: 456,
         distance: 50,
         node: { lat: 51, lon: 9 },
       })
@@ -372,7 +372,7 @@ describe('useMarkerHandlers', () => {
       })
 
       expect(mockRouter.findNearestNode).toHaveBeenCalled()
-      expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(51, 9, 'node456')
+      expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(51, 9, 456)
       expect(mockMarker.setLatLng).toHaveBeenCalledWith([51, 9]) // Marker should snap to node
       expect(mockSetRoute).toHaveBeenCalled()
     })
@@ -382,7 +382,7 @@ describe('useMarkerHandlers', () => {
         waypoints: [
           {
             type: 'node',
-            nodeId: 'node123',
+            nodeId: 123,
             lat: 50,
             lon: 8,
           } as NodeWaypoint,
@@ -393,7 +393,7 @@ describe('useMarkerHandlers', () => {
 
       vi.clearAllMocks()
       mockRouter.findNearestNode = vi.fn().mockReturnValue({
-        nodeId: 'node789',
+        nodeId: 789,
         distance: 30,
         node: { lat: 52, lon: 10 },
       })
@@ -416,7 +416,7 @@ describe('useMarkerHandlers', () => {
       })
 
       expect(mockRouter.findNearestNode).toHaveBeenCalled()
-      expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(52, 10, 'node789')
+      expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(52, 10, 789)
       expect(mockMarker.setLatLng).toHaveBeenCalledWith([52, 10]) // Marker should snap to new node
       expect(mockSetRoute).toHaveBeenCalled()
     })
@@ -426,7 +426,7 @@ describe('useMarkerHandlers', () => {
         waypoints: [
           {
             type: 'node',
-            nodeId: 'node123',
+            nodeId: 123,
             lat: 50,
             lon: 8,
           } as NodeWaypoint,
@@ -571,7 +571,7 @@ describe('useMarkerHandlers', () => {
         waypoints: [
           {
             type: 'node',
-            nodeId: 'node123',
+            nodeId: 123,
             lat: 51,
             lon: 9,
           },

@@ -84,7 +84,7 @@ export function createCustomWaypoint(lat: number, lon: number): CustomWaypoint {
 export function createNodeWaypoint(
   lat: number,
   lon: number,
-  nodeId: string
+  nodeId: number
 ): NodeWaypoint {
   return {
     type: 'node',

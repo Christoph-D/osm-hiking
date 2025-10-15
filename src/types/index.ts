@@ -1,25 +1,25 @@
 export interface OSMNode {
-  id: string
+  id: number
   lat: number
   lon: number
 }
 
 export interface OSMWay {
-  id: string
-  nodes: string[]
+  id: number
+  nodes: number[]
   tags: Record<string, string>
 }
 
 export interface OSMData {
-  nodes: Map<string, OSMNode>
+  nodes: Map<number, OSMNode>
   ways: OSMWay[]
 }
 
 export interface GraphNode {
-  id: string
+  id: number
   lat: number
   lon: number
-  originalWayId?: string
+  originalWayId?: number
   isIntermediate?: boolean
 }
 
@@ -53,7 +53,7 @@ export interface CustomWaypoint extends Waypoint {
 
 export interface NodeWaypoint extends Waypoint {
   type: 'node'
-  nodeId: string
+  nodeId: number
 }
 
 export type RouteWaypoint = CustomWaypoint | NodeWaypoint

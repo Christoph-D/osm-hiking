@@ -83,21 +83,21 @@ describe('fetchOSMData', () => {
     const result = await fetchOSMData(bbox)
 
     expect(result.nodes.size).toBe(2)
-    expect(result.nodes.get('123')).toEqual({
-      id: '123',
+    expect(result.nodes.get(123)).toEqual({
+      id: 123,
       lat: 50.0,
       lon: 10.0,
     })
-    expect(result.nodes.get('456')).toEqual({
-      id: '456',
+    expect(result.nodes.get(456)).toEqual({
+      id: 456,
       lat: 50.1,
       lon: 10.1,
     })
 
     expect(result.ways).toHaveLength(1)
     expect(result.ways[0]).toEqual({
-      id: '789',
-      nodes: ['123', '456'],
+      id: 789,
+      nodes: [123, 456],
       tags: { highway: 'path' },
     })
   })
@@ -181,8 +181,8 @@ describe('fetchOSMData', () => {
 
     const result = await fetchOSMData(bbox)
 
-    expect(result.nodes.has('123456789')).toBe(true)
-    expect(result.nodes.get('123456789')?.id).toBe('123456789')
+    expect(result.nodes.has(123456789)).toBe(true)
+    expect(result.nodes.get(123456789)?.id).toBe(123456789)
   })
 
   it('should handle ways without tags', async () => {
@@ -274,12 +274,12 @@ describe('fetchOSMData', () => {
 
     // Only valid node should be parsed
     expect(result.nodes.size).toBe(1)
-    expect(result.nodes.has('1')).toBe(true)
-    expect(result.nodes.has('2')).toBe(false)
+    expect(result.nodes.has(1)).toBe(true)
+    expect(result.nodes.has(2)).toBe(false)
 
     // Only valid way should be parsed
     expect(result.ways).toHaveLength(1)
-    expect(result.ways[0].id).toBe('10')
+    expect(result.ways[0].id).toBe(10)
   })
 
   it('should handle empty OSM response', async () => {
@@ -445,6 +445,6 @@ describe('fetchOSMData', () => {
 
     const result = await fetchOSMData(bbox)
 
-    expect(result.ways[0].nodes).toEqual(['3', '1', '2'])
+    expect(result.ways[0].nodes).toEqual([3, 1, 2])
   })
 })
