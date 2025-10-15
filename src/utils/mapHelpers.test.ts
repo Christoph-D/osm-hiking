@@ -40,14 +40,15 @@ describe('Custom Waypoint Utilities', () => {
       expect(waypoint.type).toBe('custom')
       expect(waypoint.lat).toBe(lat)
       expect(waypoint.lon).toBe(lon)
-      expect(waypoint.id).toMatch(/^custom-\d+-[a-z0-9]+$/)
     })
 
-    it('should create unique IDs for different waypoints', () => {
+    it('should create distinct waypoints', () => {
       const waypoint1 = createCustomWaypoint(50.0, 10.0)
       const waypoint2 = createCustomWaypoint(51.0, 11.0)
 
-      expect(waypoint1.id).not.toBe(waypoint2.id)
+      expect(waypoint1).not.toBe(waypoint2)
+      expect(waypoint1.lat).toBe(50.0)
+      expect(waypoint2.lat).toBe(51.0)
     })
   })
 
@@ -63,7 +64,6 @@ describe('Custom Waypoint Utilities', () => {
       expect(waypoint.lat).toBe(lat)
       expect(waypoint.lon).toBe(lon)
       expect(waypoint.nodeId).toBe(nodeId)
-      expect(waypoint.id).toMatch(/^node-node123-\d+$/)
     })
   })
 

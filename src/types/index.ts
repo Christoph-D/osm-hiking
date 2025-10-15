@@ -49,12 +49,10 @@ export interface Waypoint {
 
 export interface CustomWaypoint extends Waypoint {
   type: 'custom'
-  id: string // Unique UUID
 }
 
 export interface NodeWaypoint extends Waypoint {
   type: 'node'
-  id: string // Unique UUID
   nodeId: string
 }
 

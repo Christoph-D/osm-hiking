@@ -74,8 +74,8 @@ describe('useMarkerHandlers', () => {
 
   const mockRoute: Route = {
     waypoints: [
-      { type: 'custom', id: 'custom-1', lat: 50, lon: 8 },
-      { type: 'node', id: 'node-1', nodeId: 'node123', lat: 51, lon: 9 },
+      { type: 'custom', lat: 50, lon: 8 },
+      { type: 'node', nodeId: 'node123', lat: 51, lon: 9 },
     ] as RouteWaypoint[],
     segments: [],
     totalDistance: 100,
@@ -97,14 +97,12 @@ describe('useMarkerHandlers', () => {
     mockMarker.getLatLng.mockReturnValue({ lat: 50.5, lng: 8.5 })
     mockCreateCustomWaypoint.mockImplementation((lat: number, lon: number) => ({
       type: 'custom',
-      id: `custom-${Date.now()}`,
       lat,
       lon,
     }))
     mockCreateNodeWaypoint.mockImplementation(
       (lat: number, lon: number, nodeId: string) => ({
         type: 'node',
-        id: `node-${nodeId}`,
         nodeId,
         lat,
         lon,
@@ -123,7 +121,6 @@ describe('useMarkerHandlers', () => {
     it('should recalculate route during dragging with custom waypoint', () => {
       mockRoute.waypoints[0] = {
         type: 'custom',
-        id: 'custom-1',
         lat: 50,
         lon: 8,
       } as CustomWaypoint
@@ -154,7 +151,6 @@ describe('useMarkerHandlers', () => {
     it('should snap custom waypoint to nearby node', () => {
       mockRoute.waypoints[0] = {
         type: 'custom',
-        id: 'custom-1',
         lat: 50,
         lon: 8,
       } as CustomWaypoint
@@ -190,7 +186,6 @@ describe('useMarkerHandlers', () => {
     it('should convert node waypoint to custom when dragged far', () => {
       mockRoute.waypoints[0] = {
         type: 'node',
-        id: 'node-1',
         nodeId: 'node123',
         lat: 50,
         lon: 8,
@@ -222,7 +217,6 @@ describe('useMarkerHandlers', () => {
     it('should handle node waypoint snapping to different node', () => {
       mockRoute.waypoints[0] = {
         type: 'node',
-        id: 'node-1',
         nodeId: 'node123',
         lat: 50,
         lon: 8,
@@ -311,7 +305,7 @@ describe('useMarkerHandlers', () => {
       // Set up a custom waypoint for testing
       const testRoute: Route = {
         waypoints: [
-          { type: 'custom', id: 'custom-1', lat: 50, lon: 8 } as CustomWaypoint,
+          { type: 'custom', lat: 50, lon: 8 } as CustomWaypoint,
         ] as RouteWaypoint[],
         segments: [],
         totalDistance: 0,
@@ -347,7 +341,7 @@ describe('useMarkerHandlers', () => {
     it('should snap custom waypoint to nearby node and update marker on drag end', () => {
       const testRoute: Route = {
         waypoints: [
-          { type: 'custom', id: 'custom-1', lat: 50, lon: 8 } as CustomWaypoint,
+          { type: 'custom', lat: 50, lon: 8 } as CustomWaypoint,
         ] as RouteWaypoint[],
         segments: [],
         totalDistance: 0,
@@ -388,7 +382,6 @@ describe('useMarkerHandlers', () => {
         waypoints: [
           {
             type: 'node',
-            id: 'node-1',
             nodeId: 'node123',
             lat: 50,
             lon: 8,
@@ -433,7 +426,6 @@ describe('useMarkerHandlers', () => {
         waypoints: [
           {
             type: 'node',
-            id: 'node-1',
             nodeId: 'node123',
             lat: 50,
             lon: 8,
@@ -579,7 +571,6 @@ describe('useMarkerHandlers', () => {
         waypoints: [
           {
             type: 'node',
-            id: 'node-1',
             nodeId: 'node123',
             lat: 51,
             lon: 9,
@@ -592,9 +583,7 @@ describe('useMarkerHandlers', () => {
 
     it('should clear route when all waypoints are deleted', () => {
       const routeWithOneWaypoint: Route = {
-        waypoints: [
-          { type: 'custom', id: 'custom-1', lat: 50, lon: 8 },
-        ] as RouteWaypoint[],
+        waypoints: [{ type: 'custom', lat: 50, lon: 8 }] as RouteWaypoint[],
         segments: [],
         totalDistance: 0,
       }
