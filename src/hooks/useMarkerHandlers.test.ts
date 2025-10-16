@@ -31,6 +31,13 @@ vi.mock('../store/useRouteStore', () => ({
   })),
 }))
 
+// Mock useRouterStore
+vi.mock('../store/routerStore', () => ({
+  useRouterStore: vi.fn(() => ({
+    router: null,
+  })),
+}))
+
 // Import mocked functions
 import {
   createNodeWaypoint,
@@ -38,8 +45,10 @@ import {
   recalculateMixedSegments,
 } from '../utils/mapHelpers'
 import { useRouteStore } from '../store/useRouteStore'
+import { useRouterStore } from '../store/routerStore'
 
 const mockUseRouteStore = useRouteStore as unknown as ReturnType<typeof vi.fn>
+const mockUseRouterStore = useRouterStore as unknown as ReturnType<typeof vi.fn>
 
 const mockCreateNodeWaypoint = createNodeWaypoint as ReturnType<typeof vi.fn>
 const mockCreateCustomWaypoint = createCustomWaypoint as ReturnType<
@@ -69,6 +78,9 @@ describe('useMarkerHandlers', () => {
     mockUseRouteStore.mockReturnValue({
       setRoute: mockSetRoute,
       clearRoute: mockClearRoute,
+    })
+    mockUseRouterStore.mockReturnValue({
+      router: mockRouter,
     })
   })
 
@@ -128,7 +140,6 @@ describe('useMarkerHandlers', () => {
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
-          router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
@@ -164,7 +175,6 @@ describe('useMarkerHandlers', () => {
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
-          router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
@@ -198,7 +208,6 @@ describe('useMarkerHandlers', () => {
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
-          router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
@@ -235,7 +244,6 @@ describe('useMarkerHandlers', () => {
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
-          router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
@@ -260,9 +268,11 @@ describe('useMarkerHandlers', () => {
     })
 
     it('should return early if router or route is not available', () => {
+      mockUseRouterStore.mockReturnValue({
+        router: null,
+      })
       const { result } = renderHook(() =>
         useMarkerHandlers({
-          router: null,
           route: null,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
@@ -286,7 +296,6 @@ describe('useMarkerHandlers', () => {
     it('should handle missing waypoint gracefully', () => {
       const { result } = renderHook(() =>
         useMarkerHandlers({
-          router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
@@ -329,7 +338,6 @@ describe('useMarkerHandlers', () => {
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
-          router: mockRouter,
           route: testRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
@@ -370,7 +378,6 @@ describe('useMarkerHandlers', () => {
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
-          router: mockRouter,
           route: testRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
@@ -416,7 +423,6 @@ describe('useMarkerHandlers', () => {
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
-          router: mockRouter,
           route: testRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
@@ -458,7 +464,6 @@ describe('useMarkerHandlers', () => {
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
-          router: mockRouter,
           route: testRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
@@ -485,7 +490,6 @@ describe('useMarkerHandlers', () => {
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
-          router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
@@ -523,7 +527,6 @@ describe('useMarkerHandlers', () => {
     it('should set dragging flag to true', () => {
       const { result } = renderHook(() =>
         useMarkerHandlers({
-          router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
@@ -544,7 +547,6 @@ describe('useMarkerHandlers', () => {
     it('should stop event propagation', () => {
       const { result } = renderHook(() =>
         useMarkerHandlers({
-          router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
@@ -573,7 +575,6 @@ describe('useMarkerHandlers', () => {
     it('should delete waypoint and recalculate route', () => {
       const { result } = renderHook(() =>
         useMarkerHandlers({
-          router: mockRouter,
           route: mockRoute,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,
@@ -618,7 +619,6 @@ describe('useMarkerHandlers', () => {
 
       const { result } = renderHook(() =>
         useMarkerHandlers({
-          router: mockRouter,
           route: routeWithOneWaypoint,
           isDraggingMarkerRef: mockIsDraggingMarkerRef,
           setTempRoute: mockSetTempRoute,

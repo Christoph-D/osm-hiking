@@ -82,18 +82,16 @@ function RouteLayer() {
   const { processMapClick } = useRouteManagement()
 
   // Data loading hook
-  const { router, isDataLoaded, loadedBbox, loadData, isLoading } =
-    useDataLoader({
-      map,
-      route,
-      clearRoute,
-      setError,
-    })
+  const { isDataLoaded, loadedBbox, loadData, isLoading } = useDataLoader({
+    map,
+    route,
+    clearRoute,
+    setError,
+  })
 
   // Map events hook
   const { currentZoom, mapCenter } = useMapEventsHandler({
     map,
-    router,
     route,
     isDataLoaded,
     loadedBbox,
@@ -109,7 +107,6 @@ function RouteLayer() {
     handleMarkerClick,
     handleMarkerDoubleClick,
   } = useMarkerHandlers({
-    router,
     route,
     isDraggingMarkerRef,
     setTempRoute,

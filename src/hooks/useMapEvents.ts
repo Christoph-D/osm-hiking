@@ -18,6 +18,7 @@ import { Router } from '../services/router'
 import { Route, RouteWaypoint } from '../types'
 import { isPointInBbox } from '../utils/mapHelpers'
 import { useMapDataStore } from '../store/mapDataStore'
+import { useRouterStore } from '../store/routerStore'
 
 interface MapCenter {
   lat: number
@@ -26,7 +27,6 @@ interface MapCenter {
 
 interface UseMapEventsParams {
   map: L.Map
-  router: Router | null
   route: Route | null
   isDataLoaded: boolean
   loadedBbox: {
@@ -52,7 +52,6 @@ interface UseMapEventsParams {
 
 export function useMapEvents({
   map,
-  router,
   route,
   isDataLoaded,
   loadedBbox,
@@ -66,6 +65,7 @@ export function useMapEvents({
     return { lat: center.lat, lng: center.lng }
   })
   const { setIsCurrentViewLoaded } = useMapDataStore()
+  const { router } = useRouterStore()
 
   useLeafletMapEvents({
     click(e) {

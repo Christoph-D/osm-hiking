@@ -20,7 +20,7 @@ import { NodeWaypoint } from '../types'
 // Mock router for testing
 const createMockRouter = () => {
   const router = {
-    findNearestNodeWithDistance: vi.fn(),
+    findNearestNode: vi.fn(),
     getNode: vi.fn(),
     route: vi.fn(),
     createStraightSegment: vi.fn(),

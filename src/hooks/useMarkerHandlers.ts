@@ -21,9 +21,9 @@ import {
 } from '../utils/mapHelpers'
 import { getSnapToNodeThreshold } from '../constants/waypoints'
 import { useRouteStore } from '../store/useRouteStore'
+import { useRouterStore } from '../store/routerStore'
 
 interface UseMarkerHandlersParams {
-  router: Router | null
   route: Route | null
   isDraggingMarkerRef: RefObject<boolean>
   setTempRoute: (route: Route | null) => void
@@ -72,7 +72,6 @@ function processMarkerPosition(
 }
 
 export function useMarkerHandlers({
-  router,
   route,
   isDraggingMarkerRef,
   setTempRoute,
@@ -80,6 +79,7 @@ export function useMarkerHandlers({
   currentZoom,
 }: UseMarkerHandlersParams) {
   const { setRoute, clearRoute } = useRouteStore()
+  const { router } = useRouterStore()
   const handleMarkerDragStart = useCallback(() => {
     isDraggingMarkerRef.current = true
   }, [isDraggingMarkerRef])
