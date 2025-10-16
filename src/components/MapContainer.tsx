@@ -16,7 +16,6 @@ import { RouteSegments } from './RouteSegments'
 import { WaypointMarkers } from './WaypointMarkers'
 import { useElevationLoader } from '../hooks/useElevationLoader'
 import { useDataLoader } from '../hooks/useDataLoader'
-import { useRouteManagement } from '../hooks/useRouteManagement'
 import { useMarkerHandlers } from '../hooks/useMarkerHandlers'
 import { useMapEvents as useMapEventsHandler } from '../hooks/useMapEvents'
 import { getMapPosition, setMapPosition } from '../utils/mapPositionStorage'
@@ -78,9 +77,6 @@ function RouteLayer() {
   // Temporary route state for dragging
   const [tempRoute, setTempRoute] = useState<typeof route>(null)
 
-  // Route management hook
-  const { processMapClick } = useRouteManagement()
-
   // Data loading hook
   const { isDataLoaded, loadedBbox, loadData, isLoading } = useDataLoader({
     map,
@@ -96,7 +92,6 @@ function RouteLayer() {
     isDataLoaded,
     loadedBbox,
     isDraggingMarkerRef,
-    processMapClick,
     loadData,
   })
 
