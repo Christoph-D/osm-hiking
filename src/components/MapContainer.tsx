@@ -63,13 +63,8 @@ export function MapContainer() {
 
 function RouteLayer() {
   const map = useMap()
-  const {
-    route,
-    clearRoute,
-    setError,
-    setElevationData,
-    hoveredElevationPoint,
-  } = useRouteStore()
+  const { route, clearRoute, setElevationData, hoveredElevationPoint } =
+    useRouteStore()
 
   // Track if a marker is currently being dragged
   const isDraggingMarkerRef = useRef(false)
@@ -81,14 +76,11 @@ function RouteLayer() {
   const { isDataLoaded, loadedBbox, loadData, isLoading } = useDataLoader({
     map,
     route,
-    clearRoute,
-    setError,
   })
 
   // Map events hook
   const { currentZoom, mapCenter } = useMapEventsHandler({
     map,
-    route,
     isDataLoaded,
     loadedBbox,
     isDraggingMarkerRef,
