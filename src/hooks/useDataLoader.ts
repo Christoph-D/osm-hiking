@@ -23,6 +23,7 @@ import { MIN_ZOOM } from '../constants/map'
 import { recalculateMixedSegments } from '../utils/mapHelpers'
 import { useMapDataStore } from '../store/mapDataStore'
 import { useRouterStore } from '../store/routerStore'
+import { useRouteStore } from '../store/useRouteStore'
 
 /**
  * Map waypoint coordinates to nearest nodes in the routing graph
@@ -70,8 +71,6 @@ function mapWaypointsToNodes(
 interface UseDataLoaderParams {
   map: L.Map
   route: Route | null
-  clearRoute: () => void
-  setError: (error: string | null) => void
 }
 
 interface LoadedBbox {
@@ -81,17 +80,13 @@ interface LoadedBbox {
   east: number
 }
 
-export function useDataLoader({
-  map,
-  route,
-  clearRoute,
-  setError,
-}: UseDataLoaderParams) {
+export function useDataLoader({ map, route }: UseDataLoaderParams) {
   const [isDataLoaded, setIsDataLoaded] = useState(false)
   const [loadedBbox, setLoadedBbox] = useState<LoadedBbox | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const { setIsCurrentViewLoaded } = useMapDataStore()
   const { setRouter } = useRouterStore()
+  const { clearRoute, setError, setRoute } = useRouteStore()
 
   const loadData = useCallback(
     async (
@@ -119,7 +114,6 @@ export function useDataLoader({
         if (route) {
           wouldClear = wouldClearRoute(route.waypoints, bbox)
 
-          // Show confirmation if needed
           if (!skipConfirmation && wouldClear) {
             const confirmed = window.confirm(
               'Loading hiking paths for this area will clear your current route because some waypoints are outside the visible area. Continue?'
@@ -133,10 +127,6 @@ export function useDataLoader({
           // If route would NOT be cleared, preserve all waypoints
           // If route would be cleared, preserve none
           waypointsToPreserve = wouldClear ? [] : route.waypoints
-
-          if (wouldClear) {
-            clearRoute()
-          }
         }
 
         const osmData = await fetchOSMData(bbox)
@@ -146,44 +136,25 @@ export function useDataLoader({
 
         const newRouter = new Router(graph)
         setRouter(newRouter)
+        // Clear the old route because it is incompatible with the new router (different or missing node ids)
+        clearRoute()
         setLoadedBbox(bbox)
         setIsDataLoaded(true)
         setIsCurrentViewLoaded(true)
 
         // Recalculate route if we have preserved waypoints
+        let newRoute = null
         if (waypointsToPreserve.length > 0) {
-          // Map waypoints to nodes and recalculate route
           const routeWaypoints = mapWaypointsToNodes(
             newRouter,
             waypointsToPreserve
           )
-
-          const newRoute = recalculateMixedSegments(routeWaypoints, newRouter)
-
-          if (newRoute.segments.length === 0) {
-            clearRoute()
-            return { router: newRouter, waypointNodeIds: [] }
-          }
-
-          // Call success callback if provided
-          if (onSuccess) {
-            onSuccess(newRouter, newRoute)
-          }
-
-          return { router: newRouter, waypointNodeIds: routeWaypoints }
+          newRoute = recalculateMixedSegments(routeWaypoints, newRouter)
+          setRoute(newRoute)
         }
-
-        // Call success callback
         if (onSuccess) {
-          const emptyRoute: Route = {
-            segments: [],
-            waypoints: [],
-            totalDistance: 0,
-          }
-          onSuccess(newRouter, emptyRoute)
+          onSuccess(newRouter, newRoute)
         }
-
-        return { router: newRouter, waypointNodeIds: [] }
       } catch (error) {
         console.error('Failed to load OSM data:', error)
         const currentZoom = map.getZoom()
@@ -193,12 +164,19 @@ export function useDataLoader({
             ? 'Failed to load map data. Try zooming in more and try again.'
             : 'Failed to load map data. Please try again.'
         setError(errorMessage)
-        return undefined
       } finally {
         setIsLoading(false)
       }
     },
-    [map, route, clearRoute, setError, setIsCurrentViewLoaded, setRouter]
+    [
+      map,
+      route,
+      clearRoute,
+      setRoute,
+      setError,
+      setIsCurrentViewLoaded,
+      setRouter,
+    ]
   )
 
   return {

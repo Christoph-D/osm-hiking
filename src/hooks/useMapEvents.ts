@@ -33,7 +33,6 @@ interface MapCenter {
 
 interface UseMapEventsParams {
   map: L.Map
-  route: Route | null
   isDataLoaded: boolean
   loadedBbox: {
     south: number
@@ -45,12 +44,11 @@ interface UseMapEventsParams {
   loadData: (
     onSuccess?: (router: Router, currentRoute: Route | null) => void,
     skipConfirmation?: boolean
-  ) => Promise<{ router: Router; waypointNodeIds: RouteWaypoint[] } | undefined>
+  ) => Promise<void>
 }
 
 export function useMapEvents({
   map,
-  route,
   isDataLoaded,
   loadedBbox,
   isDraggingMarkerRef,
@@ -63,7 +61,7 @@ export function useMapEvents({
   })
   const { setIsCurrentViewLoaded } = useMapDataStore()
   const { router } = useRouterStore()
-  const { setRoute, setError } = useRouteStore()
+  const { route, setRoute, setError } = useRouteStore()
 
   const processMapClick = useCallback(
     (
