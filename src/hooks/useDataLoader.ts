@@ -23,6 +23,7 @@ import { MIN_ZOOM } from '../constants/map'
 import { mapWaypointsToNodes } from '../services/routePreservation'
 import { recalculateMixedSegments } from '../utils/mapHelpers'
 import { useMapDataStore } from '../store/mapDataStore'
+import { useRouterStore } from '../store/routerStore'
 
 interface UseDataLoaderParams {
   map: L.Map
@@ -44,11 +45,11 @@ export function useDataLoader({
   clearRoute,
   setError,
 }: UseDataLoaderParams) {
-  const [router, setRouter] = useState<Router | null>(null)
   const [isDataLoaded, setIsDataLoaded] = useState(false)
   const [loadedBbox, setLoadedBbox] = useState<LoadedBbox | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const { setIsCurrentViewLoaded } = useMapDataStore()
+  const { setRouter } = useRouterStore()
 
   const loadData = useCallback(
     async (
@@ -155,11 +156,10 @@ export function useDataLoader({
         setIsLoading(false)
       }
     },
-    [map, route, clearRoute, setError, setIsCurrentViewLoaded]
+    [map, route, clearRoute, setError, setIsCurrentViewLoaded, setRouter]
   )
 
   return {
-    router,
     isDataLoaded,
     loadedBbox,
     loadData,
