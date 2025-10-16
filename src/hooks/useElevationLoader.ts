@@ -18,12 +18,12 @@ import { useEffect } from 'react'
 import {
   fetchElevations,
   subdividePathEqually,
-  calculateDistances,
   calculateElevationStats,
   collectRouteCoordinates,
   calculateSubdividedDistances,
   buildElevationProfile,
 } from '../services/elevation'
+import { calculateDistances } from '../utils/geoCalculations'
 import { ElevationPoint, Route } from '../types'
 
 interface UseElevationDataParams {

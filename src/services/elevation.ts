@@ -1,4 +1,5 @@
 import { Route, ElevationPoint, Waypoint } from '../types'
+import { calculateDistance } from '../utils/geoCalculations'
 
 interface ElevationResult {
   latitude: number
@@ -63,27 +64,6 @@ async function fetchElevationBatch(coordinates: Waypoint[]): Promise<number[]> {
 }
 
 /**
- * Calculate distance between two points using Haversine formula
- */
-function haversineDistance(coord1: Waypoint, coord2: Waypoint): number {
-  const lon1 = coord1.lon
-  const lat1 = coord1.lat
-  const lon2 = coord2.lon
-  const lat2 = coord2.lat
-  const R = 6371000 // Earth radius in meters
-  const φ1 = (lat1 * Math.PI) / 180
-  const φ2 = (lat2 * Math.PI) / 180
-  const Δφ = ((lat2 - lat1) * Math.PI) / 180
-  const Δλ = ((lon2 - lon1) * Math.PI) / 180
-
-  const a =
-    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  return R * c
-}
-
-/**
  * Interpolate a point along a line segment
  */
 function interpolatePoint(
@@ -116,7 +96,7 @@ export function subdividePathEqually(
   let totalDistance = 0
 
   for (let i = 1; i < coordinates.length; i++) {
-    const segmentDistance = haversineDistance(
+    const segmentDistance = calculateDistance(
       coordinates[i - 1],
       coordinates[i]
     )
@@ -169,39 +149,6 @@ export function subdividePathEqually(
   }
 
   return result
-}
-
-/**
- * Calculate cumulative distance along a path
- */
-export function calculateDistances(coordinates: Waypoint[]): number[] {
-  const distances: number[] = [0]
-  let cumulative = 0
-
-  for (let i = 1; i < coordinates.length; i++) {
-    const lon1 = coordinates[i - 1].lon
-    const lat1 = coordinates[i - 1].lat
-    const lon2 = coordinates[i].lon
-    const lat2 = coordinates[i].lat
-
-    // Haversine distance
-    const R = 6371000 // Earth radius in meters
-    const φ1 = (lat1 * Math.PI) / 180
-    const φ2 = (lat2 * Math.PI) / 180
-    const Δφ = ((lat2 - lat1) * Math.PI) / 180
-    const Δλ = ((lon2 - lon1) * Math.PI) / 180
-
-    const a =
-      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2)
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    const distance = R * c
-
-    cumulative += distance
-    distances.push(cumulative)
-  }
-
-  return distances
 }
 
 /**

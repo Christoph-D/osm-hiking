@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import {
-  calculateDistances,
   subdividePathEqually,
   calculateElevationStats,
   fetchElevations,
 } from './elevation'
+import { calculateDistances } from '../utils/geoCalculations'
 import { Waypoint } from '../types'
 
 describe('calculateDistances', () => {
