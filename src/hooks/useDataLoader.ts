@@ -20,10 +20,52 @@ import { buildRoutingGraph } from '../services/graphBuilder'
 import { Route, RouteWaypoint } from '../types'
 import { getCurrentBbox, wouldClearRoute } from '../utils/mapHelpers'
 import { MIN_ZOOM } from '../constants/map'
-import { mapWaypointsToNodes } from '../services/routePreservation'
 import { recalculateMixedSegments } from '../utils/mapHelpers'
 import { useMapDataStore } from '../store/mapDataStore'
 import { useRouterStore } from '../store/routerStore'
+
+/**
+ * Map waypoint coordinates to nearest nodes in the routing graph
+ * @param router The router instance
+ * @param waypoints Array of waypoint coordinates
+ * @returns Array of RouteWaypoint objects (NodeWaypoint for mapped waypoints, CustomWaypoint for unmapped ones)
+ */
+function mapWaypointsToNodes(
+  router: Router,
+  waypoints: RouteWaypoint[]
+): RouteWaypoint[] {
+  const routeWaypoints: RouteWaypoint[] = []
+
+  for (let i = 0; i < waypoints.length; i++) {
+    const waypoint = waypoints[i]
+    if (waypoint.type == 'custom') {
+      // Don't remap custom waypoints
+      routeWaypoints.push(waypoint)
+      continue
+    }
+
+    const nearestNode = router.findNearestNode(waypoint.lat, waypoint.lon, 500)
+
+    if (nearestNode) {
+      // Successfully mapped to node - create NodeWaypoint
+      routeWaypoints.push({
+        type: 'node' as const,
+        lat: nearestNode.node.lat,
+        lon: nearestNode.node.lon,
+        nodeId: nearestNode.nodeId,
+      })
+    } else {
+      // Couldn't map to node - create CustomWaypoint
+      routeWaypoints.push({
+        type: 'custom' as const,
+        lat: waypoint.lat,
+        lon: waypoint.lon,
+      })
+    }
+  }
+
+  return routeWaypoints
+}
 
 interface UseDataLoaderParams {
   map: L.Map
