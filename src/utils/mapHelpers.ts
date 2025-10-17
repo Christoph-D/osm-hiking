@@ -287,6 +287,48 @@ export function addWaypointToRoute(
 }
 
 /**
+ * Recalculates only the segment at the given index
+ */
+export function recalculateSegment(
+  route: Route,
+  index: number,
+  router: Router
+): Route {
+  if (!route) {
+    return route
+  }
+
+  if (index < 0 || index >= route.segments.length) {
+    console.warn(
+      `recalculateSegment: Invalid index ${index} for route with ${route.segments.length} segments`
+    )
+    return route
+  }
+
+  // For the first segment (index 0), it's just a marker and shouldn't be recalculated
+  if (index === 0) {
+    return route
+  }
+
+  const newSegments = [...route.segments]
+
+  const fromWaypoint = route.waypoints[index - 1]
+  const toWaypoint = route.waypoints[index]
+  newSegments[index] = createSegmentWithFallback(
+    fromWaypoint,
+    toWaypoint,
+    router
+  )
+
+  const totalDistance = calculateTotalDistance(newSegments)
+  return {
+    segments: newSegments,
+    waypoints: route.waypoints,
+    totalDistance,
+  }
+}
+
+/**
  * Recalculates only the segments affected by dragging a waypoint
  * Optimized version that only recalculates segments before and after the dragged waypoint
  *
@@ -302,64 +344,21 @@ export function recalculateAffectedSegments(
   affectedIndex: number,
   router: Router
 ): Route {
-  // Enhanced input validation
   if (!route) {
     return route
   }
 
-  if (
-    !route.waypoints ||
-    !Array.isArray(route.waypoints) ||
-    route.waypoints.length === 0
-  ) {
-    console.warn('recalculateAffectedSegments: Invalid waypoints array')
-    return route
-  }
-
-  if (!route.segments || !Array.isArray(route.segments)) {
-    console.warn('recalculateAffectedSegments: Invalid segments array')
-    return route
-  }
-
-  if (route.waypoints.length !== route.segments.length) {
-    console.warn(
-      'recalculateAffectedSegments: Route structure inconsistency - waypoints and segments length mismatch'
-    )
-    return route
-  }
-
-  if (affectedIndex < 0 || affectedIndex >= route.waypoints.length) {
-    console.warn(
-      `recalculateAffectedSegments: Invalid draggedIndex ${affectedIndex} for route with ${route.waypoints.length} waypoints`
-    )
-    return route
-  }
-
-  // Create a copy of the segments to modify
-  const newSegments = [...route.segments]
+  let newRoute = route
 
   // Recalculate segment before the dragged waypoint (if it exists)
   if (affectedIndex > 0) {
-    newSegments[affectedIndex] = createSegmentWithFallback(
-      route.waypoints[affectedIndex - 1],
-      route.waypoints[affectedIndex],
-      router
-    )
+    newRoute = recalculateSegment(newRoute, affectedIndex, router)
   }
 
   // Recalculate segment after the dragged waypoint (if it exists)
   if (affectedIndex < route.waypoints.length - 1) {
-    newSegments[affectedIndex + 1] = createSegmentWithFallback(
-      route.waypoints[affectedIndex],
-      route.waypoints[affectedIndex + 1],
-      router
-    )
+    newRoute = recalculateSegment(newRoute, affectedIndex + 1, router)
   }
 
-  const totalDistance = calculateTotalDistance(newSegments)
-  return {
-    segments: newSegments,
-    waypoints: route.waypoints,
-    totalDistance,
-  }
+  return newRoute
 }
