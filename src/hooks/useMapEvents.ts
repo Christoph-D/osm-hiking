@@ -88,7 +88,7 @@ export function useMapEvents({
         const newRoute = new Route(
           [
             {
-              coordinates: [{ lat: routeWaypoint.lat, lon: routeWaypoint.lon }],
+              coordinates: [],
               distance: 0,
             },
           ],

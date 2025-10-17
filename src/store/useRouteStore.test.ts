@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useRouteStore } from './useRouteStore'
 import {
   RouteSegment,
@@ -16,6 +16,24 @@ function createTestWaypoint(lat: number, lon: number): CustomWaypoint {
     lon,
   }
 }
+
+// Mock the Route module
+vi.mock('../services/route', () => ({
+  Route: vi.fn((segments, waypoints, elevationProfile, elevationStats) => {
+    // Create a mock Route object that has the same interface as the real Route
+    const totalDistance = segments.reduce(
+      (sum: number, segment: { distance: number }) => sum + segment.distance,
+      0
+    )
+    return {
+      segments,
+      waypoints,
+      totalDistance,
+      elevationProfile,
+      elevationStats,
+    }
+  }),
+}))
 
 describe('useRouteStore', () => {
   beforeEach(() => {
