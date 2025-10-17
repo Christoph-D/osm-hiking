@@ -15,6 +15,7 @@ import {
   recalculateAllSegments,
   recalculateAffectedSegments,
   addWaypointToRoute,
+  deleteWaypoint,
 } from './mapHelpers'
 import { Router } from '../services/router'
 import { NodeWaypoint, Route } from '../types'
@@ -779,6 +780,313 @@ describe('Custom Waypoint Utilities', () => {
         const result = addWaypointToRoute(emptyRoute, testWaypoint, router)
 
         expect(result).toBe(emptyRoute)
+      })
+    })
+
+    describe('deleteWaypoint', () => {
+      let router: Router
+
+      beforeEach(() => {
+        router = createMockRouter()
+      })
+
+      // Helper function to create a mock route with multiple waypoints
+      const createMockRoute = (waypointCount: number): Route => {
+        const waypoints = []
+        const segments = []
+
+        for (let i = 0; i < waypointCount; i++) {
+          if (i % 2 === 0) {
+            waypoints.push(
+              createNodeWaypoint(50 + i * 0.1, 10 + i * 0.1, 100 + i)
+            )
+          } else {
+            waypoints.push(createCustomWaypoint(50 + i * 0.1, 10 + i * 0.1))
+          }
+
+          if (i === 0) {
+            // First waypoint - just a marker
+            segments.push({
+              coordinates: [{ lat: waypoints[i].lat, lon: waypoints[i].lon }],
+              distance: 0,
+            })
+          } else {
+            // Create a segment
+            segments.push({
+              coordinates: [
+                { lat: waypoints[i - 1].lat, lon: waypoints[i - 1].lon },
+                { lat: waypoints[i].lat, lon: waypoints[i].lon },
+              ],
+              distance: 1000 + i * 100,
+            })
+          }
+        }
+
+        return {
+          waypoints,
+          segments,
+          totalDistance: segments.reduce((sum, seg) => sum + seg.distance, 0),
+        }
+      }
+
+      it('should delete middle waypoint correctly', () => {
+        const route = createMockRoute(4) // waypoints: 0, 1, 2, 3
+        const newSegment = {
+          coordinates: [
+            { lat: route.waypoints[0].lat, lon: route.waypoints[0].lon },
+            { lat: route.waypoints[2].lat, lon: route.waypoints[2].lon },
+          ],
+          distance: 2500,
+        }
+
+        router.createStraightSegment = vi.fn().mockReturnValue(newSegment)
+
+        const result = deleteWaypoint(route, 1, router) // Delete waypoint at index 1
+
+        // Should have waypoints: 0, 2, 3
+        expect(result.waypoints).toHaveLength(3)
+        expect(result.waypoints[0]).toEqual(route.waypoints[0])
+        expect(result.waypoints[1]).toEqual(route.waypoints[2])
+        expect(result.waypoints[2]).toEqual(route.waypoints[3])
+
+        // Should have segments: [0], [0→2], [2→3]
+        expect(result.segments).toHaveLength(3)
+        expect(result.segments[0]).toEqual(route.segments[0]) // Unchanged marker
+        expect(result.segments[1]).toEqual(newSegment) // Recalculated segment
+        expect(result.segments[2]).toEqual(route.segments[3]) // Preserved segment
+
+        // Should have called createSegmentWithFallback with correct waypoints
+        expect(router.createStraightSegment).toHaveBeenCalledWith(
+          route.waypoints[0],
+          route.waypoints[2]
+        )
+      })
+
+      it('should delete first waypoint correctly', () => {
+        const route = createMockRoute(3) // waypoints: 0, 1, 2
+        const newSegment = {
+          coordinates: [
+            { lat: route.waypoints[1].lat, lon: route.waypoints[1].lon },
+            { lat: route.waypoints[2].lat, lon: route.waypoints[2].lon },
+          ],
+          distance: 1500,
+        }
+
+        router.createStraightSegment = vi.fn().mockReturnValue(newSegment)
+
+        const result = deleteWaypoint(route, 0, router) // Delete first waypoint
+
+        // Should have waypoints: 1, 2
+        expect(result.waypoints).toHaveLength(2)
+        expect(result.waypoints[0]).toEqual(route.waypoints[1])
+        expect(result.waypoints[1]).toEqual(route.waypoints[2])
+
+        // Should have segments: [1], [1→2]
+        expect(result.segments).toHaveLength(2)
+        expect(result.segments[0]).toEqual({
+          coordinates: [
+            { lat: route.waypoints[1].lat, lon: route.waypoints[1].lon },
+          ],
+          distance: 0,
+        }) // New marker
+        expect(result.segments[1]).toEqual(newSegment) // Recalculated segment
+      })
+
+      it('should delete last waypoint correctly', () => {
+        const route = createMockRoute(3) // waypoints: 0, 1, 2
+
+        const result = deleteWaypoint(route, 2, router) // Delete last waypoint
+
+        // Should have waypoints: 0, 1
+        expect(result.waypoints).toHaveLength(2)
+        expect(result.waypoints[0]).toEqual(route.waypoints[0])
+        expect(result.waypoints[1]).toEqual(route.waypoints[1])
+
+        // Should have segments: [0], [0→1]
+        expect(result.segments).toHaveLength(2)
+        expect(result.segments[0]).toEqual(route.segments[0]) // Unchanged marker
+        expect(result.segments[1]).toEqual(route.segments[1]) // Preserved segment (no recalculation needed)
+      })
+
+      it('should handle single waypoint route correctly', () => {
+        const route = createMockRoute(1) // waypoints: 0
+
+        const result = deleteWaypoint(route, 0, router)
+
+        // Should return empty route
+        expect(result.waypoints).toHaveLength(0)
+        expect(result.segments).toHaveLength(0)
+        expect(result.totalDistance).toBe(0)
+      })
+
+      it('should return original route if no waypoints', () => {
+        const emptyRoute: Route = {
+          waypoints: [],
+          segments: [],
+          totalDistance: 0,
+        }
+
+        const result = deleteWaypoint(emptyRoute, 0, router)
+
+        expect(result).toBe(emptyRoute)
+      })
+
+      it('should return original route if route is null', () => {
+        const result = deleteWaypoint(null as unknown as Route, 0, router)
+
+        expect(result).toBe(null)
+      })
+
+      it('should return original route if waypoints is null', () => {
+        const routeWithNullWaypoints = {
+          waypoints: null,
+          segments: [],
+          totalDistance: 0,
+        } as unknown as Route
+
+        const result = deleteWaypoint(routeWithNullWaypoints, 0, router)
+
+        expect(result).toBe(routeWithNullWaypoints)
+      })
+
+      it('should return original route if index is negative', () => {
+        const route = createMockRoute(3)
+
+        const result = deleteWaypoint(route, -1, router)
+
+        expect(result).toBe(route)
+      })
+
+      it('should return original route if index is out of bounds', () => {
+        const route = createMockRoute(3)
+
+        const result = deleteWaypoint(route, 5, router)
+
+        expect(result).toBe(route)
+      })
+
+      it('should return original route if index equals waypoints length', () => {
+        const route = createMockRoute(3)
+
+        const result = deleteWaypoint(route, 3, router)
+
+        expect(result).toBe(route)
+      })
+
+      it('should work with mixed waypoint types (node and custom)', () => {
+        const waypoints = [
+          createNodeWaypoint(50.0, 10.0, 100),
+          createCustomWaypoint(50.1, 10.1),
+          createNodeWaypoint(50.2, 10.2, 101),
+        ]
+        const segments = [
+          { coordinates: [{ lat: 50.0, lon: 10.0 }], distance: 0 },
+          {
+            coordinates: [
+              { lat: 50.0, lon: 10.0 },
+              { lat: 50.1, lon: 10.1 },
+            ],
+            distance: 1100,
+          },
+          {
+            coordinates: [
+              { lat: 50.1, lon: 10.1 },
+              { lat: 50.2, lon: 10.2 },
+            ],
+            distance: 1200,
+          },
+        ]
+        const route: Route = {
+          waypoints,
+          segments,
+          totalDistance: 2300,
+        }
+
+        const newSegment = {
+          coordinates: [
+            { lat: 50.0, lon: 10.0 },
+            { lat: 50.2, lon: 10.2 },
+          ],
+          distance: 3000,
+        }
+
+        router.createStraightSegment = vi.fn().mockReturnValue(newSegment)
+
+        const result = deleteWaypoint(route, 1, router) // Delete custom waypoint
+
+        // Should have waypoints: node 0, node 2
+        expect(result.waypoints).toHaveLength(2)
+        expect(result.waypoints[0]).toEqual(waypoints[0])
+        expect(result.waypoints[1]).toEqual(waypoints[2])
+
+        // Should use straight segment since we deleted the custom waypoint
+        expect(router.createStraightSegment).toHaveBeenCalledWith(
+          waypoints[0],
+          waypoints[2]
+        )
+      })
+
+      it('should use routing for node-to-node connections after deletion', () => {
+        const waypoints = [
+          createNodeWaypoint(50.0, 10.0, 100),
+          createCustomWaypoint(50.1, 10.1),
+          createNodeWaypoint(50.2, 10.2, 101),
+        ]
+        const route: Route = {
+          waypoints,
+          segments: [
+            { coordinates: [{ lat: 50.0, lon: 10.0 }], distance: 0 },
+            {
+              coordinates: [
+                { lat: 50.0, lon: 10.0 },
+                { lat: 50.1, lon: 10.1 },
+              ],
+              distance: 1100,
+            },
+            {
+              coordinates: [
+                { lat: 50.1, lon: 10.1 },
+                { lat: 50.2, lon: 10.2 },
+              ],
+              distance: 1200,
+            },
+          ],
+          totalDistance: 2300,
+        }
+
+        const routedSegment = {
+          coordinates: [
+            { lat: 50.0, lon: 10.0 },
+            { lat: 50.2, lon: 10.2 },
+          ],
+          distance: 2500,
+        }
+
+        router.route = vi.fn().mockReturnValue(routedSegment)
+
+        deleteWaypoint(route, 1, router) // Delete custom waypoint, leaving node-to-node
+
+        // Should try routing first since both remaining waypoints are nodes
+        expect(router.route).toHaveBeenCalledWith(100, 101)
+        expect(router.createStraightSegment).not.toHaveBeenCalled()
+      })
+
+      it('should preserve total distance correctly', () => {
+        const route = createMockRoute(3)
+        const newSegment = {
+          coordinates: [
+            { lat: route.waypoints[0].lat, lon: route.waypoints[0].lon },
+            { lat: route.waypoints[2].lat, lon: route.waypoints[2].lon },
+          ],
+          distance: 1500,
+        }
+
+        router.createStraightSegment = vi.fn().mockReturnValue(newSegment)
+
+        const result = deleteWaypoint(route, 1, router)
+
+        // Total distance should be: distance of segment 0 + distance of new segment
+        expect(result.totalDistance).toBe(0 + 1500)
       })
     })
   })

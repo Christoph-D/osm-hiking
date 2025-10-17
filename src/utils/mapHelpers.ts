@@ -195,10 +195,90 @@ export function recalculateAllSegments(
 }
 
 /**
+ * Deletes a waypoint from a route and recalculates only the affected segments
+ * Optimized to only recalculate the segment that connects the waypoints around the deleted waypoint
+ *
+ * @param route - The current route
+ * @param index - Index of the waypoint to delete
+ * @param router - Router instance for pathfinding
+ * @returns New route with the waypoint deleted and affected segments recalculated
+ */
+export function deleteWaypoint(
+  route: Route,
+  index: number,
+  router: Router
+): Route {
+  if (
+    !route ||
+    !route.waypoints ||
+    index < 0 ||
+    index >= route.waypoints.length
+  ) {
+    return route
+  }
+
+  // Create new waypoints array without the deleted waypoint
+  const newWaypoints = [...route.waypoints]
+  newWaypoints.splice(index, 1)
+
+  // If no waypoints left, return empty route
+  if (newWaypoints.length === 0) {
+    return {
+      segments: [],
+      waypoints: [],
+      totalDistance: 0,
+    }
+  }
+
+  // Create new segments array that matches the new waypoints structure
+  const newSegments: RouteSegment[] = []
+
+  for (let i = 0; i < newWaypoints.length; i++) {
+    if (i === 0) {
+      // First waypoint - just a marker
+      newSegments.push({
+        coordinates: [{ lat: newWaypoints[i].lat, lon: newWaypoints[i].lon }],
+        distance: 0,
+      })
+    } else {
+      // Determine which original segment to preserve or recalculate
+      if (index === 0) {
+        // Deleted first waypoint, all segments need recalculation
+        const fromWaypoint = newWaypoints[i - 1]
+        const toWaypoint = newWaypoints[i]
+        newSegments.push(
+          createSegmentWithFallback(fromWaypoint, toWaypoint, router)
+        )
+      } else if (i < index) {
+        // Segments before deleted waypoint can be preserved
+        newSegments.push(route.segments[i])
+      } else if (i === index) {
+        // This is the segment that needs recalculation (connects waypoints around deleted waypoint)
+        const fromWaypoint = newWaypoints[i - 1]
+        const toWaypoint = newWaypoints[i]
+        newSegments.push(
+          createSegmentWithFallback(fromWaypoint, toWaypoint, router)
+        )
+      } else {
+        // Segments after deleted waypoint can be preserved (shifted by 1)
+        newSegments.push(route.segments[i + 1])
+      }
+    }
+  }
+
+  const totalDistance = calculateTotalDistance(newSegments)
+  return {
+    segments: newSegments,
+    waypoints: newWaypoints,
+    totalDistance,
+  }
+}
+
+/**
  * Creates a route segment with fallback logic
  * Tries routing first for node-to-node connections, falls back to straight line if routing fails
  */
-function createSegmentWithFallback(
+export function createSegmentWithFallback(
   fromWaypoint: RouteWaypoint,
   toWaypoint: RouteWaypoint,
   router: Router

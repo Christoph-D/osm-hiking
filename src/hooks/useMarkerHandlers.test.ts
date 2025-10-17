@@ -15,7 +15,7 @@ import { NodeWaypoint, CustomWaypoint } from '../types'
 vi.mock('../utils/mapHelpers', () => ({
   createNodeWaypoint: vi.fn(),
   createCustomWaypoint: vi.fn(),
-  recalculateAllSegments: vi.fn(),
+  deleteWaypoint: vi.fn(),
   recalculateAffectedSegments: vi.fn(),
 }))
 
@@ -43,7 +43,7 @@ vi.mock('../store/routerStore', () => ({
 import {
   createNodeWaypoint,
   createCustomWaypoint,
-  recalculateAllSegments,
+  deleteWaypoint,
   recalculateAffectedSegments,
 } from '../utils/mapHelpers'
 import { useRouteStore } from '../store/useRouteStore'
@@ -56,9 +56,7 @@ const mockCreateNodeWaypoint = createNodeWaypoint as ReturnType<typeof vi.fn>
 const mockCreateCustomWaypoint = createCustomWaypoint as ReturnType<
   typeof vi.fn
 >
-const mockRecalculateMixedSegments = recalculateAllSegments as ReturnType<
-  typeof vi.fn
->
+const mockDeleteWaypoint = deleteWaypoint as ReturnType<typeof vi.fn>
 const mockRecalculateAffectedSegments =
   recalculateAffectedSegments as ReturnType<typeof vi.fn>
 
@@ -88,13 +86,15 @@ describe('useMarkerHandlers', () => {
     })
 
     // Setup default mock implementations
-    mockRecalculateMixedSegments.mockImplementation(
-      (waypoints: RouteWaypoint[]) => ({
-        segments: [],
-        waypoints,
-        totalDistance: 0,
-      })
-    )
+    mockDeleteWaypoint.mockImplementation((route: Route, index: number) => {
+      const newWaypoints = [...route.waypoints]
+      newWaypoints.splice(index, 1)
+      return {
+        ...route,
+        waypoints: newWaypoints,
+        totalDistance: route.totalDistance,
+      }
+    })
     mockRecalculateAffectedSegments.mockImplementation(
       (route: Route, _index: number) => ({
         ...route,
@@ -615,7 +615,7 @@ describe('useMarkerHandlers', () => {
         result.current.handleMarkerDoubleClick(0, mockEvent)
       })
 
-      expect(mockRecalculateMixedSegments).toHaveBeenCalled()
+      expect(mockDeleteWaypoint).toHaveBeenCalled()
       expect(mockSetRoute).toHaveBeenCalledWith({
         waypoints: [
           {
@@ -626,40 +626,8 @@ describe('useMarkerHandlers', () => {
           },
         ],
         segments: [],
-        totalDistance: 0,
+        totalDistance: 100,
       })
-    })
-
-    it('should clear route when all waypoints are deleted', () => {
-      const routeWithOneWaypoint: Route = {
-        waypoints: [{ type: 'custom', lat: 50, lon: 8 }] as RouteWaypoint[],
-        segments: [],
-        totalDistance: 0,
-      }
-
-      const { result } = renderHook(() =>
-        useMarkerHandlers({
-          route: routeWithOneWaypoint,
-          isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          setTempRoute: mockSetTempRoute,
-          mapCenter: { lat: 45.0, lng: 9.0 },
-          currentZoom: 10,
-        })
-      )
-
-      const mockEvent = {
-        originalEvent: {
-          stopPropagation: vi.fn(),
-        },
-      } as LeafletEvent & {
-        originalEvent: { stopPropagation: ReturnType<typeof vi.fn> }
-      }
-
-      act(() => {
-        result.current.handleMarkerDoubleClick(0, mockEvent)
-      })
-
-      expect(mockClearRoute).toHaveBeenCalled()
     })
   })
 })
