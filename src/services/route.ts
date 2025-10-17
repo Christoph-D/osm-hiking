@@ -119,11 +119,6 @@ export class Route {
     const newWaypoints = [...this.#waypoints]
     newWaypoints.splice(index, 1)
 
-    // If no waypoints left, return empty route
-    if (newWaypoints.length === 0) {
-      return new Route([], [])
-    }
-
     const newSegments: RouteSegment[] = []
 
     for (let i = 1; i < newWaypoints.length; i++) {
@@ -143,12 +138,7 @@ export class Route {
       }
     }
 
-    return new Route(
-      newSegments,
-      newWaypoints,
-      this.#elevationProfile,
-      this.#elevationStats
-    )
+    return new Route(newSegments, newWaypoints)
   }
 
   /**
@@ -181,12 +171,7 @@ export class Route {
         }
       }
 
-      const tempRoute = new Route(
-        tempSegments,
-        newRouteWaypoints,
-        this.#elevationProfile,
-        this.#elevationStats
-      )
+      const tempRoute = new Route(tempSegments, newRouteWaypoints)
       return tempRoute.recalculateAffectedSegments(insertIndex, router)
     } else {
       // Append to end - add new segment connecting last waypoint to new waypoint
@@ -202,12 +187,7 @@ export class Route {
         )
       }
 
-      return new Route(
-        newSegments,
-        [...this.#waypoints, newWaypoint],
-        this.#elevationProfile,
-        this.#elevationStats
-      )
+      return new Route(newSegments, [...this.#waypoints, newWaypoint])
     }
   }
 
