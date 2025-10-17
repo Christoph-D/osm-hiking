@@ -12,7 +12,7 @@ import {
   createCustomWaypoint,
   createNodeWaypoint,
   determineWaypointType,
-  recalculateMixedSegments,
+  recalculateAllSegments,
   recalculateAffectedSegments,
   addWaypointToRoute,
 } from './mapHelpers'
@@ -162,7 +162,7 @@ describe('Custom Waypoint Utilities', () => {
 
       router.route = vi.fn().mockReturnValue(mockSegment)
 
-      const result = recalculateMixedSegments(routeWaypoints, router)
+      const result = recalculateAllSegments(routeWaypoints, router)
 
       expect(router.route).toHaveBeenCalledWith(1, 2)
       expect(result.segments).toHaveLength(2) // First waypoint marker + route segment
@@ -183,7 +183,7 @@ describe('Custom Waypoint Utilities', () => {
 
       router.createStraightSegment = vi.fn().mockReturnValue(mockSegment)
 
-      const result = recalculateMixedSegments(routeWaypoints, router)
+      const result = recalculateAllSegments(routeWaypoints, router)
 
       expect(router.createStraightSegment).toHaveBeenCalledWith(
         routeWaypoints[0],
@@ -220,7 +220,7 @@ describe('Custom Waypoint Utilities', () => {
         .mockReturnValueOnce(mockStraightSegment1)
         .mockReturnValueOnce(mockStraightSegment2)
 
-      const result = recalculateMixedSegments(routeWaypoints, router)
+      const result = recalculateAllSegments(routeWaypoints, router)
 
       expect(router.createStraightSegment).toHaveBeenCalledTimes(2)
       expect(router.route).not.toHaveBeenCalled() // No consecutive node waypoints
