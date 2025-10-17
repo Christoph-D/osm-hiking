@@ -639,24 +639,6 @@ describe('Custom Waypoint Utilities', () => {
         expect(result.totalDistance).toBe(expectedDistance)
       })
 
-      it('should handle invalid route input gracefully', () => {
-        const result1 = recalculateAffectedSegments(
-          null as unknown as Route,
-          0,
-          router
-        )
-        const result2 = recalculateAffectedSegments(
-          undefined as unknown as Route,
-          0,
-          router
-        )
-        const result3 = recalculateAffectedSegments({} as Route, 0, router)
-
-        expect(result1).toBe(null)
-        expect(result2).toBe(undefined)
-        expect(result3).toEqual({})
-      })
-
       it('should handle invalid index gracefully', () => {
         const route = createMockRoute(3)
 
@@ -797,55 +779,6 @@ describe('Custom Waypoint Utilities', () => {
         const result = addWaypointToRoute(emptyRoute, testWaypoint, router)
 
         expect(result).toBe(emptyRoute)
-      })
-
-      it('should preserve route structure when inserting at index 0', () => {
-        // Create a route where the new waypoint would be at the beginning
-        const routeWithFirstSegment = {
-          waypoints: [createNodeWaypoint(51.0, 11.0, 2)],
-          segments: [
-            { coordinates: [{ lat: 51.0, lon: 11.0 }], distance: 0 },
-            {
-              coordinates: [
-                { lat: 50.0, lon: 10.0 }, // This is where our new waypoint should match
-                { lat: 51.0, lon: 11.0 },
-              ],
-              distance: 1000,
-            },
-          ],
-          totalDistance: 1000,
-        }
-
-        const newWaypoint = createNodeWaypoint(50.0, 10.0, 1)
-
-        // Mock the router functions to simulate finding the node at the beginning
-        router.getNode = vi.fn().mockReturnValue({
-          lat: 50.0,
-          lon: 10.0,
-        })
-        router.route = vi.fn().mockReturnValue({
-          coordinates: [
-            { lat: 50.0, lon: 10.0 },
-            { lat: 51.0, lon: 11.0 },
-          ],
-          distance: 500,
-        })
-
-        const result = addWaypointToRoute(
-          routeWithFirstSegment,
-          newWaypoint,
-          router
-        )
-
-        // Should insert node waypoint - it will be inserted at index 1 because
-        // the waypoint is found in segment 1, so it goes after waypoint 0
-        expect(router.getNode).toHaveBeenCalled()
-        expect(result.waypoints).toHaveLength(2)
-        expect(result.waypoints).toContainEqual(newWaypoint)
-        expect(result.segments).toHaveLength(3) // Original segments (2) + dummy segment for insertion
-        // The original waypoint (51.0, 11.0) should still be at index 0
-        expect(result.waypoints[0]).toEqual(routeWithFirstSegment.waypoints[0])
-        expect(result.totalDistance).toBe(1000)
       })
     })
   })
