@@ -21,7 +21,6 @@ import { RouteWaypoint } from '../types'
 import { Route } from '../services/route'
 import { getCurrentBbox, wouldClearRoute } from '../utils/mapHelpers'
 import { MIN_ZOOM } from '../constants/map'
-import { recalculateAllSegments } from '../utils/mapHelpers'
 import { useMapDataStore } from '../store/mapDataStore'
 import { useRouterStore } from '../store/routerStore'
 import { useRouteStore } from '../store/useRouteStore'
@@ -150,7 +149,7 @@ export function useDataLoader({ map, route }: UseDataLoaderParams) {
             newRouter,
             waypointsToPreserve
           )
-          newRoute = recalculateAllSegments(routeWaypoints, newRouter)
+          newRoute = Route.fromWaypoints(routeWaypoints, newRouter)
           setRoute(newRoute)
         }
         if (onSuccess) {
