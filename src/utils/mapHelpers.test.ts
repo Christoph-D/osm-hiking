@@ -271,25 +271,18 @@ describe('Custom Waypoint Utilities', () => {
         }
       }
 
-      return {
-        waypoints,
+      return new Route(
         segments,
-        totalDistance: segments.reduce((sum, seg) => sum + seg.distance, 0),
-      }
+        waypoints,
+        segments.reduce((sum, seg) => sum + seg.distance, 0)
+      )
     }
 
     describe('recalculateAffectedSegments', () => {
       it('should recalculate only segments before and after affected waypoint', () => {
         // Create a simple test route with explicit structure
-        const route = {
-          waypoints: [
-            createNodeWaypoint(50.0, 10.0, 1),
-            createCustomWaypoint(50.1, 10.1),
-            createNodeWaypoint(50.2, 10.2, 3),
-            createCustomWaypoint(50.3, 10.3),
-            createNodeWaypoint(50.4, 10.4, 5),
-          ],
-          segments: [
+        const route = new Route(
+          [
             { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
             {
               coordinates: [
@@ -320,8 +313,15 @@ describe('Custom Waypoint Utilities', () => {
               distance: 1400,
             },
           ],
-          totalDistance: 5000,
-        }
+          [
+            createNodeWaypoint(50.0, 10.0, 1),
+            createCustomWaypoint(50.1, 10.1),
+            createNodeWaypoint(50.2, 10.2, 3),
+            createCustomWaypoint(50.3, 10.3),
+            createNodeWaypoint(50.4, 10.4, 5),
+          ],
+          5000
+        )
 
         const newSegment1 = {
           coordinates: [
@@ -376,14 +376,8 @@ describe('Custom Waypoint Utilities', () => {
 
       it('should only recalculate segment before dragging last waypoint', () => {
         // Create a simple test route with explicit structure
-        const route = {
-          waypoints: [
-            createNodeWaypoint(50.0, 10.0, 1),
-            createCustomWaypoint(50.1, 10.1),
-            createNodeWaypoint(50.2, 10.2, 3),
-            createCustomWaypoint(50.3, 10.3),
-          ],
-          segments: [
+        const route = new Route(
+          [
             { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
             {
               coordinates: [
@@ -407,8 +401,14 @@ describe('Custom Waypoint Utilities', () => {
               distance: 1300,
             },
           ],
-          totalDistance: 3600,
-        }
+          [
+            createNodeWaypoint(50.0, 10.0, 1),
+            createCustomWaypoint(50.1, 10.1),
+            createNodeWaypoint(50.2, 10.2, 3),
+            createCustomWaypoint(50.3, 10.3),
+          ],
+          3600
+        )
 
         const newSegment = {
           coordinates: [
@@ -442,12 +442,8 @@ describe('Custom Waypoint Utilities', () => {
 
       it('should handle two waypoint route', () => {
         // Create a simple test route with explicit structure
-        const route = {
-          waypoints: [
-            createNodeWaypoint(50.0, 10.0, 1),
-            createCustomWaypoint(50.1, 10.1),
-          ],
-          segments: [
+        const route = new Route(
+          [
             { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
             {
               coordinates: [
@@ -457,8 +453,9 @@ describe('Custom Waypoint Utilities', () => {
               distance: 1100,
             },
           ],
-          totalDistance: 1100,
-        }
+          [createNodeWaypoint(50.0, 10.0, 1), createCustomWaypoint(50.1, 10.1)],
+          1100
+        )
 
         const newSegment = {
           coordinates: [
@@ -478,13 +475,8 @@ describe('Custom Waypoint Utilities', () => {
       })
 
       it('should use routing for node-to-node segments', () => {
-        const route = {
-          waypoints: [
-            createNodeWaypoint(50.0, 10.0, 1),
-            createNodeWaypoint(51.0, 11.0, 2),
-            createNodeWaypoint(52.0, 12.0, 3),
-          ],
-          segments: [
+        const route = new Route(
+          [
             { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
             {
               coordinates: [
@@ -501,8 +493,13 @@ describe('Custom Waypoint Utilities', () => {
               distance: 1000,
             },
           ],
-          totalDistance: 2000,
-        }
+          [
+            createNodeWaypoint(50.0, 10.0, 1),
+            createNodeWaypoint(51.0, 11.0, 2),
+            createNodeWaypoint(52.0, 12.0, 3),
+          ],
+          2000
+        )
 
         const newSegment = {
           coordinates: [
@@ -520,13 +517,8 @@ describe('Custom Waypoint Utilities', () => {
       })
 
       it('should use straight segments for mixed waypoint types', () => {
-        const route = {
-          waypoints: [
-            createNodeWaypoint(50.0, 10.0, 1),
-            createCustomWaypoint(51.0, 11.0),
-            createNodeWaypoint(52.0, 12.0, 3),
-          ],
-          segments: [
+        const route = new Route(
+          [
             { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
             {
               coordinates: [
@@ -543,8 +535,13 @@ describe('Custom Waypoint Utilities', () => {
               distance: 1000,
             },
           ],
-          totalDistance: 2000,
-        }
+          [
+            createNodeWaypoint(50.0, 10.0, 1),
+            createCustomWaypoint(51.0, 11.0),
+            createNodeWaypoint(52.0, 12.0, 3),
+          ],
+          2000
+        )
 
         const newSegment = {
           coordinates: [
@@ -565,13 +562,8 @@ describe('Custom Waypoint Utilities', () => {
       })
 
       it('should fallback to straight segment if routing fails', () => {
-        const route = {
-          waypoints: [
-            createNodeWaypoint(50.0, 10.0, 1),
-            createNodeWaypoint(51.0, 11.0, 2),
-            createNodeWaypoint(52.0, 12.0, 3),
-          ],
-          segments: [
+        const route = new Route(
+          [
             { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
             {
               coordinates: [
@@ -588,8 +580,13 @@ describe('Custom Waypoint Utilities', () => {
               distance: 1000,
             },
           ],
-          totalDistance: 2000,
-        }
+          [
+            createNodeWaypoint(50.0, 10.0, 1),
+            createNodeWaypoint(51.0, 11.0, 2),
+            createNodeWaypoint(52.0, 12.0, 3),
+          ],
+          2000
+        )
 
         const fallbackSegment = {
           coordinates: [
@@ -683,17 +680,17 @@ describe('Custom Waypoint Utilities', () => {
 
     describe('addWaypointToRoute', () => {
       it('should append waypoint to end of route when insertIndex is null', () => {
-        const route = {
-          waypoints: [
-            createNodeWaypoint(50.0, 10.0, 1),
-            createNodeWaypoint(51.0, 11.0, 2),
-          ],
-          segments: [
+        const route = new Route(
+          [
             { coordinates: [{ lat: 50.0, lon: 10.0 }], distance: 0 },
             { coordinates: [{ lat: 51.0, lon: 11.0 }], distance: 1000 },
           ],
-          totalDistance: 1000,
-        }
+          [
+            createNodeWaypoint(50.0, 10.0, 1),
+            createNodeWaypoint(51.0, 11.0, 2),
+          ],
+          1000
+        )
 
         const newWaypoint = createCustomWaypoint(52.0, 12.0)
 
@@ -717,12 +714,8 @@ describe('Custom Waypoint Utilities', () => {
 
       it('should insert waypoint at correct position when insertIndex is provided', () => {
         // Create a route where the middle waypoint would be on the existing segment
-        const routeWithMiddleSegment = {
-          waypoints: [
-            createNodeWaypoint(50.0, 10.0, 1),
-            createNodeWaypoint(52.0, 12.0, 3),
-          ],
-          segments: [
+        const routeWithMiddleSegment = new Route(
+          [
             { coordinates: [{ lat: 50.0, lon: 10.0 }], distance: 0 },
             {
               coordinates: [
@@ -733,8 +726,12 @@ describe('Custom Waypoint Utilities', () => {
               distance: 2000,
             },
           ],
-          totalDistance: 2000,
-        }
+          [
+            createNodeWaypoint(50.0, 10.0, 1),
+            createNodeWaypoint(52.0, 12.0, 3),
+          ],
+          2000
+        )
 
         const newWaypoint = createNodeWaypoint(51.0, 11.0, 2)
 
@@ -776,7 +773,7 @@ describe('Custom Waypoint Utilities', () => {
 
       it('should return original route if route has no waypoints', () => {
         const testWaypoint = createNodeWaypoint(50.0, 10.0, 1)
-        const emptyRoute = { waypoints: [], segments: [], totalDistance: 0 }
+        const emptyRoute = new Route([], [], 0)
 
         const result = addWaypointToRoute(emptyRoute, testWaypoint, router)
 
@@ -823,11 +820,11 @@ describe('Custom Waypoint Utilities', () => {
           }
         }
 
-        return {
-          waypoints,
+        return new Route(
           segments,
-          totalDistance: segments.reduce((sum, seg) => sum + seg.distance, 0),
-        }
+          waypoints,
+          segments.reduce((sum, seg) => sum + seg.distance, 0)
+        )
       }
 
       it('should delete middle waypoint correctly', () => {
@@ -921,11 +918,7 @@ describe('Custom Waypoint Utilities', () => {
       })
 
       it('should return original route if no waypoints', () => {
-        const emptyRoute: Route = {
-          waypoints: [],
-          segments: [],
-          totalDistance: 0,
-        }
+        const emptyRoute: Route = new Route([], [], 0)
 
         const result = deleteWaypoint(emptyRoute, 0, router)
 
@@ -939,11 +932,13 @@ describe('Custom Waypoint Utilities', () => {
       })
 
       it('should return original route if waypoints is null', () => {
-        const routeWithNullWaypoints = {
-          waypoints: null,
-          segments: [],
-          totalDistance: 0,
-        } as unknown as Route
+        const routeWithNullWaypoints = new Route([], [], 0)
+        // Override waypoints to be null for testing
+        Object.defineProperty(routeWithNullWaypoints, 'waypoints', {
+          value: null,
+          writable: true,
+          configurable: true,
+        })
 
         const result = deleteWaypoint(routeWithNullWaypoints, 0, router)
 
@@ -997,11 +992,7 @@ describe('Custom Waypoint Utilities', () => {
             distance: 1200,
           },
         ]
-        const route: Route = {
-          waypoints,
-          segments,
-          totalDistance: 2300,
-        }
+        const route: Route = new Route(segments, waypoints, 2300)
 
         const newSegment = {
           coordinates: [
@@ -1033,9 +1024,8 @@ describe('Custom Waypoint Utilities', () => {
           createCustomWaypoint(50.1, 10.1),
           createNodeWaypoint(50.2, 10.2, 101),
         ]
-        const route: Route = {
-          waypoints,
-          segments: [
+        const route: Route = new Route(
+          [
             { coordinates: [{ lat: 50.0, lon: 10.0 }], distance: 0 },
             {
               coordinates: [
@@ -1052,8 +1042,9 @@ describe('Custom Waypoint Utilities', () => {
               distance: 1200,
             },
           ],
-          totalDistance: 2300,
-        }
+          waypoints,
+          2300
+        )
 
         const routedSegment = {
           coordinates: [

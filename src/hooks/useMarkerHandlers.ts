@@ -67,10 +67,13 @@ function processMarkerPosition(
   waypoints[index] = newWaypoint
 
   // Create updated route with the new waypoint
-  const routeWithUpdatedWaypoint = {
-    ...route,
+  const routeWithUpdatedWaypoint = new Route(
+    route.segments,
     waypoints,
-  }
+    route.totalDistance,
+    route.elevationProfile,
+    route.elevationStats
+  )
 
   // Use optimized recalculation that only updates affected segments
   const updatedRoute = recalculateAffectedSegments(

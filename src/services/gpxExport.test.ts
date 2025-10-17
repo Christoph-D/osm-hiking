@@ -44,8 +44,8 @@ describe('exportRouteAsGPX', () => {
   })
 
   it('should generate GPX with valid XML structure', async () => {
-    const route: Route = {
-      segments: [
+    const route = new Route(
+      [
         {
           coordinates: [
             { lat: 50.0, lon: 10.0 },
@@ -54,9 +54,9 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      waypoints: [{ type: 'custom', lat: 50.0, lon: 10.0 }],
-      totalDistance: 1000,
-    }
+      [{ type: 'custom', lat: 50.0, lon: 10.0 }],
+      1000
+    )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([100, 150])
 
@@ -74,8 +74,8 @@ describe('exportRouteAsGPX', () => {
   })
 
   it('should include all coordinates from all segments', async () => {
-    const route: Route = {
-      segments: [
+    const route = new Route(
+      [
         {
           coordinates: [
             { lat: 50.0, lon: 10.0 },
@@ -91,13 +91,13 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      waypoints: [
+      [
         { type: 'custom', lat: 50.0, lon: 10.0 },
         { type: 'custom', lat: 50.1, lon: 10.1 },
         { type: 'custom', lat: 50.2, lon: 10.2 },
       ],
-      totalDistance: 2000,
-    }
+      2000
+    )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([
       100, 150, 150, 200,
@@ -115,8 +115,8 @@ describe('exportRouteAsGPX', () => {
   })
 
   it('should include elevation data when available', async () => {
-    const route: Route = {
-      segments: [
+    const route = new Route(
+      [
         {
           coordinates: [
             { lat: 50.0, lon: 10.0 },
@@ -125,9 +125,9 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      waypoints: [{ type: 'custom', lat: 50.0, lon: 10.0 }],
-      totalDistance: 1000,
-    }
+      [{ type: 'custom', lat: 50.0, lon: 10.0 }],
+      1000
+    )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([100.5, 150.7])
 
@@ -147,8 +147,8 @@ describe('exportRouteAsGPX', () => {
   })
 
   it('should work without elevation data when fetch fails', async () => {
-    const route: Route = {
-      segments: [
+    const route = new Route(
+      [
         {
           coordinates: [
             { lat: 50.0, lon: 10.0 },
@@ -157,9 +157,9 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      waypoints: [{ type: 'custom', lat: 50.0, lon: 10.0 }],
-      totalDistance: 1000,
-    }
+      [{ type: 'custom', lat: 50.0, lon: 10.0 }],
+      1000
+    )
 
     vi.mocked(elevationModule.fetchElevations).mockRejectedValue(
       new Error('API error')
@@ -184,16 +184,16 @@ describe('exportRouteAsGPX', () => {
   })
 
   it('should include metadata with route name and description', async () => {
-    const route: Route = {
-      segments: [
+    const route = new Route(
+      [
         {
           coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 5432.1,
         },
       ],
-      waypoints: [{ type: 'custom', lat: 50.0, lon: 10.0 }],
-      totalDistance: 5432.1,
-    }
+      [{ type: 'custom', lat: 50.0, lon: 10.0 }],
+      5432.1
+    )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([100])
 
@@ -212,16 +212,16 @@ describe('exportRouteAsGPX', () => {
   })
 
   it('should trigger file download with correct filename', async () => {
-    const route: Route = {
-      segments: [
+    const route = new Route(
+      [
         {
           coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 1000,
         },
       ],
-      waypoints: [{ type: 'custom', lat: 50.0, lon: 10.0 }],
-      totalDistance: 1000,
-    }
+      [{ type: 'custom', lat: 50.0, lon: 10.0 }],
+      1000
+    )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([100])
 
@@ -235,16 +235,16 @@ describe('exportRouteAsGPX', () => {
   })
 
   it('should use default filename when not specified', async () => {
-    const route: Route = {
-      segments: [
+    const route = new Route(
+      [
         {
           coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 1000,
         },
       ],
-      waypoints: [{ type: 'custom', lat: 50.0, lon: 10.0 }],
-      totalDistance: 1000,
-    }
+      [{ type: 'custom', lat: 50.0, lon: 10.0 }],
+      1000
+    )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([100])
 
@@ -254,16 +254,16 @@ describe('exportRouteAsGPX', () => {
   })
 
   it('should create Blob with correct MIME type', async () => {
-    const route: Route = {
-      segments: [
+    const route = new Route(
+      [
         {
           coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 1000,
         },
       ],
-      waypoints: [{ type: 'custom', lat: 50.0, lon: 10.0 }],
-      totalDistance: 1000,
-    }
+      [{ type: 'custom', lat: 50.0, lon: 10.0 }],
+      1000
+    )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([100])
 
@@ -279,11 +279,7 @@ describe('exportRouteAsGPX', () => {
   })
 
   it('should handle empty route segments', async () => {
-    const route: Route = {
-      segments: [],
-      waypoints: [],
-      totalDistance: 0,
-    }
+    const route = new Route([], [], 0)
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([])
 
@@ -303,8 +299,8 @@ describe('exportRouteAsGPX', () => {
   })
 
   it('should format elevation to 1 decimal place', async () => {
-    const route: Route = {
-      segments: [
+    const route = new Route(
+      [
         {
           coordinates: [
             { lat: 50.0, lon: 10.0 },
@@ -313,9 +309,9 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      waypoints: [{ type: 'custom', lat: 50.0, lon: 10.0 }],
-      totalDistance: 1000,
-    }
+      [{ type: 'custom', lat: 50.0, lon: 10.0 }],
+      1000
+    )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([
       123.456, 789.123,
@@ -334,16 +330,16 @@ describe('exportRouteAsGPX', () => {
   })
 
   it('should escape special XML characters in metadata', async () => {
-    const route: Route = {
-      segments: [
+    const route = new Route(
+      [
         {
           coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 1000,
         },
       ],
-      waypoints: [{ type: 'custom', lat: 50.0, lon: 10.0 }],
-      totalDistance: 1000,
-    }
+      [{ type: 'custom', lat: 50.0, lon: 10.0 }],
+      1000
+    )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([100])
 

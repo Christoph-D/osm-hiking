@@ -9,8 +9,8 @@ export class Route {
   public segments: RouteSegment[]
   public waypoints: RouteWaypoint[]
   public totalDistance: number
-  public elevationProfile?: ElevationPoint[]
-  public elevationStats?: ElevationStats
+  private _elevationProfile?: ElevationPoint[]
+  private _elevationStats?: ElevationStats
 
   constructor(
     segments: RouteSegment[],
@@ -22,7 +22,15 @@ export class Route {
     this.segments = segments
     this.waypoints = waypoints
     this.totalDistance = totalDistance
-    this.elevationProfile = elevationProfile
-    this.elevationStats = elevationStats
+    this._elevationProfile = elevationProfile
+    this._elevationStats = elevationStats
+  }
+
+  get elevationProfile(): ElevationPoint[] | undefined {
+    return this._elevationProfile
+  }
+
+  get elevationStats(): ElevationStats | undefined {
+    return this._elevationStats
   }
 }
