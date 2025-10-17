@@ -157,19 +157,11 @@ export class Route {
       newRouteWaypoints.splice(insertIndex, 0, newWaypoint)
 
       // Create temporary route with dummy segments
-      const tempSegments: RouteSegment[] = []
-      for (let i = 1; i < newRouteWaypoints.length; i++) {
-        if (i === insertIndex) {
-          // Dummy segment for the inserted waypoint
-          tempSegments.push({ coordinates: [], distance: 0 })
-        } else if (i <= insertIndex) {
-          // Preserve existing segments before insertion point
-          tempSegments.push(this.#segments[i - 1])
-        } else {
-          // Preserve existing segments after insertion point (shifted)
-          tempSegments.push(this.#segments[i - 2])
-        }
-      }
+      const tempSegments: RouteSegment[] = [
+        ...this.#segments.slice(0, insertIndex),
+        { coordinates: [], distance: 0 }, // Dummy segment for the inserted waypoint
+        ...this.#segments.slice(insertIndex),
+      ]
 
       const tempRoute = new Route(tempSegments, newRouteWaypoints)
       return tempRoute.recalculateAffectedSegments(insertIndex, router)
