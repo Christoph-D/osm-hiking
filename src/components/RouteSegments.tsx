@@ -1,5 +1,5 @@
 import { Polyline } from 'react-leaflet'
-import { Route } from '../types'
+import { Route } from '../services/route'
 
 interface RouteSegmentsProps {
   route: Route | null

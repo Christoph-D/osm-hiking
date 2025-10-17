@@ -12,13 +12,13 @@
 
 import L from 'leaflet'
 import {
-  Route,
   RouteSegment,
   Waypoint,
   RouteWaypoint,
   CustomWaypoint,
   NodeWaypoint,
 } from '../types'
+import { Route } from '../services/route'
 import { Router } from '../services/router'
 import { getCustomWaypointThreshold } from '../constants/waypoints'
 
@@ -187,11 +187,7 @@ export function recalculateAllSegments(
   }
 
   const totalDistance = calculateTotalDistance(newSegments)
-  return {
-    segments: newSegments,
-    waypoints: waypoints,
-    totalDistance,
-  }
+  return new Route(newSegments, waypoints, totalDistance)
 }
 
 /**
@@ -223,11 +219,7 @@ export function deleteWaypoint(
 
   // If no waypoints left, return empty route
   if (newWaypoints.length === 0) {
-    return {
-      segments: [],
-      waypoints: [],
-      totalDistance: 0,
-    }
+    return new Route([], [], 0)
   }
 
   // Create new segments array that matches the new waypoints structure
@@ -267,11 +259,7 @@ export function deleteWaypoint(
   }
 
   const totalDistance = calculateTotalDistance(newSegments)
-  return {
-    segments: newSegments,
-    waypoints: newWaypoints,
-    totalDistance,
-  }
+  return new Route(newSegments, newWaypoints, totalDistance)
 }
 
 /**
@@ -326,23 +314,27 @@ export function addWaypointToRoute(
     // Insert waypoint at the correct position - only recalculate affected segments
     const newRouteWaypoints = [...route.waypoints]
     newRouteWaypoints.splice(insertIndex, 0, newWaypoint)
-    const tempRoute = {
-      ...route,
-      waypoints: newRouteWaypoints,
-      segments: [
+    const tempRoute = new Route(
+      [
         ...route.segments.slice(0, insertIndex),
         { coordinates: [], distance: 0 }, // dummy segment for inserted waypoint
         ...route.segments.slice(insertIndex),
       ],
-    }
+      newRouteWaypoints,
+      route.totalDistance,
+      route.elevationProfile,
+      route.elevationStats
+    )
     return recalculateAffectedSegments(tempRoute, insertIndex, router)
   } else {
     // Append to end - recalculate only the last segment
-    const tempRoute = {
-      ...route,
-      waypoints: [...route.waypoints, newWaypoint],
-      segments: [...route.segments, { coordinates: [], distance: 0 }], // dummy segment
-    }
+    const tempRoute = new Route(
+      [...route.segments, { coordinates: [], distance: 0 }], // dummy segment
+      [...route.waypoints, newWaypoint],
+      route.totalDistance,
+      route.elevationProfile,
+      route.elevationStats
+    )
     return recalculateAffectedSegments(
       tempRoute,
       route.waypoints.length,
@@ -386,11 +378,7 @@ export function recalculateSegment(
   )
 
   const totalDistance = calculateTotalDistance(newSegments)
-  return {
-    segments: newSegments,
-    waypoints: route.waypoints,
-    totalDistance,
-  }
+  return new Route(newSegments, route.waypoints, totalDistance)
 }
 
 /**

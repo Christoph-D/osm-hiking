@@ -1,4 +1,4 @@
-import { Route } from '../types'
+import { Route } from './route'
 import { fetchElevations } from './elevation'
 
 import { Waypoint } from '../types'

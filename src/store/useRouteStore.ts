@@ -1,11 +1,11 @@
 import { create } from 'zustand'
 import {
-  Route,
   RouteSegment,
   ElevationPoint,
   ElevationStats,
   RouteWaypoint,
 } from '../types'
+import { Route } from '../services/route'
 import { calculateTotalDistance } from '../utils/mapHelpers'
 
 interface RouteState {
@@ -28,35 +28,33 @@ export const useRouteStore = create<RouteState>((set) => ({
 
   addSegment: (segment, routeWaypoint) =>
     set((state) => {
-      const currentRoute = state.route || {
-        segments: [],
-        waypoints: [],
-        totalDistance: 0,
-      }
+      const currentRoute = state.route || new Route([], [], 0)
 
       const newSegments = [...currentRoute.segments, segment]
       const totalDistance = calculateTotalDistance(newSegments)
 
       return {
-        route: {
-          segments: newSegments,
-          waypoints: [...currentRoute.waypoints, routeWaypoint],
+        route: new Route(
+          newSegments,
+          [...currentRoute.waypoints, routeWaypoint],
           totalDistance,
           // Clear elevation data when route changes
-          elevationProfile: undefined,
-          elevationStats: undefined,
-        },
+          undefined,
+          undefined
+        ),
       }
     }),
 
   setRoute: (route) =>
     set({
-      route: {
-        ...route,
+      route: new Route(
+        route.segments,
+        route.waypoints,
+        route.totalDistance,
         // Clear elevation data when route changes
-        elevationProfile: undefined,
-        elevationStats: undefined,
-      },
+        undefined,
+        undefined
+      ),
     }),
 
   clearRoute: () => set({ route: null, error: null }),
@@ -66,11 +64,13 @@ export const useRouteStore = create<RouteState>((set) => ({
     set((state) => {
       if (!state.route) return state
       return {
-        route: {
-          ...state.route,
-          elevationProfile: profile,
-          elevationStats: stats,
-        },
+        route: new Route(
+          state.route.segments,
+          state.route.waypoints,
+          state.route.totalDistance,
+          profile,
+          stats
+        ),
       }
     }),
 

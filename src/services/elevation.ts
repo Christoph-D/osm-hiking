@@ -1,4 +1,5 @@
-import { Route, ElevationPoint, Waypoint } from '../types'
+import { ElevationPoint, Waypoint } from '../types'
+import { Route } from './route'
 import { calculateDistance } from '../utils/geoCalculations'
 
 interface ElevationResult {

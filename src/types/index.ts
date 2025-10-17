@@ -55,11 +55,3 @@ export interface NodeWaypoint extends Waypoint {
 }
 
 export type RouteWaypoint = CustomWaypoint | NodeWaypoint
-
-export interface Route {
-  segments: RouteSegment[]
-  waypoints: RouteWaypoint[]
-  totalDistance: number
-  elevationProfile?: ElevationPoint[]
-  elevationStats?: ElevationStats
-}
