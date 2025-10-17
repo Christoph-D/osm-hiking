@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { exportRouteAsGPX } from './gpxExport'
-import { Route } from '../types'
+import { Route } from './route'
 import * as elevationModule from './elevation'
 
 // Mock the elevation module

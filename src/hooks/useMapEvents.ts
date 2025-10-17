@@ -15,7 +15,7 @@ import { useState, RefObject, useCallback } from 'react'
 import { useMapEvents as useLeafletMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { Router } from '../services/router'
-import { Route } from '../types'
+import { Route } from '../services/route'
 import {
   determineWaypointType,
   addWaypointToRoute,
@@ -89,16 +89,16 @@ export function useMapEvents({
 
       // First waypoint - just mark it
       if (!route || route.waypoints.length === 0) {
-        const newRoute: Route = {
-          segments: [
+        const newRoute = new Route(
+          [
             {
               coordinates: [{ lat: routeWaypoint.lat, lon: routeWaypoint.lon }],
               distance: 0,
             },
           ],
-          waypoints: [routeWaypoint],
-          totalDistance: 0,
-        }
+          [routeWaypoint],
+          0
+        )
         setRoute(newRoute)
         return
       }

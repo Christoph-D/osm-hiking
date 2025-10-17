@@ -18,7 +18,8 @@ import {
   deleteWaypoint,
 } from './mapHelpers'
 import { Router } from '../services/router'
-import { NodeWaypoint, Route } from '../types'
+import { NodeWaypoint } from '../types'
+import { Route } from '../services/route'
 
 // Mock router for testing
 const createMockRouter = () => {

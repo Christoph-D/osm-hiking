@@ -24,7 +24,8 @@ import {
   buildElevationProfile,
 } from '../services/elevation'
 import { calculateDistances } from '../utils/geoCalculations'
-import { ElevationPoint, Route } from '../types'
+import { ElevationPoint } from '../types'
+import { Route } from '../services/route'
 
 interface UseElevationDataParams {
   route: Route | null

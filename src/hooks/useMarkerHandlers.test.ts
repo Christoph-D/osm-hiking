@@ -8,7 +8,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { LeafletEvent } from 'leaflet'
 import { useMarkerHandlers } from './useMarkerHandlers'
 import { Router } from '../services/router'
-import { Route, RouteWaypoint } from '../types'
+import { RouteWaypoint } from '../types'
+import { Route } from '../services/route'
 import { NodeWaypoint, CustomWaypoint } from '../types'
 
 // Mock the mapHelpers

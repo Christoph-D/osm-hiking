@@ -13,7 +13,8 @@
 import { useCallback, RefObject } from 'react'
 import { LeafletEvent } from 'leaflet'
 import { Router } from '../services/router'
-import { Route, RouteWaypoint } from '../types'
+import { RouteWaypoint } from '../types'
+import { Route } from '../services/route'
 import {
   createNodeWaypoint,
   createCustomWaypoint,

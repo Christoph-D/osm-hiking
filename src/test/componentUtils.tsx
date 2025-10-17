@@ -2,7 +2,8 @@ import { render, RenderOptions } from '@testing-library/react'
 import { ReactElement } from 'react'
 import { useRouteStore } from '../store/useRouteStore'
 import { useMapDataStore } from '../store/mapDataStore'
-import { ElevationPoint, ElevationStats, Route } from '../types'
+import { ElevationPoint, ElevationStats } from '../types'
+import { Route } from '../services/route'
 
 /**
  * Custom render function that can be extended with providers if needed
@@ -48,8 +49,8 @@ export function resetMapDataStore() {
  * Create a mock route with default values
  */
 export function createMockRoute(overrides?: Partial<Route>): Route {
-  return {
-    segments: [
+  const defaultRoute = new Route(
+    [
       {
         coordinates: [{ lat: 50.0, lon: 10.0 }],
         distance: 0,
@@ -63,15 +64,26 @@ export function createMockRoute(overrides?: Partial<Route>): Route {
         distance: 314,
       },
     ],
-    waypoints: [
+    [
       { type: 'custom', lat: 50.0, lon: 10.0 },
       { type: 'custom', lat: 50.002, lon: 10.002 },
     ],
-    totalDistance: 314,
-    elevationProfile: undefined,
-    elevationStats: undefined,
-    ...overrides,
+    314,
+    undefined,
+    undefined
+  )
+
+  if (overrides) {
+    return new Route(
+      overrides.segments || defaultRoute.segments,
+      overrides.waypoints || defaultRoute.waypoints,
+      overrides.totalDistance || defaultRoute.totalDistance,
+      overrides.elevationProfile || defaultRoute.elevationProfile,
+      overrides.elevationStats || defaultRoute.elevationStats
+    )
   }
+
+  return defaultRoute
 }
 
 /**
