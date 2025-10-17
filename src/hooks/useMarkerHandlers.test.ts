@@ -96,8 +96,10 @@ describe('useMarkerHandlers', () => {
     mockDeleteWaypoint.mockImplementation((route: Route, index: number) => {
       const newWaypoints = [...route.waypoints]
       newWaypoints.splice(index, 1)
+      const newSegments = [...route.segments]
+      newSegments.splice(index, 1)
       return new Route(
-        route.segments,
+        newSegments,
         newWaypoints,
         route.elevationProfile,
         route.elevationStats
@@ -116,7 +118,10 @@ describe('useMarkerHandlers', () => {
   })
 
   const mockRoute = new Route(
-    [], // segments
+    [
+      { coordinates: [{ lat: 50, lon: 8 }], distance: 0 },
+      { coordinates: [{ lat: 51, lon: 9 }], distance: 0 },
+    ], // segments
     [
       { type: 'custom', lat: 50, lon: 8 },
       { type: 'node', nodeId: 123, lat: 51, lon: 9 },
@@ -358,7 +363,7 @@ describe('useMarkerHandlers', () => {
     it('should perform immediate update on drag end', () => {
       // Set up a custom waypoint for testing
       const testRoute = new Route(
-        [], // segments
+        [{ coordinates: [{ lat: 50, lon: 8 }], distance: 0 }], // segments
         [{ type: 'custom', lat: 50, lon: 8 } as CustomWaypoint] // waypoints
       )
 
@@ -392,7 +397,7 @@ describe('useMarkerHandlers', () => {
 
     it('should snap custom waypoint to nearby node and update marker on drag end', () => {
       const testRoute = new Route(
-        [], // segments
+        [{ coordinates: [{ lat: 50, lon: 8 }], distance: 0 }], // segments
         [{ type: 'custom', lat: 50, lon: 8 } as CustomWaypoint] // waypoints
       )
 
@@ -429,7 +434,7 @@ describe('useMarkerHandlers', () => {
 
     it('should snap node waypoint to different node and update marker on drag end', () => {
       const testRoute = new Route(
-        [], // segments
+        [{ coordinates: [{ lat: 50, lon: 8 }], distance: 0 }], // segments
         [
           {
             type: 'node',
@@ -473,7 +478,7 @@ describe('useMarkerHandlers', () => {
 
     it('should convert node waypoint to custom and update marker on drag end', () => {
       const testRoute = new Route(
-        [], // segments
+        [{ coordinates: [{ lat: 50, lon: 8 }], distance: 0 }], // segments
         [
           {
             type: 'node',
@@ -623,7 +628,12 @@ describe('useMarkerHandlers', () => {
       expect(mockDeleteWaypoint).toHaveBeenCalled()
       expect(mockSetRoute).toHaveBeenCalledWith(
         new Route(
-          [], // segments
+          [
+            {
+              coordinates: [{ lat: 51, lon: 9 }],
+              distance: 0,
+            },
+          ], // segments
           [
             {
               type: 'node',

@@ -49,39 +49,108 @@ export function resetMapDataStore() {
  * Create a mock route with default values
  */
 export function createMockRoute(overrides?: Partial<Route>): Route {
-  const defaultRoute = new Route(
-    [
-      {
-        coordinates: [{ lat: 50.0, lon: 10.0 }],
-        distance: 0,
-      },
-      {
-        coordinates: [
-          { lat: 50.0, lon: 10.0 },
-          { lat: 50.001, lon: 10.001 },
-          { lat: 50.002, lon: 10.002 },
-        ],
-        distance: 314,
-      },
-    ],
-    [
-      { type: 'custom', lat: 50.0, lon: 10.0 },
-      { type: 'custom', lat: 50.002, lon: 10.002 },
-    ],
-    undefined,
-    undefined
-  )
+  const defaultSegments = [
+    {
+      coordinates: [{ lat: 50.0, lon: 10.0 }],
+      distance: 0,
+    },
+    {
+      coordinates: [
+        { lat: 50.0, lon: 10.0 },
+        { lat: 50.001, lon: 10.001 },
+        { lat: 50.002, lon: 10.002 },
+      ],
+      distance: 314,
+    },
+  ]
+
+  const defaultWaypoints = [
+    { type: 'custom' as const, lat: 50.0, lon: 10.0 },
+    { type: 'custom' as const, lat: 50.002, lon: 10.002 },
+  ]
+
+  let finalSegments: Route['segments'] = defaultSegments
+  let finalWaypoints: Route['waypoints'] = defaultWaypoints
 
   if (overrides) {
-    return new Route(
-      overrides.segments || defaultRoute.segments,
-      overrides.waypoints || defaultRoute.waypoints,
-      overrides.elevationProfile || defaultRoute.elevationProfile,
-      overrides.elevationStats || defaultRoute.elevationStats
-    )
+    // Use provided segments and waypoints if both are available
+    if (overrides.segments && overrides.waypoints) {
+      finalSegments = overrides.segments
+      finalWaypoints = overrides.waypoints
+    }
+    // If only waypoints are provided, create matching segments
+    else if (overrides.waypoints && !overrides.segments) {
+      finalWaypoints = overrides.waypoints
+      finalSegments = createMockSegmentsForWaypoints(overrides.waypoints)
+    }
+    // If only segments are provided, create matching waypoints
+    else if (overrides.segments && !overrides.waypoints) {
+      finalSegments = overrides.segments
+      finalWaypoints = createMockWaypointsForSegments(overrides.segments)
+    }
+    // If neither segments nor waypoints are provided, use defaults
   }
 
-  return defaultRoute
+  return new Route(
+    finalSegments,
+    finalWaypoints,
+    overrides?.elevationProfile,
+    overrides?.elevationStats
+  )
+}
+
+/**
+ * Create mock segments that match the number of waypoints
+ */
+function createMockSegmentsForWaypoints(
+  waypoints: Route['waypoints']
+): Route['segments'] {
+  if (waypoints.length === 0) return []
+
+  const segments = []
+  for (let i = 0; i < waypoints.length; i++) {
+    if (i === 0) {
+      // First segment: just the starting point
+      segments.push({
+        coordinates: [{ lat: waypoints[i].lat, lon: waypoints[i].lon }],
+        distance: 0,
+      })
+    } else {
+      // Subsequent segments: path from previous waypoint to current
+      const prevWaypoint = waypoints[i - 1]
+      const currentWaypoint = waypoints[i]
+      segments.push({
+        coordinates: [
+          { lat: prevWaypoint.lat, lon: prevWaypoint.lon },
+          { lat: currentWaypoint.lat, lon: currentWaypoint.lon },
+        ],
+        distance: 314, // Mock distance
+      })
+    }
+  }
+  return segments
+}
+
+/**
+ * Create mock waypoints that match the number of segments
+ */
+function createMockWaypointsForSegments(
+  segments: Route['segments']
+): Route['waypoints'] {
+  if (segments.length === 0) return []
+
+  const waypoints = []
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i]
+    // Use the last coordinate of each segment as the waypoint
+    const lastCoord = segment.coordinates[segment.coordinates.length - 1]
+    waypoints.push({
+      type: 'custom' as const,
+      lat: lastCoord.lat,
+      lon: lastCoord.lon,
+    })
+  }
+  return waypoints
 }
 
 /**
