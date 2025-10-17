@@ -57,54 +57,49 @@ export function ElevationProfile({
   return (
     <div
       ref={containerRef}
-      className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] bg-white rounded-lg shadow-lg p-4 max-w-fit"
+      className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] bg-white rounded-lg shadow-lg p-4 max-w-4xl"
     >
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="font-bold text-lg">Elevation Profile</h3>
-        <button
-          onClick={() => setIsExpanded(false)}
-          className="text-gray-500 hover:text-gray-700 text-xl leading-none"
-        >
-          ×
-        </button>
-      </div>
-
       {(() => {
         const displayProfile = elevationProfile || previousProfile
         const displayStats = elevationStats || previousStats
         return displayProfile && displayStats ? (
-          <>
+          <div className="flex gap-2 items-center">
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-sm">
-              <div className="bg-green-50 p-2 rounded">
-                <div className="text-gray-600 text-xs">Elevation Gain</div>
-                <div className="font-bold text-green-700">
+            <div className="text-sm min-w-fit">
+              <div className="stats-grid grid grid-cols-[auto_1fr] gap-x-2 gap-y-2 items-center">
+                <div className="stat-label text-right text-gray-600">Gain</div>
+                <div className="stat-value text-left font-bold text-green-700">
                   {displayStats.gain.toFixed(0)} m
                 </div>
-              </div>
-              <div className="bg-red-50 p-2 rounded">
-                <div className="text-gray-600 text-xs">Elevation Loss</div>
-                <div className="font-bold text-red-700">
+
+                <div className="stat-label text-right text-gray-600">Loss</div>
+                <div className="stat-value text-left font-bold text-red-700">
                   {displayStats.loss.toFixed(0)} m
                 </div>
-              </div>
-              <div className="bg-blue-50 p-2 rounded">
-                <div className="text-gray-600 text-xs">Min Elevation</div>
-                <div className="font-bold text-blue-700">
+
+                <div className="stat-label text-right text-gray-600">Min</div>
+                <div className="stat-value text-left font-bold text-blue-700">
                   {displayStats.min.toFixed(0)} m
                 </div>
-              </div>
-              <div className="bg-purple-50 p-2 rounded">
-                <div className="text-gray-600 text-xs">Max Elevation</div>
-                <div className="font-bold text-purple-700">
+
+                <div className="stat-label text-right text-gray-600">Max</div>
+                <div className="stat-value text-left font-bold text-purple-700">
                   {displayStats.max.toFixed(0)} m
                 </div>
               </div>
             </div>
 
             {/* Chart */}
-            <ElevationChart profile={displayProfile} stats={displayStats} />
-          </>
+            <div className="min-w-fit">
+              <ElevationChart profile={displayProfile} stats={displayStats} />
+            </div>
+            <button
+              onClick={() => setIsExpanded(false)}
+              className="text-gray-500 hover:text-gray-700 text-xl leading-none self-start"
+            >
+              ×
+            </button>
+          </div>
         ) : (
           <div className="text-sm text-gray-600 py-8 text-center">
             Loading elevation data...
@@ -134,9 +129,9 @@ function ElevationChart({ profile, stats }: ElevationChartProps) {
     )
   }
 
-  const width = 800
-  const height = 200
-  const padding = { top: 20, right: 20, bottom: 30, left: 50 }
+  const width = 600
+  const height = 120
+  const padding = { top: 15, right: 20, bottom: 25, left: 50 }
   const chartWidth = width - padding.left - padding.right
   const chartHeight = height - padding.top - padding.bottom
 
