@@ -15,11 +15,10 @@ import { useState, RefObject, useCallback } from 'react'
 import { useMapEvents as useLeafletMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { Router } from '../services/router'
-import { Route, RouteWaypoint } from '../types'
+import { Route } from '../types'
 import {
   determineWaypointType,
-  findInsertionIndex,
-  recalculateMixedSegments,
+  addWaypointToRoute,
   isPointInBbox,
 } from '../utils/mapHelpers'
 import { useMapDataStore } from '../store/mapDataStore'
@@ -104,30 +103,9 @@ export function useMapEvents({
         return
       }
 
-      // For subsequent waypoints, we need to handle mixed routing
-      const currentRouteWaypoints = route?.waypoints || []
-
-      // Check if this waypoint should be inserted into the existing route
-      const insertIndex = findInsertionIndex(routeWaypoint, route, router)
-
-      let newRouteWaypoints: RouteWaypoint[]
-      if (insertIndex !== null) {
-        // Insert waypoint at the correct position
-        newRouteWaypoints = [...currentRouteWaypoints]
-        newRouteWaypoints.splice(insertIndex, 0, routeWaypoint)
-      } else {
-        // Append to end
-        newRouteWaypoints = [...currentRouteWaypoints, routeWaypoint]
-      }
-
-      // Recalculate segments using mixed routing
-      try {
-        const newRoute = recalculateMixedSegments(newRouteWaypoints, router)
-        setRoute(newRoute)
-      } catch (error) {
-        console.error('Error in recalculateMixedSegments:', error)
-        setError('Failed to calculate route segment')
-      }
+      // For subsequent waypoints, add waypoint to route with optimized recalculation
+      const newRoute = addWaypointToRoute(route, routeWaypoint, router)
+      setRoute(newRoute)
     },
     [setRoute, setError]
   )

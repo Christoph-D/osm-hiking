@@ -235,6 +235,58 @@ function createSegmentWithFallback(
 }
 
 /**
+ * Adds a waypoint to an existing route with optimized segment recalculation
+ * Appends to the end unless the waypoint lies on the existing route, in which
+ * case it's inserted at the correct position
+ *
+ * @example
+ * ```typescript
+ * // Add a waypoint to a route (either append or insert)
+ * const newRoute = addWaypointToRoute(existingRoute, newWaypoint, router)
+ * // Only affected segments are recalculated, all other segments are preserved
+ * ```
+ */
+export function addWaypointToRoute(
+  route: Route,
+  newWaypoint: RouteWaypoint,
+  router: Router
+): Route {
+  if (!route || !route.waypoints || route.waypoints.length === 0) {
+    return route
+  }
+
+  const insertIndex = findInsertionIndex(newWaypoint, route, router)
+
+  if (insertIndex !== null) {
+    // Insert waypoint at the correct position - only recalculate affected segments
+    const newRouteWaypoints = [...route.waypoints]
+    newRouteWaypoints.splice(insertIndex, 0, newWaypoint)
+    const tempRoute = {
+      ...route,
+      waypoints: newRouteWaypoints,
+      segments: [
+        ...route.segments.slice(0, insertIndex),
+        { coordinates: [], distance: 0 }, // dummy segment for inserted waypoint
+        ...route.segments.slice(insertIndex),
+      ],
+    }
+    return recalculateAffectedSegments(tempRoute, insertIndex, router)
+  } else {
+    // Append to end - recalculate only the last segment
+    const tempRoute = {
+      ...route,
+      waypoints: [...route.waypoints, newWaypoint],
+      segments: [...route.segments, { coordinates: [], distance: 0 }], // dummy segment
+    }
+    return recalculateAffectedSegments(
+      tempRoute,
+      route.waypoints.length,
+      router
+    )
+  }
+}
+
+/**
  * Recalculates only the segments affected by dragging a waypoint
  * Optimized version that only recalculates segments before and after the dragged waypoint
  *
@@ -247,7 +299,7 @@ function createSegmentWithFallback(
  */
 export function recalculateAffectedSegments(
   route: Route,
-  draggedIndex: number,
+  affectedIndex: number,
   router: Router
 ): Route {
   // Enhanced input validation
@@ -276,9 +328,9 @@ export function recalculateAffectedSegments(
     return route
   }
 
-  if (draggedIndex < 0 || draggedIndex >= route.waypoints.length) {
+  if (affectedIndex < 0 || affectedIndex >= route.waypoints.length) {
     console.warn(
-      `recalculateAffectedSegments: Invalid draggedIndex ${draggedIndex} for route with ${route.waypoints.length} waypoints`
+      `recalculateAffectedSegments: Invalid draggedIndex ${affectedIndex} for route with ${route.waypoints.length} waypoints`
     )
     return route
   }
@@ -287,19 +339,19 @@ export function recalculateAffectedSegments(
   const newSegments = [...route.segments]
 
   // Recalculate segment before the dragged waypoint (if it exists)
-  if (draggedIndex > 0) {
-    newSegments[draggedIndex] = createSegmentWithFallback(
-      route.waypoints[draggedIndex - 1],
-      route.waypoints[draggedIndex],
+  if (affectedIndex > 0) {
+    newSegments[affectedIndex] = createSegmentWithFallback(
+      route.waypoints[affectedIndex - 1],
+      route.waypoints[affectedIndex],
       router
     )
   }
 
   // Recalculate segment after the dragged waypoint (if it exists)
-  if (draggedIndex < route.waypoints.length - 1) {
-    newSegments[draggedIndex + 1] = createSegmentWithFallback(
-      route.waypoints[draggedIndex],
-      route.waypoints[draggedIndex + 1],
+  if (affectedIndex < route.waypoints.length - 1) {
+    newSegments[affectedIndex + 1] = createSegmentWithFallback(
+      route.waypoints[affectedIndex],
+      route.waypoints[affectedIndex + 1],
       router
     )
   }
