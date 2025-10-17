@@ -231,7 +231,7 @@ describe('Route', () => {
       expect(result.totalDistance).toBe(0)
     })
 
-    it('should preserve elevation data after deletion', () => {
+    it('should clear elevation data after deletion', () => {
       const elevationProfile = [
         { distance: 0, lat: 50.0, lon: 10.0, elevation: 100 },
         { distance: 1000, lat: 51.0, lon: 11.0, elevation: 150 },
@@ -258,8 +258,8 @@ describe('Route', () => {
       )
       const result = routeWithElevation.deleteWaypoint(1, router)
 
-      expect(result.elevationProfile).toEqual(elevationProfile)
-      expect(result.elevationStats).toEqual(elevationStats)
+      expect(result.elevationProfile).toBeUndefined()
+      expect(result.elevationStats).toBeUndefined()
     })
 
     it('should delete middle waypoint from 5-waypoint route and preserve first and last segments', () => {
@@ -413,7 +413,7 @@ describe('Route', () => {
       expect(result).toBe(emptyRoute)
     })
 
-    it('should preserve elevation data after adding waypoint', () => {
+    it('should clear elevation data after adding waypoint', () => {
       const elevationProfile = [
         { distance: 0, lat: 50.0, lon: 10.0, elevation: 100 },
         { distance: 1000, lat: 51.0, lon: 11.0, elevation: 150 },
@@ -435,8 +435,8 @@ describe('Route', () => {
 
       const result = routeWithElevation.addWaypoint(newWaypoint, router)
 
-      expect(result.elevationProfile).toEqual(elevationProfile)
-      expect(result.elevationStats).toEqual(elevationStats)
+      expect(result.elevationProfile).toBeUndefined()
+      expect(result.elevationStats).toBeUndefined()
     })
   })
 
