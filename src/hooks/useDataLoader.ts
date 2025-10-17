@@ -20,7 +20,7 @@ import { buildRoutingGraph } from '../services/graphBuilder'
 import { Route, RouteWaypoint } from '../types'
 import { getCurrentBbox, wouldClearRoute } from '../utils/mapHelpers'
 import { MIN_ZOOM } from '../constants/map'
-import { recalculateMixedSegments } from '../utils/mapHelpers'
+import { recalculateAllSegments } from '../utils/mapHelpers'
 import { useMapDataStore } from '../store/mapDataStore'
 import { useRouterStore } from '../store/routerStore'
 import { useRouteStore } from '../store/useRouteStore'
@@ -149,7 +149,7 @@ export function useDataLoader({ map, route }: UseDataLoaderParams) {
             newRouter,
             waypointsToPreserve
           )
-          newRoute = recalculateMixedSegments(routeWaypoints, newRouter)
+          newRoute = recalculateAllSegments(routeWaypoints, newRouter)
           setRoute(newRoute)
         }
         if (onSuccess) {

@@ -17,7 +17,7 @@ import { Route, RouteWaypoint } from '../types'
 import {
   createNodeWaypoint,
   createCustomWaypoint,
-  recalculateMixedSegments,
+  recalculateAllSegments,
   recalculateAffectedSegments,
 } from '../utils/mapHelpers'
 import { getSnapToNodeThreshold } from '../constants/waypoints'
@@ -197,7 +197,7 @@ export function useMarkerHandlers({
       }
 
       // Recalculate all segments since waypoint deletion changes the route structure
-      const newRoute = recalculateMixedSegments(newRouteWaypoints, router)
+      const newRoute = recalculateAllSegments(newRouteWaypoints, router)
 
       // Update the route store
       setRoute(newRoute)

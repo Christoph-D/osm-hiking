@@ -162,49 +162,34 @@ export function findInsertionIndex(
 }
 
 /**
- * Recalculates route segments for mixed waypoint types (node + custom)
+ * Recalculates all route segments
  */
-export function recalculateMixedSegments(
-  routeWaypoints: RouteWaypoint[],
+export function recalculateAllSegments(
+  waypoints: RouteWaypoint[],
   router: Router
 ): Route {
   const newSegments: RouteSegment[] = []
 
-  for (let i = 0; i < routeWaypoints.length; i++) {
+  for (let i = 0; i < waypoints.length; i++) {
     if (i === 0) {
       // First waypoint - just a marker
       newSegments.push({
-        coordinates: [
-          { lat: routeWaypoints[i].lat, lon: routeWaypoints[i].lon },
-        ],
+        coordinates: [{ lat: waypoints[i].lat, lon: waypoints[i].lon }],
         distance: 0,
       })
     } else {
-      const fromWaypoint = routeWaypoints[i - 1]
-      const toWaypoint = routeWaypoints[i]
-
-      // Determine segment type based on waypoint types
-      if (fromWaypoint.type === 'node' && toWaypoint.type === 'node') {
-        // Both are node waypoints - use routing
-        const segment = router.route(
-          (fromWaypoint as NodeWaypoint).nodeId,
-          (toWaypoint as NodeWaypoint).nodeId
-        )
-        if (segment) {
-          newSegments.push(segment)
-        }
-      } else {
-        // At least one is a custom waypoint - use straight line
-        const segment = router.createStraightSegment(fromWaypoint, toWaypoint)
-        newSegments.push(segment)
-      }
+      const fromWaypoint = waypoints[i - 1]
+      const toWaypoint = waypoints[i]
+      newSegments.push(
+        createSegmentWithFallback(fromWaypoint, toWaypoint, router)
+      )
     }
   }
 
   const totalDistance = calculateTotalDistance(newSegments)
   return {
     segments: newSegments,
-    waypoints: routeWaypoints,
+    waypoints: waypoints,
     totalDistance,
   }
 }

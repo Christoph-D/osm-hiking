@@ -15,7 +15,7 @@ import { NodeWaypoint, CustomWaypoint } from '../types'
 vi.mock('../utils/mapHelpers', () => ({
   createNodeWaypoint: vi.fn(),
   createCustomWaypoint: vi.fn(),
-  recalculateMixedSegments: vi.fn(),
+  recalculateAllSegments: vi.fn(),
   recalculateAffectedSegments: vi.fn(),
 }))
 
@@ -43,7 +43,7 @@ vi.mock('../store/routerStore', () => ({
 import {
   createNodeWaypoint,
   createCustomWaypoint,
-  recalculateMixedSegments,
+  recalculateAllSegments,
   recalculateAffectedSegments,
 } from '../utils/mapHelpers'
 import { useRouteStore } from '../store/useRouteStore'
@@ -56,7 +56,7 @@ const mockCreateNodeWaypoint = createNodeWaypoint as ReturnType<typeof vi.fn>
 const mockCreateCustomWaypoint = createCustomWaypoint as ReturnType<
   typeof vi.fn
 >
-const mockRecalculateMixedSegments = recalculateMixedSegments as ReturnType<
+const mockRecalculateMixedSegments = recalculateAllSegments as ReturnType<
   typeof vi.fn
 >
 const mockRecalculateAffectedSegments =
