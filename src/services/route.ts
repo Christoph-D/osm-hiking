@@ -9,9 +9,9 @@ import { calculateTotalDistance } from '../utils/mapHelpers'
 export class Route {
   public segments: RouteSegment[]
   public waypoints: RouteWaypoint[]
-  private _totalDistance: number
-  private _elevationProfile?: ElevationPoint[]
-  private _elevationStats?: ElevationStats
+  #totalDistance: number
+  #elevationProfile?: ElevationPoint[]
+  #elevationStats?: ElevationStats
 
   constructor(
     segments: RouteSegment[],
@@ -21,20 +21,20 @@ export class Route {
   ) {
     this.segments = segments
     this.waypoints = waypoints
-    this._totalDistance = calculateTotalDistance(segments)
-    this._elevationProfile = elevationProfile
-    this._elevationStats = elevationStats
+    this.#totalDistance = calculateTotalDistance(segments)
+    this.#elevationProfile = elevationProfile
+    this.#elevationStats = elevationStats
   }
 
   get totalDistance(): number {
-    return this._totalDistance
+    return this.#totalDistance
   }
 
   get elevationProfile(): ElevationPoint[] | undefined {
-    return this._elevationProfile
+    return this.#elevationProfile
   }
 
   get elevationStats(): ElevationStats | undefined {
-    return this._elevationStats
+    return this.#elevationStats
   }
 }
