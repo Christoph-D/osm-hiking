@@ -7,15 +7,16 @@
  * - Mixed routing segment calculation
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
 import {
   createCustomWaypoint,
   createNodeWaypoint,
   determineWaypointType,
   recalculateMixedSegments,
+  recalculateAffectedSegments,
 } from './mapHelpers'
 import { Router } from '../services/router'
-import { NodeWaypoint } from '../types'
+import { NodeWaypoint, Route } from '../types'
 
 // Mock router for testing
 const createMockRouter = () => {
@@ -225,6 +226,474 @@ describe('Custom Waypoint Utilities', () => {
       expect(result.segments).toHaveLength(3) // First waypoint + 2 segments
       expect(result.totalDistance).toBe(300000) // Sum of straight segments
       expect(result.waypoints).toEqual(routeWaypoints)
+    })
+  })
+
+  describe('Optimized Route Recalculation', () => {
+    let router: Router
+
+    beforeEach(() => {
+      router = createMockRouter()
+    })
+
+    // Helper function to create a mock route with multiple waypoints
+    const createMockRoute = (waypointCount: number): Route => {
+      const waypoints = []
+      const segments = []
+
+      for (let i = 0; i < waypointCount; i++) {
+        if (i % 2 === 0) {
+          waypoints.push(
+            createNodeWaypoint(50 + i * 0.1, 10 + i * 0.1, 100 + i)
+          )
+        } else {
+          waypoints.push(createCustomWaypoint(50 + i * 0.1, 10 + i * 0.1))
+        }
+
+        if (i === 0) {
+          // First waypoint - just a marker
+          segments.push({
+            coordinates: [{ lat: waypoints[i].lat, lon: waypoints[i].lon }],
+            distance: 0,
+          })
+        } else {
+          // Create a segment
+          segments.push({
+            coordinates: [
+              { lat: waypoints[i - 1].lat, lon: waypoints[i - 1].lon },
+              { lat: waypoints[i].lat, lon: waypoints[i].lon },
+            ],
+            distance: 1000 + i * 100,
+          })
+        }
+      }
+
+      return {
+        waypoints,
+        segments,
+        totalDistance: segments.reduce((sum, seg) => sum + seg.distance, 0),
+      }
+    }
+
+    describe('recalculateAffectedSegments', () => {
+      it('should recalculate only segments before and after dragged waypoint', () => {
+        // Create a simple test route with explicit structure
+        const route = {
+          waypoints: [
+            createNodeWaypoint(50.0, 10.0, 1),
+            createCustomWaypoint(50.1, 10.1),
+            createNodeWaypoint(50.2, 10.2, 3),
+            createCustomWaypoint(50.3, 10.3),
+            createNodeWaypoint(50.4, 10.4, 5),
+          ],
+          segments: [
+            { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
+            {
+              coordinates: [
+                { lat: 50, lon: 10 },
+                { lat: 50.1, lon: 10.1 },
+              ],
+              distance: 1100,
+            },
+            {
+              coordinates: [
+                { lat: 50.1, lon: 10.1 },
+                { lat: 50.2, lon: 10.2 },
+              ],
+              distance: 1200,
+            },
+            {
+              coordinates: [
+                { lat: 50.2, lon: 10.2 },
+                { lat: 50.3, lon: 10.3 },
+              ],
+              distance: 1300,
+            },
+            {
+              coordinates: [
+                { lat: 50.3, lon: 10.3 },
+                { lat: 50.4, lon: 10.4 },
+              ],
+              distance: 1400,
+            },
+          ],
+          totalDistance: 5000,
+        }
+
+        const newSegment1 = {
+          coordinates: [
+            { lat: route.waypoints[0].lat, lon: route.waypoints[0].lon },
+            { lat: route.waypoints[1].lat, lon: route.waypoints[1].lon },
+          ],
+          distance: 2000,
+        }
+        const newSegment2 = {
+          coordinates: [
+            { lat: route.waypoints[1].lat, lon: route.waypoints[1].lon },
+            { lat: route.waypoints[2].lat, lon: route.waypoints[2].lon },
+          ],
+          distance: 2500,
+        }
+
+        router.createStraightSegment = vi
+          .fn()
+          .mockReturnValueOnce(newSegment1)
+          .mockReturnValueOnce(newSegment2)
+
+        const result = recalculateAffectedSegments(route, 1, router)
+
+        // Should only modify segments at index 1 and 2
+        expect(result.segments[0]).toBe(route.segments[0]) // Unchanged
+        expect(result.segments[1]).toEqual(newSegment1) // Recalculated
+        expect(result.segments[2]).toEqual(newSegment2) // Recalculated
+        expect(result.segments[3]).toBe(route.segments[3]) // Unchanged
+        expect(result.segments[4]).toBe(route.segments[4]) // Unchanged
+      })
+
+      it('should only recalculate segment after dragging first waypoint', () => {
+        const route = createMockRoute(4)
+        const newSegment = {
+          coordinates: [
+            { lat: route.waypoints[0].lat, lon: route.waypoints[0].lon },
+            { lat: route.waypoints[1].lat, lon: route.waypoints[1].lon },
+          ],
+          distance: 3000,
+        }
+
+        router.createStraightSegment = vi.fn().mockReturnValue(newSegment)
+
+        const result = recalculateAffectedSegments(route, 0, router)
+
+        // Should only modify segment at index 1 (after first waypoint)
+        expect(result.segments[0]).toBe(route.segments[0]) // Unchanged
+        expect(result.segments[1]).toEqual(newSegment) // Recalculated
+        expect(result.segments[2]).toBe(route.segments[2]) // Unchanged
+        expect(result.segments[3]).toBe(route.segments[3]) // Unchanged
+      })
+
+      it('should only recalculate segment before dragging last waypoint', () => {
+        // Create a simple test route with explicit structure
+        const route = {
+          waypoints: [
+            createNodeWaypoint(50.0, 10.0, 1),
+            createCustomWaypoint(50.1, 10.1),
+            createNodeWaypoint(50.2, 10.2, 3),
+            createCustomWaypoint(50.3, 10.3),
+          ],
+          segments: [
+            { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
+            {
+              coordinates: [
+                { lat: 50, lon: 10 },
+                { lat: 50.1, lon: 10.1 },
+              ],
+              distance: 1100,
+            },
+            {
+              coordinates: [
+                { lat: 50.1, lon: 10.1 },
+                { lat: 50.2, lon: 10.2 },
+              ],
+              distance: 1200,
+            },
+            {
+              coordinates: [
+                { lat: 50.2, lon: 10.2 },
+                { lat: 50.3, lon: 10.3 },
+              ],
+              distance: 1300,
+            },
+          ],
+          totalDistance: 3600,
+        }
+
+        const newSegment = {
+          coordinates: [
+            { lat: route.waypoints[2].lat, lon: route.waypoints[2].lon },
+            { lat: route.waypoints[3].lat, lon: route.waypoints[3].lon },
+          ],
+          distance: 3500,
+        }
+
+        router.createStraightSegment = vi.fn().mockReturnValue(newSegment)
+
+        const result = recalculateAffectedSegments(route, 3, router)
+
+        // Should only modify segment at index 3 (before last waypoint)
+        expect(result.segments[0]).toBe(route.segments[0]) // Unchanged
+        expect(result.segments[1]).toBe(route.segments[1]) // Unchanged
+        expect(result.segments[2]).toBe(route.segments[2]) // Unchanged
+        expect(result.segments[3]).toEqual(newSegment) // Recalculated
+      })
+
+      it('should handle single waypoint route', () => {
+        const route = createMockRoute(1)
+
+        const result = recalculateAffectedSegments(route, 0, router)
+
+        // Should return route unchanged
+        expect(result).toEqual(route)
+        expect(router.route).not.toHaveBeenCalled()
+        expect(router.createStraightSegment).not.toHaveBeenCalled()
+      })
+
+      it('should handle two waypoint route', () => {
+        // Create a simple test route with explicit structure
+        const route = {
+          waypoints: [
+            createNodeWaypoint(50.0, 10.0, 1),
+            createCustomWaypoint(50.1, 10.1),
+          ],
+          segments: [
+            { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
+            {
+              coordinates: [
+                { lat: 50, lon: 10 },
+                { lat: 50.1, lon: 10.1 },
+              ],
+              distance: 1100,
+            },
+          ],
+          totalDistance: 1100,
+        }
+
+        const newSegment = {
+          coordinates: [
+            { lat: route.waypoints[0].lat, lon: route.waypoints[0].lon },
+            { lat: route.waypoints[1].lat, lon: route.waypoints[1].lon },
+          ],
+          distance: 4000,
+        }
+
+        router.createStraightSegment = vi.fn().mockReturnValue(newSegment)
+
+        const result = recalculateAffectedSegments(route, 0, router)
+
+        // Should only recalculate segment at index 1
+        expect(result.segments[0]).toBe(route.segments[0]) // Unchanged
+        expect(result.segments[1]).toEqual(newSegment) // Recalculated
+      })
+
+      it('should use routing for node-to-node segments', () => {
+        const route = {
+          waypoints: [
+            createNodeWaypoint(50.0, 10.0, 1),
+            createNodeWaypoint(51.0, 11.0, 2),
+            createNodeWaypoint(52.0, 12.0, 3),
+          ],
+          segments: [
+            { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
+            {
+              coordinates: [
+                { lat: 50, lon: 10 },
+                { lat: 51, lon: 11 },
+              ],
+              distance: 1000,
+            },
+            {
+              coordinates: [
+                { lat: 51, lon: 11 },
+                { lat: 52, lon: 12 },
+              ],
+              distance: 1000,
+            },
+          ],
+          totalDistance: 2000,
+        }
+
+        const newSegment = {
+          coordinates: [
+            { lat: 51, lon: 11 },
+            { lat: 52, lon: 12 },
+          ],
+          distance: 1500,
+        }
+        router.route = vi.fn().mockReturnValue(newSegment)
+
+        const result = recalculateAffectedSegments(route, 2, router)
+
+        expect(router.route).toHaveBeenCalledWith(2, 3)
+        expect(result.segments[2]).toBe(newSegment)
+      })
+
+      it('should use straight segments for mixed waypoint types', () => {
+        const route = {
+          waypoints: [
+            createNodeWaypoint(50.0, 10.0, 1),
+            createCustomWaypoint(51.0, 11.0),
+            createNodeWaypoint(52.0, 12.0, 3),
+          ],
+          segments: [
+            { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
+            {
+              coordinates: [
+                { lat: 50, lon: 10 },
+                { lat: 51, lon: 11 },
+              ],
+              distance: 1000,
+            },
+            {
+              coordinates: [
+                { lat: 51, lon: 11 },
+                { lat: 52, lon: 12 },
+              ],
+              distance: 1000,
+            },
+          ],
+          totalDistance: 2000,
+        }
+
+        const newSegment = {
+          coordinates: [
+            { lat: 51, lon: 11 },
+            { lat: 52, lon: 12 },
+          ],
+          distance: 150000,
+        }
+        router.createStraightSegment = vi.fn().mockReturnValue(newSegment)
+
+        const result = recalculateAffectedSegments(route, 2, router)
+
+        expect(router.createStraightSegment).toHaveBeenCalledWith(
+          route.waypoints[1],
+          route.waypoints[2]
+        )
+        expect(result.segments[2]).toBe(newSegment)
+      })
+
+      it('should fallback to straight segment if routing fails', () => {
+        const route = {
+          waypoints: [
+            createNodeWaypoint(50.0, 10.0, 1),
+            createNodeWaypoint(51.0, 11.0, 2),
+            createNodeWaypoint(52.0, 12.0, 3),
+          ],
+          segments: [
+            { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
+            {
+              coordinates: [
+                { lat: 50, lon: 10 },
+                { lat: 51, lon: 11 },
+              ],
+              distance: 1000,
+            },
+            {
+              coordinates: [
+                { lat: 51, lon: 11 },
+                { lat: 52, lon: 12 },
+              ],
+              distance: 1000,
+            },
+          ],
+          totalDistance: 2000,
+        }
+
+        const fallbackSegment = {
+          coordinates: [
+            { lat: 51, lon: 11 },
+            { lat: 52, lon: 12 },
+          ],
+          distance: 150000,
+        }
+        router.route = vi.fn().mockReturnValue(null) // Routing fails
+        router.createStraightSegment = vi.fn().mockReturnValue(fallbackSegment)
+
+        const result = recalculateAffectedSegments(route, 2, router)
+
+        expect(router.route).toHaveBeenCalledWith(2, 3)
+        expect(router.createStraightSegment).toHaveBeenCalledWith(
+          route.waypoints[1],
+          route.waypoints[2]
+        )
+        expect(result.segments[2]).toBe(fallbackSegment)
+      })
+
+      it('should preserve waypoints and recalculate total distance', () => {
+        const route = createMockRoute(4)
+        const newSegment1 = {
+          coordinates: [route.waypoints[0], route.waypoints[1]],
+          distance: 2000,
+        }
+        const newSegment2 = {
+          coordinates: [route.waypoints[1], route.waypoints[2]],
+          distance: 2500,
+        }
+
+        router.createStraightSegment = vi
+          .fn()
+          .mockReturnValueOnce(newSegment1)
+          .mockReturnValueOnce(newSegment2)
+
+        const result = recalculateAffectedSegments(route, 1, router)
+
+        // Waypoints should be unchanged
+        expect(result.waypoints).toBe(route.waypoints)
+
+        // Total distance should be recalculated
+        const expectedDistance =
+          route.segments[0].distance +
+          newSegment1.distance +
+          newSegment2.distance +
+          route.segments[3].distance
+        expect(result.totalDistance).toBe(expectedDistance)
+      })
+
+      it('should handle invalid route input gracefully', () => {
+        const result1 = recalculateAffectedSegments(
+          null as unknown as Route,
+          0,
+          router
+        )
+        const result2 = recalculateAffectedSegments(
+          undefined as unknown as Route,
+          0,
+          router
+        )
+        const result3 = recalculateAffectedSegments({} as Route, 0, router)
+
+        expect(result1).toBe(null)
+        expect(result2).toBe(undefined)
+        expect(result3).toEqual({})
+      })
+
+      it('should handle invalid index gracefully', () => {
+        const route = createMockRoute(3)
+
+        const result1 = recalculateAffectedSegments(route, -1, router)
+        const result2 = recalculateAffectedSegments(route, 5, router) // Beyond array bounds
+
+        expect(result1).toBe(route)
+        expect(result2).toBe(route)
+      })
+
+      it('should handle very long routes efficiently', () => {
+        const veryLongRoute = createMockRoute(100)
+        const draggedIndex = 50
+
+        router.route = vi
+          .fn()
+          .mockReturnValue({ coordinates: [], distance: 1500 })
+        router.createStraightSegment = vi
+          .fn()
+          .mockReturnValue({ coordinates: [], distance: 1500 })
+
+        const result = recalculateAffectedSegments(
+          veryLongRoute,
+          draggedIndex,
+          router
+        )
+
+        // Should only call routing methods twice regardless of route length
+        const totalRoutingCalls =
+          (router.route as Mock).mock.calls.length +
+          (router.createStraightSegment as Mock).mock.calls.length
+        expect(totalRoutingCalls).toBeLessThanOrEqual(2)
+
+        // Should preserve all other segments
+        expect(result.segments.length).toBe(100)
+        expect(result.segments[0]).toBe(veryLongRoute.segments[0])
+        expect(result.segments[99]).toBe(veryLongRoute.segments[99])
+      })
     })
   })
 })

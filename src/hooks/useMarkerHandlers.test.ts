@@ -16,6 +16,7 @@ vi.mock('../utils/mapHelpers', () => ({
   createNodeWaypoint: vi.fn(),
   createCustomWaypoint: vi.fn(),
   recalculateMixedSegments: vi.fn(),
+  recalculateAffectedSegments: vi.fn(),
 }))
 
 // Mock debounce
@@ -43,6 +44,7 @@ import {
   createNodeWaypoint,
   createCustomWaypoint,
   recalculateMixedSegments,
+  recalculateAffectedSegments,
 } from '../utils/mapHelpers'
 import { useRouteStore } from '../store/useRouteStore'
 import { useRouterStore } from '../store/routerStore'
@@ -57,6 +59,8 @@ const mockCreateCustomWaypoint = createCustomWaypoint as ReturnType<
 const mockRecalculateMixedSegments = recalculateMixedSegments as ReturnType<
   typeof vi.fn
 >
+const mockRecalculateAffectedSegments =
+  recalculateAffectedSegments as ReturnType<typeof vi.fn>
 
 describe('useMarkerHandlers', () => {
   const mockRouter = {
@@ -82,6 +86,22 @@ describe('useMarkerHandlers', () => {
     mockUseRouterStore.mockReturnValue({
       router: mockRouter,
     })
+
+    // Setup default mock implementations
+    mockRecalculateMixedSegments.mockImplementation(
+      (waypoints: RouteWaypoint[]) => ({
+        segments: [],
+        waypoints,
+        totalDistance: 0,
+      })
+    )
+    mockRecalculateAffectedSegments.mockImplementation(
+      (route: Route, _index: number) => ({
+        ...route,
+        segments: route.segments,
+        totalDistance: route.totalDistance,
+      })
+    )
   })
 
   const mockRoute: Route = {
@@ -120,11 +140,11 @@ describe('useMarkerHandlers', () => {
         lon,
       })
     )
-    mockRecalculateMixedSegments.mockImplementation(
-      (waypoints: RouteWaypoint[]) => ({
-        segments: [],
-        waypoints,
-        totalDistance: 0,
+    mockRecalculateAffectedSegments.mockImplementation(
+      (route: Route, _index: number) => ({
+        ...route,
+        segments: route.segments,
+        totalDistance: route.totalDistance,
       })
     )
   })
@@ -157,7 +177,7 @@ describe('useMarkerHandlers', () => {
       })
 
       expect(mockCreateCustomWaypoint).toHaveBeenCalledWith(50.5, 8.5)
-      expect(mockRecalculateMixedSegments).toHaveBeenCalled()
+      expect(mockRecalculateAffectedSegments).toHaveBeenCalled()
       expect(mockSetTempRoute).toHaveBeenCalled()
     })
 
@@ -355,7 +375,7 @@ describe('useMarkerHandlers', () => {
       })
 
       expect(mockCreateCustomWaypoint).toHaveBeenCalledWith(50.5, 8.5)
-      expect(mockRecalculateMixedSegments).toHaveBeenCalled()
+      expect(mockRecalculateAffectedSegments).toHaveBeenCalled()
       expect(mockSetRoute).toHaveBeenCalled()
       expect(mockMarker.setLatLng).toHaveBeenCalledWith([50.5, 8.5])
     })
