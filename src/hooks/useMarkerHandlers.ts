@@ -70,7 +70,6 @@ function processMarkerPosition(
   const routeWithUpdatedWaypoint = new Route(
     route.segments,
     waypoints,
-    route.totalDistance,
     route.elevationProfile,
     route.elevationStats
   )

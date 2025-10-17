@@ -96,8 +96,7 @@ export function useMapEvents({
               distance: 0,
             },
           ],
-          [routeWaypoint],
-          0
+          [routeWaypoint]
         )
         setRoute(newRoute)
         return

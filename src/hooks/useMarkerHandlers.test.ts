@@ -18,6 +18,7 @@ vi.mock('../utils/mapHelpers', () => ({
   createCustomWaypoint: vi.fn(),
   deleteWaypoint: vi.fn(),
   recalculateAffectedSegments: vi.fn(),
+  calculateTotalDistance: vi.fn(),
 }))
 
 // Mock debounce
@@ -46,6 +47,7 @@ import {
   createCustomWaypoint,
   deleteWaypoint,
   recalculateAffectedSegments,
+  calculateTotalDistance,
 } from '../utils/mapHelpers'
 import { useRouteStore } from '../store/useRouteStore'
 import { useRouterStore } from '../store/routerStore'
@@ -60,6 +62,9 @@ const mockCreateCustomWaypoint = createCustomWaypoint as ReturnType<
 const mockDeleteWaypoint = deleteWaypoint as ReturnType<typeof vi.fn>
 const mockRecalculateAffectedSegments =
   recalculateAffectedSegments as ReturnType<typeof vi.fn>
+const mockCalculateTotalDistance = calculateTotalDistance as ReturnType<
+  typeof vi.fn
+>
 
 describe('useMarkerHandlers', () => {
   const mockRouter = {
@@ -87,26 +92,26 @@ describe('useMarkerHandlers', () => {
     })
 
     // Setup default mock implementations
+    mockCalculateTotalDistance.mockReturnValue(0)
     mockDeleteWaypoint.mockImplementation((route: Route, index: number) => {
       const newWaypoints = [...route.waypoints]
       newWaypoints.splice(index, 1)
       return new Route(
         route.segments,
         newWaypoints,
-        route.totalDistance,
         route.elevationProfile,
         route.elevationStats
       )
     })
     mockRecalculateAffectedSegments.mockImplementation(
-      (route: Route, _index: number) =>
-        new Route(
+      (route: Route, _index: number) => {
+        return new Route(
           route.segments,
           route.waypoints,
-          route.totalDistance,
           route.elevationProfile,
           route.elevationStats
         )
+      }
     )
   })
 
@@ -115,8 +120,7 @@ describe('useMarkerHandlers', () => {
     [
       { type: 'custom', lat: 50, lon: 8 },
       { type: 'node', nodeId: 123, lat: 51, lon: 9 },
-    ] as RouteWaypoint[], // waypoints
-    100 // totalDistance
+    ] as RouteWaypoint[] // waypoints
   )
 
   const mockMarker = {
@@ -147,14 +151,14 @@ describe('useMarkerHandlers', () => {
       })
     )
     mockRecalculateAffectedSegments.mockImplementation(
-      (route: Route, _index: number) =>
-        new Route(
+      (route: Route, _index: number) => {
+        return new Route(
           route.segments,
           route.waypoints,
-          route.totalDistance,
           route.elevationProfile,
           route.elevationStats
         )
+      }
     )
   })
 
@@ -355,8 +359,7 @@ describe('useMarkerHandlers', () => {
       // Set up a custom waypoint for testing
       const testRoute = new Route(
         [], // segments
-        [{ type: 'custom', lat: 50, lon: 8 } as CustomWaypoint], // waypoints
-        0 // totalDistance
+        [{ type: 'custom', lat: 50, lon: 8 } as CustomWaypoint] // waypoints
       )
 
       // Reset mocks to ensure clean state
@@ -390,8 +393,7 @@ describe('useMarkerHandlers', () => {
     it('should snap custom waypoint to nearby node and update marker on drag end', () => {
       const testRoute = new Route(
         [], // segments
-        [{ type: 'custom', lat: 50, lon: 8 } as CustomWaypoint], // waypoints
-        0 // totalDistance
+        [{ type: 'custom', lat: 50, lon: 8 } as CustomWaypoint] // waypoints
       )
 
       vi.clearAllMocks()
@@ -435,8 +437,7 @@ describe('useMarkerHandlers', () => {
             lat: 50,
             lon: 8,
           } as NodeWaypoint,
-        ], // waypoints
-        0 // totalDistance
+        ] // waypoints
       )
 
       vi.clearAllMocks()
@@ -480,8 +481,7 @@ describe('useMarkerHandlers', () => {
             lat: 50,
             lon: 8,
           } as NodeWaypoint,
-        ], // waypoints
-        0 // totalDistance
+        ] // waypoints
       )
 
       vi.clearAllMocks()
@@ -631,8 +631,7 @@ describe('useMarkerHandlers', () => {
               lat: 51,
               lon: 9,
             },
-          ], // waypoints
-          100 // totalDistance
+          ] // waypoints
         )
       )
     })

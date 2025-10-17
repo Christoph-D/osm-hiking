@@ -186,8 +186,7 @@ export function recalculateAllSegments(
     }
   }
 
-  const totalDistance = calculateTotalDistance(newSegments)
-  return new Route(newSegments, waypoints, totalDistance)
+  return new Route(newSegments, waypoints)
 }
 
 /**
@@ -219,7 +218,7 @@ export function deleteWaypoint(
 
   // If no waypoints left, return empty route
   if (newWaypoints.length === 0) {
-    return new Route([], [], 0)
+    return new Route([], [])
   }
 
   // Create new segments array that matches the new waypoints structure
@@ -258,8 +257,7 @@ export function deleteWaypoint(
     }
   }
 
-  const totalDistance = calculateTotalDistance(newSegments)
-  return new Route(newSegments, newWaypoints, totalDistance)
+  return new Route(newSegments, newWaypoints)
 }
 
 /**
@@ -321,7 +319,6 @@ export function addWaypointToRoute(
         ...route.segments.slice(insertIndex),
       ],
       newRouteWaypoints,
-      route.totalDistance,
       route.elevationProfile,
       route.elevationStats
     )
@@ -331,7 +328,6 @@ export function addWaypointToRoute(
     const tempRoute = new Route(
       [...route.segments, { coordinates: [], distance: 0 }], // dummy segment
       [...route.waypoints, newWaypoint],
-      route.totalDistance,
       route.elevationProfile,
       route.elevationStats
     )
@@ -377,8 +373,7 @@ export function recalculateSegment(
     router
   )
 
-  const totalDistance = calculateTotalDistance(newSegments)
-  return new Route(newSegments, route.waypoints, totalDistance)
+  return new Route(newSegments, route.waypoints)
 }
 
 /**
