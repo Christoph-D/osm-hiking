@@ -33,11 +33,11 @@ function createSegmentWithFallback(
 }
 
 export class Route {
-  #segments: RouteSegment[]
-  #waypoints: RouteWaypoint[]
-  #totalDistance: number
-  #elevationProfile?: ElevationPoint[]
-  #elevationStats?: ElevationStats
+  readonly #segments: RouteSegment[]
+  readonly #waypoints: RouteWaypoint[]
+  readonly #totalDistance: number
+  readonly #elevationProfile?: ElevationPoint[]
+  readonly #elevationStats?: ElevationStats
 
   constructor(
     segments: RouteSegment[],
