@@ -85,22 +85,12 @@ export function useMapEvents({
 
       // First waypoint - just mark it
       if (!route || route.waypoints.length === 0) {
-        const newRoute = new Route(
-          [
-            {
-              coordinates: [],
-              distance: 0,
-            },
-          ],
-          [routeWaypoint]
-        )
-        setRoute(newRoute)
+        setRoute(new Route([], [routeWaypoint]))
         return
       }
 
       // For subsequent waypoints, add waypoint to route with optimized recalculation
-      const newRoute = route.addWaypoint(routeWaypoint, router)
-      setRoute(newRoute)
+      setRoute(route.addWaypoint(routeWaypoint, router))
     },
     [setRoute, setError]
   )

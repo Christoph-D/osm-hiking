@@ -86,10 +86,7 @@ describe('useMarkerHandlers', () => {
 
   // Create mock route with required data
   const mockRoute = new Route(
-    [
-      { coordinates: [], distance: 0 },
-      { coordinates: [{ lat: 51, lon: 9 }], distance: 0 },
-    ], // segments
+    [{ coordinates: [{ lat: 51, lon: 9 }], distance: 0 }], // segments
     [
       { type: 'custom', lat: 50, lon: 8 },
       { type: 'node', nodeId: 123, lat: 51, lon: 9 },
@@ -132,10 +129,6 @@ describe('useMarkerHandlers', () => {
         newWaypoints.splice(index, 1)
         const newSegments = [...mockRoute.segments]
         newSegments.splice(index, 1)
-        // Ensure segments[0] is empty
-        if (newSegments.length > 0 && newSegments[0].coordinates.length > 0) {
-          newSegments[0] = { coordinates: [], distance: 0 }
-        }
         return new Route(
           newSegments,
           newWaypoints,
@@ -151,10 +144,6 @@ describe('useMarkerHandlers', () => {
     ) {
       // Return a route with the same waypoints as this instance (simulating successful recalculation)
       const newSegments = [...this.segments]
-      // Ensure segments[0] is empty
-      if (newSegments.length > 0 && newSegments[0].coordinates.length > 0) {
-        newSegments[0] = { coordinates: [], distance: 0 }
-      }
       return new Route(
         newSegments,
         this.waypoints,
@@ -170,10 +159,6 @@ describe('useMarkerHandlers', () => {
     ) {
       // Return a route with the same waypoints as this instance (simulating successful recalculation)
       const newSegments = [...this.segments]
-      // Ensure segments[0] is empty
-      if (newSegments.length > 0 && newSegments[0].coordinates.length > 0) {
-        newSegments[0] = { coordinates: [], distance: 0 }
-      }
       return new Route(
         newSegments,
         this.waypoints,
@@ -318,10 +303,9 @@ describe('useMarkerHandlers', () => {
 
   describe('handleMarkerDragEnd', () => {
     it('should perform immediate update on drag end', () => {
-      // Set up a custom waypoint for testing
       const testRoute = new Route(
-        [{ coordinates: [], distance: 0 }], // segments
-        [{ type: 'custom', lat: 50, lon: 8 } as CustomWaypoint] // waypoints
+        [],
+        [{ type: 'custom', lat: 50, lon: 8 } as CustomWaypoint]
       )
 
       // Reset mocks to ensure clean state
@@ -354,8 +338,8 @@ describe('useMarkerHandlers', () => {
 
     it('should snap custom waypoint to nearby node and update marker on drag end', () => {
       const testRoute = new Route(
-        [{ coordinates: [], distance: 0 }], // segments
-        [{ type: 'custom', lat: 50, lon: 8 } as CustomWaypoint] // waypoints
+        [],
+        [{ type: 'custom', lat: 50, lon: 8 } as CustomWaypoint]
       )
 
       vi.clearAllMocks()
@@ -465,12 +449,7 @@ describe('useMarkerHandlers', () => {
       expect(mockDeleteWaypoint).toHaveBeenCalled()
       expect(mockSetRoute).toHaveBeenCalledWith(
         new Route(
-          [
-            {
-              coordinates: [],
-              distance: 0,
-            },
-          ], // segments
+          [],
           [
             {
               type: 'node',
@@ -478,7 +457,7 @@ describe('useMarkerHandlers', () => {
               lat: 51,
               lon: 9,
             },
-          ] // waypoints
+          ]
         )
       )
     })

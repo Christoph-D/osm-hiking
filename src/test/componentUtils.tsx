@@ -76,10 +76,6 @@ export function createMockRoute(
 
   const defaultSegments = [
     {
-      coordinates: [],
-      distance: 0,
-    },
-    {
       coordinates: [
         { lat: 50.0, lon: 10.0 },
         { lat: 50.001, lon: 10.001 },
@@ -125,39 +121,30 @@ export function createMockRoute(
 }
 
 /**
- * Create mock segments that match the number of waypoints
+ * Create mock segments that match the number of waypoints (waypoints.length - 1 segments)
  */
 function createMockSegmentsForWaypoints(
   waypoints: Route['waypoints']
 ): Route['segments'] {
-  if (waypoints.length === 0) return []
+  if (waypoints.length <= 1) return []
 
   const segments = []
-  for (let i = 0; i < waypoints.length; i++) {
-    if (i === 0) {
-      // First segment: must be empty according to Route validation
-      segments.push({
-        coordinates: [],
-        distance: 0,
-      })
-    } else {
-      // Subsequent segments: path from previous waypoint to current
-      const prevWaypoint = waypoints[i - 1]
-      const currentWaypoint = waypoints[i]
-      segments.push({
-        coordinates: [
-          { lat: prevWaypoint.lat, lon: prevWaypoint.lon },
-          { lat: currentWaypoint.lat, lon: currentWaypoint.lon },
-        ],
-        distance: 314, // Mock distance
-      })
-    }
+  for (let i = 0; i < waypoints.length - 1; i++) {
+    const currentWaypoint = waypoints[i]
+    const nextWaypoint = waypoints[i + 1]
+    segments.push({
+      coordinates: [
+        { lat: currentWaypoint.lat, lon: currentWaypoint.lon },
+        { lat: nextWaypoint.lat, lon: nextWaypoint.lon },
+      ],
+      distance: 314, // Mock distance
+    })
   }
   return segments
 }
 
 /**
- * Create mock waypoints that match the number of segments
+ * Create mock waypoints that match the number of segments (segments.length + 1 waypoints)
  */
 function createMockWaypointsForSegments(
   segments: Route['segments']
@@ -167,14 +154,24 @@ function createMockWaypointsForSegments(
   const waypoints = []
   for (let i = 0; i < segments.length; i++) {
     const segment = segments[i]
-    // Use the last coordinate of each segment as the waypoint
-    const lastCoord = segment.coordinates[segment.coordinates.length - 1]
+    // Use the first coordinate of each segment as the waypoint
+    const firstCoord = segment.coordinates[0]
     waypoints.push({
       type: 'custom' as const,
-      lat: lastCoord.lat,
-      lon: lastCoord.lon,
+      lat: firstCoord.lat,
+      lon: firstCoord.lon,
     })
   }
+
+  // Add the last coordinate from the last segment as the final waypoint
+  const lastSegment = segments[segments.length - 1]
+  const lastCoord = lastSegment.coordinates[lastSegment.coordinates.length - 1]
+  waypoints.push({
+    type: 'custom' as const,
+    lat: lastCoord.lat,
+    lon: lastCoord.lon,
+  })
+
   return waypoints
 }
 

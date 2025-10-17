@@ -47,10 +47,6 @@ describe('exportRouteAsGPX', () => {
     const route = new Route(
       [
         {
-          coordinates: [],
-          distance: 0,
-        },
-        {
           coordinates: [
             { lat: 50.0, lon: 10.0 },
             { lat: 50.1, lon: 10.1 },
@@ -82,10 +78,6 @@ describe('exportRouteAsGPX', () => {
   it('should include all coordinates from all segments', async () => {
     const route = new Route(
       [
-        {
-          coordinates: [],
-          distance: 0,
-        },
         {
           coordinates: [
             { lat: 50.0, lon: 10.0 },
@@ -127,10 +119,6 @@ describe('exportRouteAsGPX', () => {
     const route = new Route(
       [
         {
-          coordinates: [],
-          distance: 0,
-        },
-        {
           coordinates: [
             { lat: 50.0, lon: 10.0 },
             { lat: 50.1, lon: 10.1 },
@@ -164,10 +152,6 @@ describe('exportRouteAsGPX', () => {
   it('should work without elevation data when fetch fails', async () => {
     const route = new Route(
       [
-        {
-          coordinates: [],
-          distance: 0,
-        },
         {
           coordinates: [
             { lat: 50.0, lon: 10.0 },
@@ -208,10 +192,6 @@ describe('exportRouteAsGPX', () => {
     const route = new Route(
       [
         {
-          coordinates: [],
-          distance: 0,
-        },
-        {
           coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 5432.1,
         },
@@ -242,10 +222,6 @@ describe('exportRouteAsGPX', () => {
     const route = new Route(
       [
         {
-          coordinates: [],
-          distance: 0,
-        },
-        {
           coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 1000,
         },
@@ -271,10 +247,6 @@ describe('exportRouteAsGPX', () => {
     const route = new Route(
       [
         {
-          coordinates: [],
-          distance: 0,
-        },
-        {
           coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 1000,
         },
@@ -295,10 +267,6 @@ describe('exportRouteAsGPX', () => {
   it('should create Blob with correct MIME type', async () => {
     const route = new Route(
       [
-        {
-          coordinates: [],
-          distance: 0,
-        },
         {
           coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 1000,
@@ -347,10 +315,6 @@ describe('exportRouteAsGPX', () => {
     const route = new Route(
       [
         {
-          coordinates: [],
-          distance: 0,
-        },
-        {
           coordinates: [
             { lat: 50.0, lon: 10.0 },
             { lat: 50.1, lon: 10.1 },
@@ -383,10 +347,6 @@ describe('exportRouteAsGPX', () => {
   it('should escape special XML characters in metadata', async () => {
     const route = new Route(
       [
-        {
-          coordinates: [],
-          distance: 0,
-        },
         {
           coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 1000,

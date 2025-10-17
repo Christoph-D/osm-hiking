@@ -47,7 +47,7 @@ describe('Route', () => {
       const result = Route.fromWaypoints(routeWaypoints, router)
 
       expect(router.route).toHaveBeenCalledWith(1, 2)
-      expect(result.segments).toHaveLength(2) // Empty first segment + route segment
+      expect(result.segments).toHaveLength(1) // One route segment
       expect(result.totalDistance).toBe(1000)
       expect(result.waypoints).toEqual(routeWaypoints)
     })
@@ -71,7 +71,7 @@ describe('Route', () => {
         routeWaypoints[0],
         routeWaypoints[1]
       )
-      expect(result.segments).toHaveLength(2) // Empty first segment + straight segment
+      expect(result.segments).toHaveLength(1) // One straight segment
       expect(result.totalDistance).toBe(150000)
       expect(result.waypoints).toEqual(routeWaypoints)
     })
@@ -106,7 +106,7 @@ describe('Route', () => {
 
       expect(router.createStraightSegment).toHaveBeenCalledTimes(2)
       expect(router.route).not.toHaveBeenCalled() // No consecutive node waypoints
-      expect(result.segments).toHaveLength(3) // Empty first segment + 2 segments
+      expect(result.segments).toHaveLength(2) // 2 segments for 3 waypoints
       expect(result.totalDistance).toBe(300000) // Sum of straight segments
       expect(result.waypoints).toEqual(routeWaypoints)
     })
@@ -159,9 +159,7 @@ describe('Route', () => {
       const routeWaypoints = [createCustomWaypoint(50.0, 10.0)]
       const result = Route.fromWaypoints(routeWaypoints, router)
 
-      expect(result.segments).toHaveLength(1) // Just the empty first segment
-      expect(result.segments[0].coordinates).toEqual([])
-      expect(result.segments[0].distance).toBe(0)
+      expect(result.segments).toHaveLength(0) // No segments for single waypoint
       expect(result.waypoints).toEqual(routeWaypoints)
     })
   })
@@ -198,49 +196,19 @@ describe('Route', () => {
       vi.clearAllMocks()
     })
 
-    it('should delete the first waypoint and recalculate all segments', () => {
-      const newSegment = {
-        coordinates: [route.waypoints[1], route.waypoints[2]],
-        distance: 1200,
-      }
-      router.createStraightSegment = vi.fn().mockReturnValue(newSegment)
-
+    it('should delete the first waypoint', () => {
+      const secondSegment = route.segments[1]
       const result = route.deleteWaypoint(0, router)
 
-      expect(result.waypoints).toHaveLength(2)
       expect(result.waypoints).toEqual([
         createCustomWaypoint(51.0, 11.0),
         createNodeWaypoint(52.0, 12.0, 3),
       ])
-      expect(result.segments).toHaveLength(2)
-      expect(router.createStraightSegment).toHaveBeenCalledWith(
-        createCustomWaypoint(51.0, 11.0),
-        createNodeWaypoint(52.0, 12.0, 3)
-      )
-    })
-
-    it('should delete the middle waypoint and recalculate affected segment', () => {
-      const newSegment = {
-        coordinates: [route.waypoints[0], route.waypoints[2]],
-        distance: 2500,
-      }
-      router.createStraightSegment = vi.fn().mockReturnValue(newSegment)
-
-      const result = route.deleteWaypoint(1, router)
-
-      expect(result.waypoints).toHaveLength(2)
-      expect(result.waypoints).toEqual([
-        createNodeWaypoint(50.0, 10.0, 1),
-        createNodeWaypoint(52.0, 12.0, 3),
-      ])
-      expect(result.segments).toHaveLength(2)
-      expect(router.createStraightSegment).toHaveBeenCalledWith(
-        createNodeWaypoint(50.0, 10.0, 1),
-        createNodeWaypoint(52.0, 12.0, 3)
-      )
+      expect(result.segments).toEqual([secondSegment])
     })
 
     it('should delete the last waypoint', () => {
+      const firstSegment = route.segments[0]
       const result = route.deleteWaypoint(2, router)
 
       expect(result.waypoints).toHaveLength(2)
@@ -248,8 +216,7 @@ describe('Route', () => {
         createNodeWaypoint(50.0, 10.0, 1),
         createCustomWaypoint(51.0, 11.0),
       ])
-      expect(result.segments).toHaveLength(2)
-      // No new routing calls needed since we're just removing the last segment
+      expect(result.segments).toEqual([firstSegment])
     })
 
     it('should return empty route when deleting last waypoint', () => {
@@ -294,6 +261,76 @@ describe('Route', () => {
       expect(result.elevationProfile).toEqual(elevationProfile)
       expect(result.elevationStats).toEqual(elevationStats)
     })
+
+    it('should delete middle waypoint from 5-waypoint route and preserve first and last segments', () => {
+      const fiveWaypointRoute = [
+        createNodeWaypoint(50.0, 10.0, 1),
+        createCustomWaypoint(51.0, 11.0),
+        createNodeWaypoint(52.0, 12.0, 3),
+        createCustomWaypoint(53.0, 13.0),
+        createNodeWaypoint(54.0, 14.0, 5),
+      ]
+
+      const mockSegments = [
+        {
+          coordinates: [fiveWaypointRoute[0], fiveWaypointRoute[1]],
+          distance: 1000,
+        },
+        {
+          coordinates: [fiveWaypointRoute[1], fiveWaypointRoute[2]],
+          distance: 1500,
+        },
+        {
+          coordinates: [fiveWaypointRoute[2], fiveWaypointRoute[3]],
+          distance: 2000,
+        },
+        {
+          coordinates: [fiveWaypointRoute[3], fiveWaypointRoute[4]],
+          distance: 2500,
+        },
+      ]
+
+      const fiveWaypointRouter = createMockRouter()
+      fiveWaypointRouter.createStraightSegment = vi
+        .fn()
+        .mockReturnValueOnce(mockSegments[0])
+        .mockReturnValueOnce(mockSegments[1])
+        .mockReturnValueOnce(mockSegments[2])
+        .mockReturnValueOnce(mockSegments[3])
+
+      const route = Route.fromWaypoints(fiveWaypointRoute, fiveWaypointRouter)
+
+      // Reset mocks after creating the route to avoid call count issues in tests
+      vi.clearAllMocks()
+
+      // Mock the new segment that will be created to connect waypoints around the deleted one
+      const newSegmentAfterDeletion = {
+        coordinates: [fiveWaypointRoute[1], fiveWaypointRoute[3]],
+        distance: 3000,
+      }
+      fiveWaypointRouter.createStraightSegment = vi
+        .fn()
+        .mockReturnValue(newSegmentAfterDeletion)
+
+      // Delete the 3rd waypoint (index 2)
+      const result = route.deleteWaypoint(2, fiveWaypointRouter)
+
+      expect(result.waypoints).toHaveLength(4)
+      expect(result.waypoints).toEqual([
+        createNodeWaypoint(50.0, 10.0, 1),
+        createCustomWaypoint(51.0, 11.0),
+        createCustomWaypoint(53.0, 13.0),
+        createNodeWaypoint(54.0, 14.0, 5),
+      ])
+
+      expect(result.segments).toHaveLength(3)
+      // First segment (waypoints 0-1) should be unchanged - this is the first segment
+      expect(result.segments[0]).toEqual(route.segments[0])
+      // Middle segment should be the newly calculated one (connects waypoints 1-3)
+      expect(result.segments[1]).toEqual(newSegmentAfterDeletion)
+      // Last segment (waypoints 3-4) should be unchanged - this is the last segment
+      expect(result.segments[2]).toEqual(route.segments[3])
+    })
   })
 
   describe('addWaypoint', () => {
@@ -336,7 +373,7 @@ describe('Route', () => {
         createCustomWaypoint(51.0, 11.0),
         newWaypoint,
       ])
-      expect(result.segments).toHaveLength(3)
+      expect(result.segments).toHaveLength(2)
       expect(router.createStraightSegment).toHaveBeenCalledWith(
         route.waypoints[1],
         newWaypoint
@@ -364,7 +401,7 @@ describe('Route', () => {
 
       expect(result.waypoints).toHaveLength(3)
       expect(result.waypoints).toContain(newWaypoint)
-      expect(result.segments).toHaveLength(3)
+      expect(result.segments).toHaveLength(2)
     })
 
     it('should return same route if route is empty', () => {
@@ -443,20 +480,19 @@ describe('Route', () => {
 
       router.createStraightSegment = vi.fn().mockReturnValue(newSegment)
 
-      const result = route.recalculateSegment(2, router)
+      const result = route.recalculateSegment(1, router)
 
-      expect(result.segments).toHaveLength(3)
-      expect(result.segments[2]).toEqual(newSegment)
-      expect(result.segments[0]).toEqual(route.segments[0]) // First segment unchanged (empty)
-      expect(result.segments[1]).toEqual(route.segments[1]) // Second segment unchanged
+      expect(result.segments).toHaveLength(2)
+      expect(result.segments[1]).toEqual(newSegment)
+      expect(result.segments[0]).toEqual(route.segments[0]) // First segment unchanged
       expect(router.createStraightSegment).toHaveBeenCalledWith(
         route.waypoints[1],
         route.waypoints[2]
       )
     })
 
-    it('should return same route for index 0 (empty segment)', () => {
-      const result = route.recalculateSegment(0, router)
+    it('should return same route for invalid index', () => {
+      const result = route.recalculateSegment(5, router)
       expect(result).toBe(route)
       expect(router.createStraightSegment).not.toHaveBeenCalled()
     })
@@ -483,9 +519,9 @@ describe('Route', () => {
 
       router.route = vi.fn().mockReturnValue(newSegment)
 
-      const result = nodeRoute.recalculateSegment(2, router)
+      const result = nodeRoute.recalculateSegment(1, router)
 
-      expect(result.segments[2]).toEqual(newSegment)
+      expect(result.segments[1]).toEqual(newSegment)
       expect(router.route).toHaveBeenCalledWith(2, 3)
     })
 
@@ -536,7 +572,6 @@ describe('Route', () => {
       ]
 
       const mockSegments = [
-        { coordinates: [routeWaypoints[0]], distance: 0 }, // marker
         { coordinates: [routeWaypoints[0], routeWaypoints[1]], distance: 1000 },
         { coordinates: [routeWaypoints[1], routeWaypoints[2]], distance: 1500 },
         { coordinates: [routeWaypoints[2], routeWaypoints[3]], distance: 2000 },
@@ -544,9 +579,9 @@ describe('Route', () => {
 
       router.createStraightSegment = vi
         .fn()
+        .mockReturnValueOnce(mockSegments[0])
         .mockReturnValueOnce(mockSegments[1])
         .mockReturnValueOnce(mockSegments[2])
-        .mockReturnValueOnce(mockSegments[3])
 
       route = Route.fromWaypoints(routeWaypoints, router)
 
@@ -571,11 +606,10 @@ describe('Route', () => {
 
       const result = route.recalculateAffectedSegments(1, router)
 
-      expect(result.segments).toHaveLength(4)
-      expect(result.segments[0]).toEqual(route.segments[0]) // First segment unchanged (empty)
-      expect(result.segments[1]).toEqual(newSegment1) // Recalculated
-      expect(result.segments[2]).toEqual(newSegment2) // Recalculated
-      expect(result.segments[3]).toEqual(route.segments[3]) // Last segment unchanged
+      expect(result.segments).toHaveLength(3)
+      expect(result.segments[0]).toEqual(newSegment1) // Recalculated
+      expect(result.segments[1]).toEqual(newSegment2) // Recalculated
+      expect(result.segments[2]).toEqual(route.segments[2]) // Last segment unchanged
     })
 
     it('should only recalculate segment after first waypoint', () => {
@@ -588,11 +622,10 @@ describe('Route', () => {
 
       const result = route.recalculateAffectedSegments(0, router)
 
-      expect(result.segments).toHaveLength(4)
-      expect(result.segments[0]).toEqual(route.segments[0]) // First segment unchanged (empty)
-      expect(result.segments[1]).toEqual(newSegment) // Recalculated
+      expect(result.segments).toHaveLength(3)
+      expect(result.segments[0]).toEqual(newSegment) // Recalculated
+      expect(result.segments[1]).toEqual(route.segments[1]) // Unchanged
       expect(result.segments[2]).toEqual(route.segments[2]) // Unchanged
-      expect(result.segments[3]).toEqual(route.segments[3]) // Unchanged
     })
 
     it('should only recalculate segment before last waypoint', () => {
@@ -605,14 +638,13 @@ describe('Route', () => {
 
       const result = route.recalculateAffectedSegments(3, router)
 
-      expect(result.segments).toHaveLength(4)
-      expect(result.segments[0]).toEqual(route.segments[0]) // First segment unchanged (empty)
-      expect(result.segments[1]).toEqual(route.segments[1]) // Unchanged
+      expect(result.segments).toHaveLength(3)
+      expect(result.segments[0]).toEqual(route.segments[0]) // First segment unchanged
       expect(router.createStraightSegment).toHaveBeenCalledWith(
         route.waypoints[2],
         route.waypoints[3]
       )
-      expect(result.segments[3]).toEqual(newSegment) // Should be the recalcuated segment
+      expect(result.segments[2]).toEqual(newSegment) // Should be the recalculated segment
     })
 
     it('should recalculate only segment before waypoint when no segment after', () => {
@@ -645,9 +677,8 @@ describe('Route', () => {
 
       const result = twoWaypointRoute.recalculateAffectedSegments(1, testRouter)
 
-      expect(result.segments).toHaveLength(2)
-      expect(result.segments[0]).toEqual(twoWaypointRoute.segments[0]) // Marker unchanged
-      expect(result.segments[1]).toEqual(newSegment) // Recalculated
+      expect(result.segments).toHaveLength(1)
+      expect(result.segments[0]).toEqual(newSegment) // Recalculated
     })
 
     it('should preserve elevation data after recalculation', () => {
