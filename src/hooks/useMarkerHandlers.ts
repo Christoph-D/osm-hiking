@@ -15,12 +15,7 @@ import { LeafletEvent } from 'leaflet'
 import { Router } from '../services/router'
 import { RouteWaypoint } from '../types'
 import { Route } from '../services/route'
-import {
-  createNodeWaypoint,
-  createCustomWaypoint,
-  deleteWaypoint,
-  recalculateAffectedSegments,
-} from '../utils/mapHelpers'
+import { createNodeWaypoint, createCustomWaypoint } from '../utils/mapHelpers'
 import { getSnapToNodeThreshold } from '../constants/waypoints'
 import { useRouteStore } from '../store/useRouteStore'
 import { useRouterStore } from '../store/routerStore'
@@ -75,8 +70,7 @@ function processMarkerPosition(
   )
 
   // Use optimized recalculation that only updates affected segments
-  const updatedRoute = recalculateAffectedSegments(
-    routeWithUpdatedWaypoint,
+  const updatedRoute = routeWithUpdatedWaypoint.recalculateAffectedSegments(
     index,
     router
   )
@@ -189,7 +183,7 @@ export function useMarkerHandlers({
         origEvent.stopPropagation()
       }
 
-      const newRoute = deleteWaypoint(route, index, router)
+      const newRoute = route.deleteWaypoint(index, router)
       setRoute(newRoute)
     },
     [router, route, setRoute]

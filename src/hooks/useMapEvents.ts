@@ -16,11 +16,7 @@ import { useMapEvents as useLeafletMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { Router } from '../services/router'
 import { Route } from '../services/route'
-import {
-  determineWaypointType,
-  addWaypointToRoute,
-  isPointInBbox,
-} from '../utils/mapHelpers'
+import { determineWaypointType, isPointInBbox } from '../utils/mapHelpers'
 import { useMapDataStore } from '../store/mapDataStore'
 import { useRouterStore } from '../store/routerStore'
 import { useRouteStore } from '../store/useRouteStore'
@@ -103,7 +99,7 @@ export function useMapEvents({
       }
 
       // For subsequent waypoints, add waypoint to route with optimized recalculation
-      const newRoute = addWaypointToRoute(route, routeWaypoint, router)
+      const newRoute = route.addWaypoint(routeWaypoint, router)
       setRoute(newRoute)
     },
     [setRoute, setError]
