@@ -68,7 +68,6 @@ export function createMockRoute(overrides?: Partial<Route>): Route {
       { type: 'custom', lat: 50.0, lon: 10.0 },
       { type: 'custom', lat: 50.002, lon: 10.002 },
     ],
-    314,
     undefined,
     undefined
   )
@@ -77,7 +76,6 @@ export function createMockRoute(overrides?: Partial<Route>): Route {
     return new Route(
       overrides.segments || defaultRoute.segments,
       overrides.waypoints || defaultRoute.waypoints,
-      overrides.totalDistance || defaultRoute.totalDistance,
       overrides.elevationProfile || defaultRoute.elevationProfile,
       overrides.elevationStats || defaultRoute.elevationStats
     )

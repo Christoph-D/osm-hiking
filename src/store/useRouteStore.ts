@@ -6,7 +6,6 @@ import {
   RouteWaypoint,
 } from '../types'
 import { Route } from '../services/route'
-import { calculateTotalDistance } from '../utils/mapHelpers'
 
 interface RouteState {
   route: Route | null
@@ -28,16 +27,14 @@ export const useRouteStore = create<RouteState>((set) => ({
 
   addSegment: (segment, routeWaypoint) =>
     set((state) => {
-      const currentRoute = state.route || new Route([], [], 0)
+      const currentRoute = state.route || new Route([], [])
 
       const newSegments = [...currentRoute.segments, segment]
-      const totalDistance = calculateTotalDistance(newSegments)
 
       return {
         route: new Route(
           newSegments,
           [...currentRoute.waypoints, routeWaypoint],
-          totalDistance,
           // Clear elevation data when route changes
           undefined,
           undefined
@@ -50,7 +47,6 @@ export const useRouteStore = create<RouteState>((set) => ({
       route: new Route(
         route.segments,
         route.waypoints,
-        route.totalDistance,
         // Clear elevation data when route changes
         undefined,
         undefined
@@ -67,7 +63,6 @@ export const useRouteStore = create<RouteState>((set) => ({
         route: new Route(
           state.route.segments,
           state.route.waypoints,
-          state.route.totalDistance,
           profile,
           stats
         ),
