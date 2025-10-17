@@ -17,7 +17,7 @@ import { Route, RouteWaypoint } from '../types'
 import {
   createNodeWaypoint,
   createCustomWaypoint,
-  recalculateAllSegments,
+  deleteWaypoint,
   recalculateAffectedSegments,
 } from '../utils/mapHelpers'
 import { getSnapToNodeThreshold } from '../constants/waypoints'
@@ -91,7 +91,7 @@ export function useMarkerHandlers({
   mapCenter,
   currentZoom,
 }: UseMarkerHandlersParams) {
-  const { setRoute, clearRoute } = useRouteStore()
+  const { setRoute } = useRouteStore()
   const { router } = useRouterStore()
   const handleMarkerDragStart = useCallback(() => {
     isDraggingMarkerRef.current = true
@@ -186,23 +186,10 @@ export function useMarkerHandlers({
         origEvent.stopPropagation()
       }
 
-      // Create new array without the deleted waypoint
-      const newRouteWaypoints = [...route.waypoints]
-      newRouteWaypoints.splice(index, 1)
-
-      // If no waypoints left, clear everything
-      if (newRouteWaypoints.length === 0) {
-        clearRoute()
-        return
-      }
-
-      // Recalculate all segments since waypoint deletion changes the route structure
-      const newRoute = recalculateAllSegments(newRouteWaypoints, router)
-
-      // Update the route store
+      const newRoute = deleteWaypoint(route, index, router)
       setRoute(newRoute)
     },
-    [router, route, setRoute, clearRoute]
+    [router, route, setRoute]
   )
 
   return {

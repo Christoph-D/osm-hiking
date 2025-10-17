@@ -133,7 +133,7 @@ export function Controls({
           </button>
           <button
             onClick={onClearRoute}
-            disabled={!route}
+            disabled={!route || route.waypoints.length == 0}
             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium"
           >
             Clear Route
