@@ -19,6 +19,11 @@ export class Route {
     elevationProfile?: ElevationPoint[],
     elevationStats?: ElevationStats
   ) {
+    if (segments.length !== waypoints.length) {
+      throw new Error(
+        `Segments and waypoints must have the same length. Got ${segments.length} segments and ${waypoints.length} waypoints.`
+      )
+    }
     this.#segments = segments
     this.#waypoints = waypoints
     this.#totalDistance = calculateTotalDistance(segments)

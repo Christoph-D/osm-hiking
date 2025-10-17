@@ -93,7 +93,6 @@ describe('exportRouteAsGPX', () => {
       [
         { type: 'custom', lat: 50.0, lon: 10.0 },
         { type: 'custom', lat: 50.1, lon: 10.1 },
-        { type: 'custom', lat: 50.2, lon: 10.2 },
       ]
     )
 
