@@ -195,7 +195,7 @@ export function collectRouteCoordinates(route: Route): Waypoint[] {
   for (let i = 0; i < route.segments.length; i++) {
     const segment = route.segments[i]
     if (i === 0) {
-      // First segment: include all coordinates (usually just one point)
+      // First segment: include all coordinates
       allCoordinates.push(...segment.coordinates)
     } else {
       // Check if this segment connects to the previous one

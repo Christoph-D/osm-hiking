@@ -20,6 +20,14 @@ function createTestWaypoint(lat: number, lon: number): CustomWaypoint {
 // Mock the Route module
 vi.mock('../services/route', () => ({
   Route: vi.fn((segments, waypoints, elevationProfile, elevationStats) => {
+    // Enforce the new segment structure: segments.length === waypoints.length - 1
+    const expectedSegmentsLength = Math.max(0, waypoints.length - 1)
+    if (segments.length !== expectedSegmentsLength) {
+      throw new Error(
+        `Segments length must be waypoints.length - 1. Got ${segments.length} segments and ${waypoints.length} waypoints (expected ${expectedSegmentsLength} segments).`
+      )
+    }
+
     // Create a mock Route object that has the same interface as the real Route
     const totalDistance = segments.reduce(
       (sum: number, segment: { distance: number }) => sum + segment.distance,
@@ -70,10 +78,10 @@ describe('useRouteStore', () => {
 
       const state = useRouteStore.getState()
       expect(state.route).not.toBeNull()
-      expect(state.route?.segments).toHaveLength(1)
+      expect(state.route?.segments).toHaveLength(0) // First waypoint creates 0 segments
       expect(state.route?.waypoints).toHaveLength(1)
       expect(state.route?.waypoints[0]).toEqual(routeWaypoint)
-      expect(state.route?.totalDistance).toBe(1000)
+      expect(state.route?.totalDistance).toBe(0) // No segments = no distance
     })
 
     it('should add segment to existing route', () => {
@@ -99,9 +107,9 @@ describe('useRouteStore', () => {
       useRouteStore.getState().addSegment(segment2, routeWaypoint2)
 
       const state = useRouteStore.getState()
-      expect(state.route?.segments).toHaveLength(2)
+      expect(state.route?.segments).toHaveLength(1) // 2 waypoints = 1 segment
       expect(state.route?.waypoints).toHaveLength(2)
-      expect(state.route?.totalDistance).toBe(2500)
+      expect(state.route?.totalDistance).toBe(1500) // Only the second segment is created
     })
 
     it('should calculate total distance correctly', () => {
@@ -139,11 +147,13 @@ describe('useRouteStore', () => {
       })
 
       const state = useRouteStore.getState()
-      expect(state.route?.totalDistance).toBe(1500)
+      // With 4 waypoints (first creates no segment, then 3 more segments), we get 3 segments
+      // The first segment is not added (first waypoint), so total is 700 + 300 = 1000
+      expect(state.route?.totalDistance).toBe(1000)
     })
 
     it('should clear elevation data when adding segment', () => {
-      // Add initial segment with elevation data
+      // Add initial waypoint with elevation data
       const segment1: RouteSegment = {
         coordinates: [
           { lat: 50.0, lon: 10.0 },
@@ -160,7 +170,7 @@ describe('useRouteStore', () => {
       const stats: ElevationStats = { gain: 0, loss: 0, min: 100, max: 100 }
       useRouteStore.getState().setElevationData(profile, stats)
 
-      // Add another segment
+      // Add another waypoint (this will create first segment)
       const segment2: RouteSegment = {
         coordinates: [
           { lat: 50.1, lon: 10.1 },
@@ -224,7 +234,7 @@ describe('useRouteStore', () => {
 
   describe('setElevationData', () => {
     beforeEach(() => {
-      // Set up a route first
+      // Set up a route with one waypoint first
       const segment: RouteSegment = {
         coordinates: [
           { lat: 50.0, lon: 10.0 },
@@ -346,7 +356,7 @@ describe('useRouteStore', () => {
     })
 
     it('should handle complete route lifecycle', () => {
-      // Add segments
+      // Add waypoints
       const segment1: RouteSegment = {
         coordinates: [
           { lat: 50.0, lon: 10.0 },

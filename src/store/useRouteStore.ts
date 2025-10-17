@@ -29,6 +29,20 @@ export const useRouteStore = create<RouteState>((set) => ({
     set((state) => {
       const currentRoute = state.route || new Route([], [])
 
+      // If this is the first waypoint, we can't add a segment yet
+      if (currentRoute.waypoints.length === 0) {
+        return {
+          route: new Route(
+            [], // No segments yet
+            [routeWaypoint],
+            // Clear elevation data when route changes
+            undefined,
+            undefined
+          ),
+        }
+      }
+
+      // Add segment connecting last waypoint to new waypoint
       const newSegments = [...currentRoute.segments, segment]
 
       return {
