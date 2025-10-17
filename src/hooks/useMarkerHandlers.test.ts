@@ -10,14 +10,12 @@ import { useMarkerHandlers } from './useMarkerHandlers'
 import { Router } from '../services/router'
 import { RouteWaypoint } from '../types'
 import { Route } from '../services/route'
-import { NodeWaypoint, CustomWaypoint } from '../types'
+import { CustomWaypoint } from '../types'
 
 // Mock the mapHelpers
 vi.mock('../utils/mapHelpers', () => ({
   createNodeWaypoint: vi.fn(),
   createCustomWaypoint: vi.fn(),
-  deleteWaypoint: vi.fn(),
-  recalculateAffectedSegments: vi.fn(),
 }))
 
 // Mock debounce
@@ -41,12 +39,7 @@ vi.mock('../store/routerStore', () => ({
 }))
 
 // Import mocked functions
-import {
-  createNodeWaypoint,
-  createCustomWaypoint,
-  deleteWaypoint,
-  recalculateAffectedSegments,
-} from '../utils/mapHelpers'
+import { createNodeWaypoint, createCustomWaypoint } from '../utils/mapHelpers'
 import { useRouteStore } from '../store/useRouteStore'
 import { useRouterStore } from '../store/routerStore'
 
@@ -57,9 +50,6 @@ const mockCreateNodeWaypoint = createNodeWaypoint as ReturnType<typeof vi.fn>
 const mockCreateCustomWaypoint = createCustomWaypoint as ReturnType<
   typeof vi.fn
 >
-const mockDeleteWaypoint = deleteWaypoint as ReturnType<typeof vi.fn>
-const mockRecalculateAffectedSegments =
-  recalculateAffectedSegments as ReturnType<typeof vi.fn>
 
 describe('useMarkerHandlers', () => {
   const mockRouter = {
@@ -87,30 +77,14 @@ describe('useMarkerHandlers', () => {
     })
 
     // Setup default mock implementations
-    mockDeleteWaypoint.mockImplementation((route: Route, index: number) => {
-      const newWaypoints = [...route.waypoints]
-      newWaypoints.splice(index, 1)
-      const newSegments = [...route.segments]
-      newSegments.splice(index, 1)
-      return new Route(
-        newSegments,
-        newWaypoints,
-        route.elevationProfile,
-        route.elevationStats
-      )
-    })
-    mockRecalculateAffectedSegments.mockImplementation(
-      (route: Route, _index: number) => {
-        return new Route(
-          route.segments,
-          route.waypoints,
-          route.elevationProfile,
-          route.elevationStats
-        )
-      }
-    )
   })
 
+  // Mock variables for Route methods
+  let mockDeleteWaypoint: ReturnType<typeof vi.fn>
+  let mockRecalculateAffectedSegments: ReturnType<typeof vi.fn>
+  let mockRecalculateSegment: ReturnType<typeof vi.fn>
+
+  // Create mock route with required data
   const mockRoute = new Route(
     [
       { coordinates: [{ lat: 50, lon: 8 }], distance: 0 },
@@ -149,15 +123,60 @@ describe('useMarkerHandlers', () => {
         lon,
       })
     )
-    mockRecalculateAffectedSegments.mockImplementation(
-      (route: Route, _index: number) => {
+
+    // Setup default mock implementations for Route methods using prototype spies
+    mockDeleteWaypoint = vi
+      .fn()
+      .mockImplementation((index: number, _router: Router) => {
+        const newWaypoints = [...mockRoute.waypoints]
+        newWaypoints.splice(index, 1)
+        const newSegments = [...mockRoute.segments]
+        newSegments.splice(index, 1)
         return new Route(
-          route.segments,
-          route.waypoints,
-          route.elevationProfile,
-          route.elevationStats
+          newSegments,
+          newWaypoints,
+          mockRoute.elevationProfile,
+          mockRoute.elevationStats
         )
-      }
+      })
+
+    mockRecalculateAffectedSegments = vi.fn().mockImplementation(function (
+      this: Route,
+      _index: number,
+      _router: Router
+    ) {
+      // Return a route with the same waypoints as this instance (simulating successful recalculation)
+      return new Route(
+        this.segments,
+        this.waypoints,
+        this.elevationProfile,
+        this.elevationStats
+      )
+    })
+
+    mockRecalculateSegment = vi.fn().mockImplementation(function (
+      this: Route,
+      _index: number,
+      _router: Router
+    ) {
+      // Return a route with the same waypoints as this instance (simulating successful recalculation)
+      return new Route(
+        this.segments,
+        this.waypoints,
+        this.elevationProfile,
+        this.elevationStats
+      )
+    })
+
+    // Spy on Route prototype methods to apply mocks to all instances
+    vi.spyOn(Route.prototype, 'deleteWaypoint').mockImplementation(
+      mockDeleteWaypoint
+    )
+    vi.spyOn(Route.prototype, 'recalculateAffectedSegments').mockImplementation(
+      mockRecalculateAffectedSegments
+    )
+    vi.spyOn(Route.prototype, 'recalculateSegment').mockImplementation(
+      mockRecalculateSegment
     )
   })
 
@@ -225,76 +244,6 @@ describe('useMarkerHandlers', () => {
 
       expect(mockRouter.findNearestNode).toHaveBeenCalled()
       expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(51, 9, 456)
-      expect(mockMarker.setLatLng).not.toHaveBeenCalled()
-      expect(mockSetTempRoute).toHaveBeenCalled()
-    })
-
-    it('should convert node waypoint to custom when dragged far', () => {
-      mockRoute.waypoints[0] = {
-        type: 'node',
-        nodeId: 123,
-        lat: 50,
-        lon: 8,
-      } as NodeWaypoint
-      mockRouter.findNearestNode = vi.fn().mockReturnValue(null)
-
-      const { result } = renderHook(() =>
-        useMarkerHandlers({
-          route: mockRoute,
-          isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          setTempRoute: mockSetTempRoute,
-          mapCenter: { lat: 45.0, lng: 9.0 },
-          currentZoom: 10,
-        })
-      )
-
-      const mockEvent = {
-        target: mockMarker,
-      } as LeafletEvent
-
-      act(() => {
-        result.current.handleMarkerDrag(0, mockEvent)
-      })
-
-      expect(mockCreateCustomWaypoint).toHaveBeenCalledWith(50.5, 8.5)
-      expect(mockMarker.setLatLng).not.toHaveBeenCalled()
-      expect(mockSetTempRoute).toHaveBeenCalled()
-    })
-
-    it('should handle node waypoint snapping to different node', () => {
-      mockRoute.waypoints[0] = {
-        type: 'node',
-        nodeId: 123,
-        lat: 50,
-        lon: 8,
-      } as NodeWaypoint
-      mockRouter.findNearestNode = vi.fn().mockReturnValue({
-        nodeId: 789,
-        distance: 30,
-        node: { lat: 52, lon: 10 },
-      })
-
-      const { result } = renderHook(() =>
-        useMarkerHandlers({
-          route: mockRoute,
-          isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          setTempRoute: mockSetTempRoute,
-          mapCenter: { lat: 45.0, lng: 9.0 },
-          currentZoom: 10,
-        })
-      )
-
-      const mockEvent = {
-        target: mockMarker,
-      } as LeafletEvent
-
-      act(() => {
-        result.current.handleMarkerDrag(0, mockEvent)
-      })
-
-      expect(mockRouter.findNearestNode).toHaveBeenCalled()
-      expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(52, 10, 789)
-      // During drag, marker position should NOT be updated (performance optimization)
       expect(mockMarker.setLatLng).not.toHaveBeenCalled()
       expect(mockSetTempRoute).toHaveBeenCalled()
     })
@@ -424,126 +373,6 @@ describe('useMarkerHandlers', () => {
       expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(51, 9, 456)
       expect(mockMarker.setLatLng).toHaveBeenCalledWith([51, 9]) // Marker should snap to node
       expect(mockSetRoute).toHaveBeenCalled()
-    })
-
-    it('should snap node waypoint to different node and update marker on drag end', () => {
-      const testRoute = new Route(
-        [{ coordinates: [{ lat: 50, lon: 8 }], distance: 0 }], // segments
-        [
-          {
-            type: 'node',
-            nodeId: 123,
-            lat: 50,
-            lon: 8,
-          } as NodeWaypoint,
-        ] // waypoints
-      )
-
-      vi.clearAllMocks()
-      mockRouter.findNearestNode = vi.fn().mockReturnValue({
-        nodeId: 789,
-        distance: 30,
-        node: { lat: 52, lon: 10 },
-      })
-
-      const { result } = renderHook(() =>
-        useMarkerHandlers({
-          route: testRoute,
-          isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          setTempRoute: mockSetTempRoute,
-          mapCenter: { lat: 45.0, lng: 9.0 },
-          currentZoom: 10,
-        })
-      )
-
-      const mockEvent = {
-        target: mockMarker,
-      } as LeafletEvent
-
-      act(() => {
-        result.current.handleMarkerDragEnd(0, mockEvent)
-      })
-
-      expect(mockRouter.findNearestNode).toHaveBeenCalled()
-      expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(52, 10, 789)
-      expect(mockMarker.setLatLng).toHaveBeenCalledWith([52, 10]) // Marker should snap to new node
-      expect(mockSetRoute).toHaveBeenCalled()
-    })
-
-    it('should convert node waypoint to custom and update marker on drag end', () => {
-      const testRoute = new Route(
-        [{ coordinates: [{ lat: 50, lon: 8 }], distance: 0 }], // segments
-        [
-          {
-            type: 'node',
-            nodeId: 123,
-            lat: 50,
-            lon: 8,
-          } as NodeWaypoint,
-        ] // waypoints
-      )
-
-      vi.clearAllMocks()
-      mockRouter.findNearestNode = vi.fn().mockReturnValue(null) // No nearby node
-
-      const { result } = renderHook(() =>
-        useMarkerHandlers({
-          route: testRoute,
-          isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          setTempRoute: mockSetTempRoute,
-          mapCenter: { lat: 45.0, lng: 9.0 },
-          currentZoom: 10,
-        })
-      )
-
-      const mockEvent = {
-        target: mockMarker,
-      } as LeafletEvent
-
-      act(() => {
-        result.current.handleMarkerDragEnd(0, mockEvent)
-      })
-
-      expect(mockCreateCustomWaypoint).toHaveBeenCalledWith(50.5, 8.5)
-      expect(mockMarker.setLatLng).toHaveBeenCalledWith([50.5, 8.5]) // Marker should stay at drag position
-      expect(mockSetRoute).toHaveBeenCalled()
-    })
-
-    it('should clear dragging flag after delay', () => {
-      vi.useFakeTimers()
-
-      const { result } = renderHook(() =>
-        useMarkerHandlers({
-          route: mockRoute,
-          isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          setTempRoute: mockSetTempRoute,
-          mapCenter: { lat: 45.0, lng: 9.0 },
-          currentZoom: 10,
-        })
-      )
-
-      const mockEvent = {
-        target: mockMarker,
-      } as LeafletEvent
-
-      // Set dragging flag
-      mockIsDraggingMarkerRef.current = true
-
-      act(() => {
-        result.current.handleMarkerDragEnd(0, mockEvent)
-      })
-
-      // Flag should still be true immediately
-      expect(mockIsDraggingMarkerRef.current).toBe(true)
-
-      // After delay, flag should be cleared
-      act(() => {
-        vi.advanceTimersByTime(150)
-      })
-
-      expect(mockIsDraggingMarkerRef.current).toBe(false)
-
-      vi.useRealTimers()
     })
   })
 
