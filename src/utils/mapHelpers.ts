@@ -23,6 +23,31 @@ import { Router } from '../services/router'
 import { getCustomWaypointThreshold } from '../constants/waypoints'
 
 /**
+ * Creates a route segment with fallback logic (local helper for mapHelpers)
+ * Tries routing first for node-to-node connections, falls back to straight line if routing fails
+ */
+function createSegmentWithFallback(
+  fromWaypoint: RouteWaypoint,
+  toWaypoint: RouteWaypoint,
+  router: Router
+): RouteSegment {
+  if (fromWaypoint.type === 'node' && toWaypoint.type === 'node') {
+    // Both are node waypoints - try routing first
+    const segment = router.route(
+      (fromWaypoint as NodeWaypoint).nodeId,
+      (toWaypoint as NodeWaypoint).nodeId
+    )
+    if (segment) {
+      return segment
+    }
+    // Fallback to straight line if routing fails
+  }
+
+  // Default to straight line for mixed waypoint types or routing fallback
+  return router.createStraightSegment(fromWaypoint, toWaypoint)
+}
+
+/**
  * Gets the current bounding box from the map
  */
 export function getCurrentBbox(map: L.Map) {
@@ -155,34 +180,6 @@ export function findInsertionIndex(
 }
 
 /**
- * Recalculates all route segments
- */
-export function recalculateAllSegments(
-  waypoints: RouteWaypoint[],
-  router: Router
-): Route {
-  const newSegments: RouteSegment[] = []
-
-  for (let i = 0; i < waypoints.length; i++) {
-    if (i === 0) {
-      // First waypoint - just a marker
-      newSegments.push({
-        coordinates: [{ lat: waypoints[i].lat, lon: waypoints[i].lon }],
-        distance: 0,
-      })
-    } else {
-      const fromWaypoint = waypoints[i - 1]
-      const toWaypoint = waypoints[i]
-      newSegments.push(
-        createSegmentWithFallback(fromWaypoint, toWaypoint, router)
-      )
-    }
-  }
-
-  return new Route(newSegments, waypoints)
-}
-
-/**
  * Deletes a waypoint from a route and recalculates only the affected segments
  * Optimized to only recalculate the segment that connects the waypoints around the deleted waypoint
  *
@@ -251,31 +248,6 @@ export function deleteWaypoint(
   }
 
   return new Route(newSegments, newWaypoints)
-}
-
-/**
- * Creates a route segment with fallback logic
- * Tries routing first for node-to-node connections, falls back to straight line if routing fails
- */
-export function createSegmentWithFallback(
-  fromWaypoint: RouteWaypoint,
-  toWaypoint: RouteWaypoint,
-  router: Router
-): RouteSegment {
-  if (fromWaypoint.type === 'node' && toWaypoint.type === 'node') {
-    // Both are node waypoints - try routing first
-    const segment = router.route(
-      (fromWaypoint as NodeWaypoint).nodeId,
-      (toWaypoint as NodeWaypoint).nodeId
-    )
-    if (segment) {
-      return segment
-    }
-    // Fallback to straight line if routing fails
-  }
-
-  // Default to straight line for mixed waypoint types or routing fallback
-  return router.createStraightSegment(fromWaypoint, toWaypoint)
 }
 
 /**
