@@ -7,6 +7,7 @@ import {
   Waypoint,
   CustomWaypoint,
 } from '../types'
+import { Route } from '../services/route'
 
 // Helper function to create a custom waypoint for tests
 function createTestWaypoint(lat: number, lon: number): CustomWaypoint {
@@ -63,141 +64,17 @@ describe('useRouteStore', () => {
     })
   })
 
-  describe('addSegment', () => {
-    it('should add first segment and waypoint to empty route', () => {
-      const segment: RouteSegment = {
-        coordinates: [
-          { lat: 50.0, lon: 10.0 },
-          { lat: 50.1, lon: 10.1 },
-        ],
-        distance: 1000,
-      }
-      const routeWaypoint = createTestWaypoint(50.0, 10.0)
-
-      useRouteStore.getState().addSegment(segment, routeWaypoint)
-
-      const state = useRouteStore.getState()
-      expect(state.route).not.toBeNull()
-      expect(state.route?.segments).toHaveLength(0) // First waypoint creates 0 segments
-      expect(state.route?.waypoints).toHaveLength(1)
-      expect(state.route?.waypoints[0]).toEqual(routeWaypoint)
-      expect(state.route?.totalDistance).toBe(0) // No segments = no distance
-    })
-
-    it('should add segment to existing route', () => {
-      const segment1: RouteSegment = {
-        coordinates: [
-          { lat: 50.0, lon: 10.0 },
-          { lat: 50.1, lon: 10.1 },
-        ],
-        distance: 1000,
-      }
-      const segment2: RouteSegment = {
-        coordinates: [
-          { lat: 50.1, lon: 10.1 },
-          { lat: 50.2, lon: 10.2 },
-        ],
-        distance: 1500,
-      }
-
-      const routeWaypoint1 = createTestWaypoint(50.0, 10.0)
-      const routeWaypoint2 = createTestWaypoint(50.1, 10.1)
-
-      useRouteStore.getState().addSegment(segment1, routeWaypoint1)
-      useRouteStore.getState().addSegment(segment2, routeWaypoint2)
-
-      const state = useRouteStore.getState()
-      expect(state.route?.segments).toHaveLength(1) // 2 waypoints = 1 segment
-      expect(state.route?.waypoints).toHaveLength(2)
-      expect(state.route?.totalDistance).toBe(1500) // Only the second segment is created
-    })
-
-    it('should calculate total distance correctly', () => {
-      const segments = [
-        {
-          coordinates: [
-            { lat: 50.0, lon: 10.0 },
-            { lat: 50.1, lon: 10.1 },
-          ],
-          distance: 500,
-        },
-        {
-          coordinates: [
-            { lat: 50.1, lon: 10.1 },
-            { lat: 50.2, lon: 10.2 },
-          ],
-          distance: 700,
-        },
-        {
-          coordinates: [
-            { lat: 50.2, lon: 10.2 },
-            { lat: 50.3, lon: 10.3 },
-          ],
-          distance: 300,
-        },
-      ] as RouteSegment[]
-
-      segments.forEach((seg) => {
-        const waypoint = {
-          lat: seg.coordinates[0].lat,
-          lon: seg.coordinates[0].lon,
-        }
-        const routeWaypoint = createTestWaypoint(waypoint.lat, waypoint.lon)
-        useRouteStore.getState().addSegment(seg, routeWaypoint)
-      })
-
-      const state = useRouteStore.getState()
-      // With 4 waypoints (first creates no segment, then 3 more segments), we get 3 segments
-      // The first segment is not added (first waypoint), so total is 700 + 300 = 1000
-      expect(state.route?.totalDistance).toBe(1000)
-    })
-
-    it('should clear elevation data when adding segment', () => {
-      // Add initial waypoint with elevation data
-      const segment1: RouteSegment = {
-        coordinates: [
-          { lat: 50.0, lon: 10.0 },
-          { lat: 50.1, lon: 10.1 },
-        ],
-        distance: 1000,
-      }
-      const routeWaypoint = createTestWaypoint(50.0, 10.0)
-      useRouteStore.getState().addSegment(segment1, routeWaypoint)
-
-      const profile: ElevationPoint[] = [
-        { distance: 0, elevation: 100, lat: 50.0, lon: 10.0 },
-      ]
-      const stats: ElevationStats = { gain: 0, loss: 0, min: 100, max: 100 }
-      useRouteStore.getState().setElevationData(profile, stats)
-
-      // Add another waypoint (this will create first segment)
-      const segment2: RouteSegment = {
-        coordinates: [
-          { lat: 50.1, lon: 10.1 },
-          { lat: 50.2, lon: 10.2 },
-        ],
-        distance: 1000,
-      }
-      const routeWaypoint2 = createTestWaypoint(50.1, 10.1)
-      useRouteStore.getState().addSegment(segment2, routeWaypoint2)
-
-      const state = useRouteStore.getState()
-      expect(state.route?.elevationProfile).toBeUndefined()
-      expect(state.route?.elevationStats).toBeUndefined()
-    })
-  })
-
   describe('clearRoute', () => {
     it('should reset route to null', () => {
-      const segment: RouteSegment = {
-        coordinates: [
-          { lat: 50.0, lon: 10.0 },
-          { lat: 50.1, lon: 10.1 },
-        ],
-        distance: 1000,
-      }
+      // Create a test route directly
       const routeWaypoint = createTestWaypoint(50.0, 10.0)
-      useRouteStore.getState().addSegment(segment, routeWaypoint)
+      const testRoute = new Route(
+        [], // no segments for single waypoint
+        [routeWaypoint],
+        undefined, // elevationProfile
+        undefined // elevationStats
+      )
+      useRouteStore.getState().setRoute(testRoute)
 
       useRouteStore.getState().clearRoute()
 
@@ -235,15 +112,14 @@ describe('useRouteStore', () => {
   describe('setElevationData', () => {
     beforeEach(() => {
       // Set up a route with one waypoint first
-      const segment: RouteSegment = {
-        coordinates: [
-          { lat: 50.0, lon: 10.0 },
-          { lat: 50.1, lon: 10.1 },
-        ],
-        distance: 1000,
-      }
       const routeWaypoint = createTestWaypoint(50.0, 10.0)
-      useRouteStore.getState().addSegment(segment, routeWaypoint)
+      const testRoute = new Route(
+        [], // no segments for single waypoint
+        [routeWaypoint],
+        undefined, // elevationProfile
+        undefined // elevationStats
+      )
+      useRouteStore.getState().setRoute(testRoute)
     })
 
     it('should store elevation profile and stats', () => {
@@ -337,17 +213,43 @@ describe('useRouteStore', () => {
         { lat: 50.3, lon: 10.3 },
       ]
 
-      waypoints.forEach((wp) => {
-        const segment: RouteSegment = {
+      // Create route waypoints directly
+      const routeWaypoints = waypoints.map((wp) =>
+        createTestWaypoint(wp.lat, wp.lon)
+      )
+
+      // Create segments (waypoints.length - 1)
+      const segments: RouteSegment[] = [
+        {
           coordinates: [
-            { lat: wp.lat, lon: wp.lon },
-            { lat: wp.lat + 0.01, lon: wp.lon + 0.01 },
+            { lat: 50.0, lon: 10.0 },
+            { lat: 50.1, lon: 10.1 },
           ],
           distance: 100,
-        }
-        const routeWaypoint = createTestWaypoint(wp.lat, wp.lon)
-        useRouteStore.getState().addSegment(segment, routeWaypoint)
-      })
+        },
+        {
+          coordinates: [
+            { lat: 50.1, lon: 10.1 },
+            { lat: 50.2, lon: 10.2 },
+          ],
+          distance: 100,
+        },
+        {
+          coordinates: [
+            { lat: 50.2, lon: 10.2 },
+            { lat: 50.3, lon: 10.3 },
+          ],
+          distance: 100,
+        },
+      ]
+
+      const testRoute = new Route(
+        segments,
+        routeWaypoints,
+        undefined, // elevationProfile
+        undefined // elevationStats
+      )
+      useRouteStore.getState().setRoute(testRoute)
 
       const state = useRouteStore.getState()
       expect(
@@ -356,7 +258,9 @@ describe('useRouteStore', () => {
     })
 
     it('should handle complete route lifecycle', () => {
-      // Add waypoints
+      // Create a test route with waypoints and segments
+      const routeWaypoint1 = createTestWaypoint(50.0, 10.0)
+      const routeWaypoint2 = createTestWaypoint(50.1, 10.1)
       const segment1: RouteSegment = {
         coordinates: [
           { lat: 50.0, lon: 10.0 },
@@ -364,10 +268,14 @@ describe('useRouteStore', () => {
         ],
         distance: 1000,
       }
-      const routeWaypoint1 = createTestWaypoint(50.0, 10.0)
-      const routeWaypoint2 = createTestWaypoint(50.1, 10.1)
-      useRouteStore.getState().addSegment(segment1, routeWaypoint1)
-      useRouteStore.getState().addSegment(segment1, routeWaypoint2)
+
+      const testRoute = new Route(
+        [segment1],
+        [routeWaypoint1, routeWaypoint2],
+        undefined, // elevationProfile
+        undefined // elevationStats
+      )
+      useRouteStore.getState().setRoute(testRoute)
 
       // Set elevation data
       const profile: ElevationPoint[] = [
@@ -385,15 +293,14 @@ describe('useRouteStore', () => {
     })
 
     it('should handle error state with route data', () => {
-      const segment: RouteSegment = {
-        coordinates: [
-          { lat: 50.0, lon: 10.0 },
-          { lat: 50.1, lon: 10.1 },
-        ],
-        distance: 1000,
-      }
       const routeWaypoint = createTestWaypoint(50.0, 10.0)
-      useRouteStore.getState().addSegment(segment, routeWaypoint)
+      const testRoute = new Route(
+        [], // no segments for single waypoint
+        [routeWaypoint],
+        undefined, // elevationProfile
+        undefined // elevationStats
+      )
+      useRouteStore.getState().setRoute(testRoute)
       useRouteStore.getState().setError('Failed to fetch elevation')
 
       const state = useRouteStore.getState()
