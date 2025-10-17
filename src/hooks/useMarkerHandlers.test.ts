@@ -18,7 +18,6 @@ vi.mock('../utils/mapHelpers', () => ({
   createCustomWaypoint: vi.fn(),
   deleteWaypoint: vi.fn(),
   recalculateAffectedSegments: vi.fn(),
-  calculateTotalDistance: vi.fn(),
 }))
 
 // Mock debounce
@@ -47,7 +46,6 @@ import {
   createCustomWaypoint,
   deleteWaypoint,
   recalculateAffectedSegments,
-  calculateTotalDistance,
 } from '../utils/mapHelpers'
 import { useRouteStore } from '../store/useRouteStore'
 import { useRouterStore } from '../store/routerStore'
@@ -62,9 +60,6 @@ const mockCreateCustomWaypoint = createCustomWaypoint as ReturnType<
 const mockDeleteWaypoint = deleteWaypoint as ReturnType<typeof vi.fn>
 const mockRecalculateAffectedSegments =
   recalculateAffectedSegments as ReturnType<typeof vi.fn>
-const mockCalculateTotalDistance = calculateTotalDistance as ReturnType<
-  typeof vi.fn
->
 
 describe('useMarkerHandlers', () => {
   const mockRouter = {
@@ -92,7 +87,6 @@ describe('useMarkerHandlers', () => {
     })
 
     // Setup default mock implementations
-    mockCalculateTotalDistance.mockReturnValue(0)
     mockDeleteWaypoint.mockImplementation((route: Route, index: number) => {
       const newWaypoints = [...route.waypoints]
       newWaypoints.splice(index, 1)

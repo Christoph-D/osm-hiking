@@ -117,13 +117,6 @@ export function determineWaypointType(
 }
 
 /**
- * Calculates total distance from an array of route segments
- */
-export function calculateTotalDistance(segments: RouteSegment[]): number {
-  return segments.reduce((sum, segment) => sum + segment.distance, 0)
-}
-
-/**
  * Finds the insertion index for a waypoint if it's on an existing route
  * Returns the index where the waypoint should be inserted, or null if it should be appended
  */
