@@ -18,6 +18,7 @@ import {
   createNodeWaypoint,
   createCustomWaypoint,
   recalculateMixedSegments,
+  recalculateAffectedSegments,
 } from '../utils/mapHelpers'
 import { getSnapToNodeThreshold } from '../constants/waypoints'
 import { useRouteStore } from '../store/useRouteStore'
@@ -60,10 +61,22 @@ function processMarkerPosition(
     newWaypoint = createCustomWaypoint(lat, lon)
   }
 
+  // Update the waypoint in the route
   const waypoints = [...route.waypoints]
   waypoints[index] = newWaypoint
 
-  const updatedRoute = recalculateMixedSegments(waypoints, router)
+  // Create updated route with the new waypoint
+  const routeWithUpdatedWaypoint = {
+    ...route,
+    waypoints,
+  }
+
+  // Use optimized recalculation that only updates affected segments
+  const updatedRoute = recalculateAffectedSegments(
+    routeWithUpdatedWaypoint,
+    index,
+    router
+  )
 
   return {
     route: updatedRoute,
@@ -183,7 +196,7 @@ export function useMarkerHandlers({
         return
       }
 
-      // Recalculate all segments using mixed routing
+      // Recalculate all segments since waypoint deletion changes the route structure
       const newRoute = recalculateMixedSegments(newRouteWaypoints, router)
 
       // Update the route store

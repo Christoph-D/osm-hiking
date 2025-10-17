@@ -208,3 +208,106 @@ export function recalculateMixedSegments(
     totalDistance,
   }
 }
+
+/**
+ * Creates a route segment with fallback logic
+ * Tries routing first for node-to-node connections, falls back to straight line if routing fails
+ */
+function createSegmentWithFallback(
+  fromWaypoint: RouteWaypoint,
+  toWaypoint: RouteWaypoint,
+  router: Router
+): RouteSegment {
+  if (fromWaypoint.type === 'node' && toWaypoint.type === 'node') {
+    // Both are node waypoints - try routing first
+    const segment = router.route(
+      (fromWaypoint as NodeWaypoint).nodeId,
+      (toWaypoint as NodeWaypoint).nodeId
+    )
+    if (segment) {
+      return segment
+    }
+    // Fallback to straight line if routing fails
+  }
+
+  // Default to straight line for mixed waypoint types or routing fallback
+  return router.createStraightSegment(fromWaypoint, toWaypoint)
+}
+
+/**
+ * Recalculates only the segments affected by dragging a waypoint
+ * Optimized version that only recalculates segments before and after the dragged waypoint
+ *
+ * @example
+ * ```typescript
+ * // When dragging waypoint at index 2 in a 5-waypoint route
+ * const optimizedRoute = recalculateAffectedSegments(originalRoute, 2, router)
+ * // Only segments 1-2 and 2-3 are recalculated, segments 0-1 and 3-4 are preserved
+ * ```
+ */
+export function recalculateAffectedSegments(
+  route: Route,
+  draggedIndex: number,
+  router: Router
+): Route {
+  // Enhanced input validation
+  if (!route) {
+    return route
+  }
+
+  if (
+    !route.waypoints ||
+    !Array.isArray(route.waypoints) ||
+    route.waypoints.length === 0
+  ) {
+    console.warn('recalculateAffectedSegments: Invalid waypoints array')
+    return route
+  }
+
+  if (!route.segments || !Array.isArray(route.segments)) {
+    console.warn('recalculateAffectedSegments: Invalid segments array')
+    return route
+  }
+
+  if (route.waypoints.length !== route.segments.length) {
+    console.warn(
+      'recalculateAffectedSegments: Route structure inconsistency - waypoints and segments length mismatch'
+    )
+    return route
+  }
+
+  if (draggedIndex < 0 || draggedIndex >= route.waypoints.length) {
+    console.warn(
+      `recalculateAffectedSegments: Invalid draggedIndex ${draggedIndex} for route with ${route.waypoints.length} waypoints`
+    )
+    return route
+  }
+
+  // Create a copy of the segments to modify
+  const newSegments = [...route.segments]
+
+  // Recalculate segment before the dragged waypoint (if it exists)
+  if (draggedIndex > 0) {
+    newSegments[draggedIndex] = createSegmentWithFallback(
+      route.waypoints[draggedIndex - 1],
+      route.waypoints[draggedIndex],
+      router
+    )
+  }
+
+  // Recalculate segment after the dragged waypoint (if it exists)
+  if (draggedIndex < route.waypoints.length - 1) {
+    newSegments[draggedIndex + 1] = createSegmentWithFallback(
+      route.waypoints[draggedIndex],
+      route.waypoints[draggedIndex + 1],
+      router
+    )
+  }
+
+  const totalDistance = calculateTotalDistance(newSegments)
+  return {
+    segments: newSegments,
+    waypoints: route.waypoints,
+    totalDistance,
+  }
+}
