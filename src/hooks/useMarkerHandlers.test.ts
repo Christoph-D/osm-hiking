@@ -90,29 +90,34 @@ describe('useMarkerHandlers', () => {
     mockDeleteWaypoint.mockImplementation((route: Route, index: number) => {
       const newWaypoints = [...route.waypoints]
       newWaypoints.splice(index, 1)
-      return {
-        ...route,
-        waypoints: newWaypoints,
-        totalDistance: route.totalDistance,
-      }
+      return new Route(
+        route.segments,
+        newWaypoints,
+        route.totalDistance,
+        route.elevationProfile,
+        route.elevationStats
+      )
     })
     mockRecalculateAffectedSegments.mockImplementation(
-      (route: Route, _index: number) => ({
-        ...route,
-        segments: route.segments,
-        totalDistance: route.totalDistance,
-      })
+      (route: Route, _index: number) =>
+        new Route(
+          route.segments,
+          route.waypoints,
+          route.totalDistance,
+          route.elevationProfile,
+          route.elevationStats
+        )
     )
   })
 
-  const mockRoute: Route = {
-    waypoints: [
+  const mockRoute = new Route(
+    [], // segments
+    [
       { type: 'custom', lat: 50, lon: 8 },
       { type: 'node', nodeId: 123, lat: 51, lon: 9 },
-    ] as RouteWaypoint[],
-    segments: [],
-    totalDistance: 100,
-  }
+    ] as RouteWaypoint[], // waypoints
+    100 // totalDistance
+  )
 
   const mockMarker = {
     getLatLng: vi.fn(),
@@ -142,11 +147,14 @@ describe('useMarkerHandlers', () => {
       })
     )
     mockRecalculateAffectedSegments.mockImplementation(
-      (route: Route, _index: number) => ({
-        ...route,
-        segments: route.segments,
-        totalDistance: route.totalDistance,
-      })
+      (route: Route, _index: number) =>
+        new Route(
+          route.segments,
+          route.waypoints,
+          route.totalDistance,
+          route.elevationProfile,
+          route.elevationStats
+        )
     )
   })
 
@@ -345,13 +353,11 @@ describe('useMarkerHandlers', () => {
   describe('handleMarkerDragEnd', () => {
     it('should perform immediate update on drag end', () => {
       // Set up a custom waypoint for testing
-      const testRoute: Route = {
-        waypoints: [
-          { type: 'custom', lat: 50, lon: 8 } as CustomWaypoint,
-        ] as RouteWaypoint[],
-        segments: [],
-        totalDistance: 0,
-      }
+      const testRoute = new Route(
+        [], // segments
+        [{ type: 'custom', lat: 50, lon: 8 } as CustomWaypoint], // waypoints
+        0 // totalDistance
+      )
 
       // Reset mocks to ensure clean state
       vi.clearAllMocks()
@@ -382,13 +388,11 @@ describe('useMarkerHandlers', () => {
     })
 
     it('should snap custom waypoint to nearby node and update marker on drag end', () => {
-      const testRoute: Route = {
-        waypoints: [
-          { type: 'custom', lat: 50, lon: 8 } as CustomWaypoint,
-        ] as RouteWaypoint[],
-        segments: [],
-        totalDistance: 0,
-      }
+      const testRoute = new Route(
+        [], // segments
+        [{ type: 'custom', lat: 50, lon: 8 } as CustomWaypoint], // waypoints
+        0 // totalDistance
+      )
 
       vi.clearAllMocks()
       mockRouter.findNearestNode = vi.fn().mockReturnValue({
@@ -422,18 +426,18 @@ describe('useMarkerHandlers', () => {
     })
 
     it('should snap node waypoint to different node and update marker on drag end', () => {
-      const testRoute: Route = {
-        waypoints: [
+      const testRoute = new Route(
+        [], // segments
+        [
           {
             type: 'node',
             nodeId: 123,
             lat: 50,
             lon: 8,
           } as NodeWaypoint,
-        ] as RouteWaypoint[],
-        segments: [],
-        totalDistance: 0,
-      }
+        ], // waypoints
+        0 // totalDistance
+      )
 
       vi.clearAllMocks()
       mockRouter.findNearestNode = vi.fn().mockReturnValue({
@@ -467,18 +471,18 @@ describe('useMarkerHandlers', () => {
     })
 
     it('should convert node waypoint to custom and update marker on drag end', () => {
-      const testRoute: Route = {
-        waypoints: [
+      const testRoute = new Route(
+        [], // segments
+        [
           {
             type: 'node',
             nodeId: 123,
             lat: 50,
             lon: 8,
           } as NodeWaypoint,
-        ] as RouteWaypoint[],
-        segments: [],
-        totalDistance: 0,
-      }
+        ], // waypoints
+        0 // totalDistance
+      )
 
       vi.clearAllMocks()
       mockRouter.findNearestNode = vi.fn().mockReturnValue(null) // No nearby node
@@ -617,18 +621,20 @@ describe('useMarkerHandlers', () => {
       })
 
       expect(mockDeleteWaypoint).toHaveBeenCalled()
-      expect(mockSetRoute).toHaveBeenCalledWith({
-        waypoints: [
-          {
-            type: 'node',
-            nodeId: 123,
-            lat: 51,
-            lon: 9,
-          },
-        ],
-        segments: [],
-        totalDistance: 100,
-      })
+      expect(mockSetRoute).toHaveBeenCalledWith(
+        new Route(
+          [], // segments
+          [
+            {
+              type: 'node',
+              nodeId: 123,
+              lat: 51,
+              lon: 9,
+            },
+          ], // waypoints
+          100 // totalDistance
+        )
+      )
     })
   })
 })
