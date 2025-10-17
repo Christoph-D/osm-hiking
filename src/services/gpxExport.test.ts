@@ -47,6 +47,10 @@ describe('exportRouteAsGPX', () => {
     const route = new Route(
       [
         {
+          coordinates: [],
+          distance: 0,
+        },
+        {
           coordinates: [
             { lat: 50.0, lon: 10.0 },
             { lat: 50.1, lon: 10.1 },
@@ -54,7 +58,10 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      [{ type: 'custom', lat: 50.0, lon: 10.0 }]
+      [
+        { type: 'custom', lat: 50.0, lon: 10.0 },
+        { type: 'custom', lat: 50.1, lon: 10.1 },
+      ]
     )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([100, 150])
@@ -76,6 +83,10 @@ describe('exportRouteAsGPX', () => {
     const route = new Route(
       [
         {
+          coordinates: [],
+          distance: 0,
+        },
+        {
           coordinates: [
             { lat: 50.0, lon: 10.0 },
             { lat: 50.1, lon: 10.1 },
@@ -93,6 +104,7 @@ describe('exportRouteAsGPX', () => {
       [
         { type: 'custom', lat: 50.0, lon: 10.0 },
         { type: 'custom', lat: 50.1, lon: 10.1 },
+        { type: 'custom', lat: 50.2, lon: 10.2 },
       ]
     )
 
@@ -115,6 +127,10 @@ describe('exportRouteAsGPX', () => {
     const route = new Route(
       [
         {
+          coordinates: [],
+          distance: 0,
+        },
+        {
           coordinates: [
             { lat: 50.0, lon: 10.0 },
             { lat: 50.1, lon: 10.1 },
@@ -122,7 +138,10 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      [{ type: 'custom', lat: 50.0, lon: 10.0 }]
+      [
+        { type: 'custom', lat: 50.0, lon: 10.0 },
+        { type: 'custom', lat: 50.1, lon: 10.1 },
+      ]
     )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([100.5, 150.7])
@@ -146,6 +165,10 @@ describe('exportRouteAsGPX', () => {
     const route = new Route(
       [
         {
+          coordinates: [],
+          distance: 0,
+        },
+        {
           coordinates: [
             { lat: 50.0, lon: 10.0 },
             { lat: 50.1, lon: 10.1 },
@@ -153,7 +176,10 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      [{ type: 'custom', lat: 50.0, lon: 10.0 }]
+      [
+        { type: 'custom', lat: 50.0, lon: 10.0 },
+        { type: 'custom', lat: 50.1, lon: 10.1 },
+      ]
     )
 
     vi.mocked(elevationModule.fetchElevations).mockRejectedValue(
@@ -182,11 +208,18 @@ describe('exportRouteAsGPX', () => {
     const route = new Route(
       [
         {
+          coordinates: [],
+          distance: 0,
+        },
+        {
           coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 5432.1,
         },
       ],
-      [{ type: 'custom', lat: 50.0, lon: 10.0 }]
+      [
+        { type: 'custom', lat: 50.0, lon: 10.0 },
+        { type: 'custom', lat: 50.0, lon: 10.0 },
+      ]
     )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([100])
@@ -209,11 +242,18 @@ describe('exportRouteAsGPX', () => {
     const route = new Route(
       [
         {
+          coordinates: [],
+          distance: 0,
+        },
+        {
           coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 1000,
         },
       ],
-      [{ type: 'custom', lat: 50.0, lon: 10.0 }]
+      [
+        { type: 'custom', lat: 50.0, lon: 10.0 },
+        { type: 'custom', lat: 50.0, lon: 10.0 },
+      ]
     )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([100])
@@ -231,11 +271,18 @@ describe('exportRouteAsGPX', () => {
     const route = new Route(
       [
         {
+          coordinates: [],
+          distance: 0,
+        },
+        {
           coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 1000,
         },
       ],
-      [{ type: 'custom', lat: 50.0, lon: 10.0 }]
+      [
+        { type: 'custom', lat: 50.0, lon: 10.0 },
+        { type: 'custom', lat: 50.0, lon: 10.0 },
+      ]
     )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([100])
@@ -249,11 +296,18 @@ describe('exportRouteAsGPX', () => {
     const route = new Route(
       [
         {
+          coordinates: [],
+          distance: 0,
+        },
+        {
           coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 1000,
         },
       ],
-      [{ type: 'custom', lat: 50.0, lon: 10.0 }]
+      [
+        { type: 'custom', lat: 50.0, lon: 10.0 },
+        { type: 'custom', lat: 50.0, lon: 10.0 },
+      ]
     )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([100])
@@ -293,6 +347,10 @@ describe('exportRouteAsGPX', () => {
     const route = new Route(
       [
         {
+          coordinates: [],
+          distance: 0,
+        },
+        {
           coordinates: [
             { lat: 50.0, lon: 10.0 },
             { lat: 50.1, lon: 10.1 },
@@ -300,7 +358,10 @@ describe('exportRouteAsGPX', () => {
           distance: 1000,
         },
       ],
-      [{ type: 'custom', lat: 50.0, lon: 10.0 }]
+      [
+        { type: 'custom', lat: 50.0, lon: 10.0 },
+        { type: 'custom', lat: 50.1, lon: 10.1 },
+      ]
     )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([
@@ -323,11 +384,18 @@ describe('exportRouteAsGPX', () => {
     const route = new Route(
       [
         {
+          coordinates: [],
+          distance: 0,
+        },
+        {
           coordinates: [{ lat: 50.0, lon: 10.0 }],
           distance: 1000,
         },
       ],
-      [{ type: 'custom', lat: 50.0, lon: 10.0 }]
+      [
+        { type: 'custom', lat: 50.0, lon: 10.0 },
+        { type: 'custom', lat: 50.0, lon: 10.0 },
+      ]
     )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([100])

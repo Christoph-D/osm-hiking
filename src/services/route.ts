@@ -50,6 +50,17 @@ export class Route {
         `Segments and waypoints must have the same length. Got ${segments.length} segments and ${waypoints.length} waypoints.`
       )
     }
+
+    // Validate that segments[0] is empty
+    if (
+      segments.length > 0 &&
+      (segments[0].coordinates.length !== 0 || segments[0].distance !== 0)
+    ) {
+      throw new Error(
+        `segments[0] must be empty (coordinates: [], distance: 0). Got coordinates: ${JSON.stringify(segments[0].coordinates)}, distance: ${segments[0].distance}`
+      )
+    }
+
     this.#segments = segments
     this.#waypoints = waypoints
     this.#totalDistance = segments.reduce(
@@ -71,20 +82,18 @@ export class Route {
   ): Route {
     const newSegments: RouteSegment[] = []
 
-    for (let i = 0; i < waypoints.length; i++) {
-      if (i === 0) {
-        // First waypoint - just a marker
-        newSegments.push({
-          coordinates: [{ lat: waypoints[i].lat, lon: waypoints[i].lon }],
-          distance: 0,
-        })
-      } else {
-        const fromWaypoint = waypoints[i - 1]
-        const toWaypoint = waypoints[i]
-        newSegments.push(
-          createSegmentWithFallback(fromWaypoint, toWaypoint, router)
-        )
-      }
+    // First segment is always empty
+    newSegments.push({
+      coordinates: [],
+      distance: 0,
+    })
+
+    for (let i = 1; i < waypoints.length; i++) {
+      const fromWaypoint = waypoints[i - 1]
+      const toWaypoint = waypoints[i]
+      newSegments.push(
+        createSegmentWithFallback(fromWaypoint, toWaypoint, router)
+      )
     }
 
     return new Route(newSegments, waypoints, elevationProfile, elevationStats)
@@ -130,36 +139,34 @@ export class Route {
     // Create new segments array that matches the new waypoints structure
     const newSegments: RouteSegment[] = []
 
-    for (let i = 0; i < newWaypoints.length; i++) {
-      if (i === 0) {
-        // First waypoint - just a marker
-        newSegments.push({
-          coordinates: [{ lat: newWaypoints[i].lat, lon: newWaypoints[i].lon }],
-          distance: 0,
-        })
+    // First segment is always empty
+    newSegments.push({
+      coordinates: [],
+      distance: 0,
+    })
+
+    for (let i = 1; i < newWaypoints.length; i++) {
+      // Determine which original segment to preserve or recalculate
+      if (index === 0) {
+        // Deleted first waypoint, all segments need recalculation
+        const fromWaypoint = newWaypoints[i - 1]
+        const toWaypoint = newWaypoints[i]
+        newSegments.push(
+          createSegmentWithFallback(fromWaypoint, toWaypoint, router)
+        )
+      } else if (i < index) {
+        // Segments before deleted waypoint can be preserved
+        newSegments.push(this.#segments[i])
+      } else if (i === index) {
+        // This is the segment that needs recalculation (connects waypoints around deleted waypoint)
+        const fromWaypoint = newWaypoints[i - 1]
+        const toWaypoint = newWaypoints[i]
+        newSegments.push(
+          createSegmentWithFallback(fromWaypoint, toWaypoint, router)
+        )
       } else {
-        // Determine which original segment to preserve or recalculate
-        if (index === 0) {
-          // Deleted first waypoint, all segments need recalculation
-          const fromWaypoint = newWaypoints[i - 1]
-          const toWaypoint = newWaypoints[i]
-          newSegments.push(
-            createSegmentWithFallback(fromWaypoint, toWaypoint, router)
-          )
-        } else if (i < index) {
-          // Segments before deleted waypoint can be preserved
-          newSegments.push(this.#segments[i])
-        } else if (i === index) {
-          // This is the segment that needs recalculation (connects waypoints around deleted waypoint)
-          const fromWaypoint = newWaypoints[i - 1]
-          const toWaypoint = newWaypoints[i]
-          newSegments.push(
-            createSegmentWithFallback(fromWaypoint, toWaypoint, router)
-          )
-        } else {
-          // Segments after deleted waypoint can be preserved (shifted by 1)
-          newSegments.push(this.#segments[i + 1])
-        }
+        // Segments after deleted waypoint can be preserved (shifted by 1)
+        newSegments.push(this.#segments[i + 1])
       }
     }
 
@@ -187,7 +194,8 @@ export class Route {
       newRouteWaypoints.splice(insertIndex, 0, newWaypoint)
       const tempRoute = new Route(
         [
-          ...this.#segments.slice(0, insertIndex),
+          this.#segments[0], // Keep empty first segment
+          ...this.#segments.slice(1, insertIndex),
           { coordinates: [], distance: 0 }, // dummy segment for inserted waypoint
           ...this.#segments.slice(insertIndex),
         ],
@@ -222,7 +230,7 @@ export class Route {
       return this
     }
 
-    // For the first segment (index 0), it's just a marker and shouldn't be recalculated
+    // For the first segment (index 0), it's empty and shouldn't be recalculated
     if (index === 0) {
       return this
     }
@@ -314,22 +322,23 @@ export class Route {
   recalculateAllSegments(router: Router): Route {
     const newSegments: RouteSegment[] = []
 
-    for (let i = 0; i < this.#waypoints.length; i++) {
-      if (i === 0) {
-        // First waypoint - just a marker
-        newSegments.push({
-          coordinates: [
-            { lat: this.#waypoints[i].lat, lon: this.#waypoints[i].lon },
-          ],
-          distance: 0,
-        })
-      } else {
-        const fromWaypoint = this.#waypoints[i - 1]
-        const toWaypoint = this.#waypoints[i]
-        newSegments.push(
-          createSegmentWithFallback(fromWaypoint, toWaypoint, router)
-        )
-      }
+    // If there are no waypoints, return an empty route
+    if (this.#waypoints.length === 0) {
+      return new Route([], [])
+    }
+
+    // First segment is always empty
+    newSegments.push({
+      coordinates: [],
+      distance: 0,
+    })
+
+    for (let i = 1; i < this.#waypoints.length; i++) {
+      const fromWaypoint = this.#waypoints[i - 1]
+      const toWaypoint = this.#waypoints[i]
+      newSegments.push(
+        createSegmentWithFallback(fromWaypoint, toWaypoint, router)
+      )
     }
 
     return new Route(

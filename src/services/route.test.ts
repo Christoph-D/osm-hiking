@@ -47,7 +47,7 @@ describe('Route', () => {
       const result = Route.fromWaypoints(routeWaypoints, router)
 
       expect(router.route).toHaveBeenCalledWith(1, 2)
-      expect(result.segments).toHaveLength(2) // First waypoint marker + route segment
+      expect(result.segments).toHaveLength(2) // Empty first segment + route segment
       expect(result.totalDistance).toBe(1000)
       expect(result.waypoints).toEqual(routeWaypoints)
     })
@@ -71,7 +71,7 @@ describe('Route', () => {
         routeWaypoints[0],
         routeWaypoints[1]
       )
-      expect(result.segments).toHaveLength(2) // First waypoint marker + straight segment
+      expect(result.segments).toHaveLength(2) // Empty first segment + straight segment
       expect(result.totalDistance).toBe(150000)
       expect(result.waypoints).toEqual(routeWaypoints)
     })
@@ -106,7 +106,7 @@ describe('Route', () => {
 
       expect(router.createStraightSegment).toHaveBeenCalledTimes(2)
       expect(router.route).not.toHaveBeenCalled() // No consecutive node waypoints
-      expect(result.segments).toHaveLength(3) // First waypoint + 2 segments
+      expect(result.segments).toHaveLength(3) // Empty first segment + 2 segments
       expect(result.totalDistance).toBe(300000) // Sum of straight segments
       expect(result.waypoints).toEqual(routeWaypoints)
     })
@@ -159,8 +159,8 @@ describe('Route', () => {
       const routeWaypoints = [createCustomWaypoint(50.0, 10.0)]
       const result = Route.fromWaypoints(routeWaypoints, router)
 
-      expect(result.segments).toHaveLength(1) // Just the marker
-      expect(result.segments[0].coordinates).toEqual([{ lat: 50.0, lon: 10.0 }])
+      expect(result.segments).toHaveLength(1) // Just the empty first segment
+      expect(result.segments[0].coordinates).toEqual([])
       expect(result.segments[0].distance).toBe(0)
       expect(result.waypoints).toEqual(routeWaypoints)
     })
@@ -447,7 +447,7 @@ describe('Route', () => {
 
       expect(result.segments).toHaveLength(3)
       expect(result.segments[2]).toEqual(newSegment)
-      expect(result.segments[0]).toEqual(route.segments[0]) // First segment unchanged
+      expect(result.segments[0]).toEqual(route.segments[0]) // First segment unchanged (empty)
       expect(result.segments[1]).toEqual(route.segments[1]) // Second segment unchanged
       expect(router.createStraightSegment).toHaveBeenCalledWith(
         route.waypoints[1],
@@ -455,7 +455,7 @@ describe('Route', () => {
       )
     })
 
-    it('should return same route for index 0 (marker segment)', () => {
+    it('should return same route for index 0 (empty segment)', () => {
       const result = route.recalculateSegment(0, router)
       expect(result).toBe(route)
       expect(router.createStraightSegment).not.toHaveBeenCalled()
@@ -572,7 +572,7 @@ describe('Route', () => {
       const result = route.recalculateAffectedSegments(1, router)
 
       expect(result.segments).toHaveLength(4)
-      expect(result.segments[0]).toEqual(route.segments[0]) // Marker unchanged
+      expect(result.segments[0]).toEqual(route.segments[0]) // First segment unchanged (empty)
       expect(result.segments[1]).toEqual(newSegment1) // Recalculated
       expect(result.segments[2]).toEqual(newSegment2) // Recalculated
       expect(result.segments[3]).toEqual(route.segments[3]) // Last segment unchanged
@@ -589,7 +589,7 @@ describe('Route', () => {
       const result = route.recalculateAffectedSegments(0, router)
 
       expect(result.segments).toHaveLength(4)
-      expect(result.segments[0]).toEqual(route.segments[0]) // Marker unchanged
+      expect(result.segments[0]).toEqual(route.segments[0]) // First segment unchanged (empty)
       expect(result.segments[1]).toEqual(newSegment) // Recalculated
       expect(result.segments[2]).toEqual(route.segments[2]) // Unchanged
       expect(result.segments[3]).toEqual(route.segments[3]) // Unchanged
@@ -606,7 +606,7 @@ describe('Route', () => {
       const result = route.recalculateAffectedSegments(3, router)
 
       expect(result.segments).toHaveLength(4)
-      expect(result.segments[0]).toEqual(route.segments[0]) // Marker unchanged
+      expect(result.segments[0]).toEqual(route.segments[0]) // First segment unchanged (empty)
       expect(result.segments[1]).toEqual(route.segments[1]) // Unchanged
       expect(router.createStraightSegment).toHaveBeenCalledWith(
         route.waypoints[2],

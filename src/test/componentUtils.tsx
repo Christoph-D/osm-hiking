@@ -46,12 +46,37 @@ export function resetMapDataStore() {
 }
 
 /**
- * Create a mock route with default values
+ * Create a mock route with default values or specific number of waypoints
  */
-export function createMockRoute(overrides?: Partial<Route>): Route {
+export function createMockRoute(
+  numWaypointsOrOverrides?: number | Partial<Route>
+): Route {
+  // Handle number parameter case
+  if (typeof numWaypointsOrOverrides === 'number') {
+    const numWaypoints = numWaypointsOrOverrides
+    if (numWaypoints <= 0) {
+      return new Route([], [])
+    }
+
+    const waypoints: Route['waypoints'] = []
+    for (let i = 0; i < numWaypoints; i++) {
+      waypoints.push({
+        type: 'custom' as const,
+        lat: 50.0 + i * 0.001,
+        lon: 10.0 + i * 0.001,
+      })
+    }
+
+    const segments = createMockSegmentsForWaypoints(waypoints)
+    return new Route(segments, waypoints)
+  }
+
+  // Handle overrides object case
+  const overrides = numWaypointsOrOverrides
+
   const defaultSegments = [
     {
-      coordinates: [{ lat: 50.0, lon: 10.0 }],
+      coordinates: [],
       distance: 0,
     },
     {
@@ -110,9 +135,9 @@ function createMockSegmentsForWaypoints(
   const segments = []
   for (let i = 0; i < waypoints.length; i++) {
     if (i === 0) {
-      // First segment: just the starting point
+      // First segment: must be empty according to Route validation
       segments.push({
-        coordinates: [{ lat: waypoints[i].lat, lon: waypoints[i].lon }],
+        coordinates: [],
         distance: 0,
       })
     } else {

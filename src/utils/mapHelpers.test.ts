@@ -153,9 +153,9 @@ describe('Custom Waypoint Utilities', () => {
         }
 
         if (i === 0) {
-          // First waypoint - just a marker
+          // First segment is always empty
           segments.push({
-            coordinates: [{ lat: waypoints[i].lat, lon: waypoints[i].lon }],
+            coordinates: [],
             distance: 0,
           })
         } else {
@@ -178,7 +178,7 @@ describe('Custom Waypoint Utilities', () => {
         // Create a simple test route with explicit structure
         const route = new Route(
           [
-            { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
+            { coordinates: [], distance: 0 },
             {
               coordinates: [
                 { lat: 50, lon: 10 },
@@ -272,7 +272,7 @@ describe('Custom Waypoint Utilities', () => {
         // Create a simple test route with explicit structure
         const route = new Route(
           [
-            { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
+            { coordinates: [], distance: 0 },
             {
               coordinates: [
                 { lat: 50, lon: 10 },
@@ -337,7 +337,7 @@ describe('Custom Waypoint Utilities', () => {
         // Create a simple test route with explicit structure
         const route = new Route(
           [
-            { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
+            { coordinates: [], distance: 0 },
             {
               coordinates: [
                 { lat: 50, lon: 10 },
@@ -369,7 +369,7 @@ describe('Custom Waypoint Utilities', () => {
       it('should use routing for node-to-node segments', () => {
         const route = new Route(
           [
-            { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
+            { coordinates: [], distance: 0 },
             {
               coordinates: [
                 { lat: 50, lon: 10 },
@@ -410,7 +410,7 @@ describe('Custom Waypoint Utilities', () => {
       it('should use straight segments for mixed waypoint types', () => {
         const route = new Route(
           [
-            { coordinates: [{ lat: 50, lon: 10 }], distance: 0 },
+            { coordinates: [], distance: 0 },
             {
               coordinates: [
                 { lat: 50, lon: 10 },
@@ -472,9 +472,9 @@ describe('Custom Waypoint Utilities', () => {
         // Waypoints should be unchanged
         expect(result.waypoints).toBe(route.waypoints)
 
-        // Total distance should be recalculated
+        // Total distance should be recalculated (segments[0] is empty)
         const expectedDistance =
-          route.segments[0].distance +
+          0 + // empty first segment
           newSegment1.distance +
           newSegment2.distance +
           route.segments[3].distance
@@ -496,7 +496,7 @@ describe('Custom Waypoint Utilities', () => {
       it('should append waypoint to end of route when insertIndex is null', () => {
         const route = new Route(
           [
-            { coordinates: [{ lat: 50.0, lon: 10.0 }], distance: 0 },
+            { coordinates: [], distance: 0 },
             { coordinates: [{ lat: 51.0, lon: 11.0 }], distance: 1000 },
           ],
           [createNodeWaypoint(50.0, 10.0, 1), createNodeWaypoint(51.0, 11.0, 2)]
@@ -526,7 +526,7 @@ describe('Custom Waypoint Utilities', () => {
         // Create a route where the middle waypoint would be on the existing segment
         const routeWithMiddleSegment = new Route(
           [
-            { coordinates: [{ lat: 50.0, lon: 10.0 }], distance: 0 },
+            { coordinates: [], distance: 0 },
             {
               coordinates: [
                 { lat: 50.0, lon: 10.0 },
@@ -600,9 +600,9 @@ describe('Custom Waypoint Utilities', () => {
           }
 
           if (i === 0) {
-            // First waypoint - just a marker
+            // First segment is always empty
             segments.push({
-              coordinates: [{ lat: waypoints[i].lat, lon: waypoints[i].lon }],
+              coordinates: [],
               distance: 0,
             })
           } else {
@@ -672,14 +672,12 @@ describe('Custom Waypoint Utilities', () => {
         expect(result.waypoints[0]).toEqual(route.waypoints[1])
         expect(result.waypoints[1]).toEqual(route.waypoints[2])
 
-        // Should have segments: [1], [1→2]
+        // Should have segments: [], [1→2]
         expect(result.segments).toHaveLength(2)
         expect(result.segments[0]).toEqual({
-          coordinates: [
-            { lat: route.waypoints[1].lat, lon: route.waypoints[1].lon },
-          ],
+          coordinates: [],
           distance: 0,
-        }) // New marker
+        }) // Empty first segment (always empty according to Route validation)
         expect(result.segments[1]).toEqual(newSegment) // Recalculated segment
       })
 
@@ -733,7 +731,7 @@ describe('Custom Waypoint Utilities', () => {
           createNodeWaypoint(50.2, 10.2, 101),
         ]
         const segments = [
-          { coordinates: [{ lat: 50.0, lon: 10.0 }], distance: 0 },
+          { coordinates: [], distance: 0 },
           {
             coordinates: [
               { lat: 50.0, lon: 10.0 },
@@ -783,7 +781,7 @@ describe('Custom Waypoint Utilities', () => {
         ]
         const route: Route = new Route(
           [
-            { coordinates: [{ lat: 50.0, lon: 10.0 }], distance: 0 },
+            { coordinates: [], distance: 0 },
             {
               coordinates: [
                 { lat: 50.0, lon: 10.0 },
@@ -833,7 +831,7 @@ describe('Custom Waypoint Utilities', () => {
 
         const result = route.deleteWaypoint(1, router)
 
-        // Total distance should be: distance of segment 0 + distance of new segment
+        // Total distance should be: distance of segment 0 (empty) + distance of new segment
         expect(result.totalDistance).toBe(0 + 1500)
       })
     })
