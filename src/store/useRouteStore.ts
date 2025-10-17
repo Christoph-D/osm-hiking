@@ -1,10 +1,5 @@
 import { create } from 'zustand'
-import {
-  RouteSegment,
-  ElevationPoint,
-  ElevationStats,
-  RouteWaypoint,
-} from '../types'
+import { ElevationPoint, ElevationStats } from '../types'
 import { Route } from '../services/route'
 
 interface RouteState {
@@ -12,7 +7,6 @@ interface RouteState {
   error: string | null
   hoveredElevationPoint: ElevationPoint | null
 
-  addSegment: (segment: RouteSegment, routeWaypoint: RouteWaypoint) => void
   setRoute: (route: Route) => void
   clearRoute: () => void
   setError: (error: string | null) => void
@@ -24,37 +18,6 @@ export const useRouteStore = create<RouteState>((set) => ({
   route: null,
   error: null,
   hoveredElevationPoint: null,
-
-  addSegment: (segment, routeWaypoint) =>
-    set((state) => {
-      const currentRoute = state.route || new Route([], [])
-
-      // If this is the first waypoint, we can't add a segment yet
-      if (currentRoute.waypoints.length === 0) {
-        return {
-          route: new Route(
-            [], // No segments yet
-            [routeWaypoint],
-            // Clear elevation data when route changes
-            undefined,
-            undefined
-          ),
-        }
-      }
-
-      // Add segment connecting last waypoint to new waypoint
-      const newSegments = [...currentRoute.segments, segment]
-
-      return {
-        route: new Route(
-          newSegments,
-          [...currentRoute.waypoints, routeWaypoint],
-          // Clear elevation data when route changes
-          undefined,
-          undefined
-        ),
-      }
-    }),
 
   setRoute: (route) =>
     set({
