@@ -30,14 +30,19 @@ describe('ElevationProfile', () => {
   })
 
   describe('Rendering', () => {
-    it('should render the component with title when expanded', () => {
+    it('should render the component when expanded', () => {
       render(
         <ElevationProfile
           elevationProfile={mockElevationProfile}
           elevationStats={mockElevationStats}
         />
       )
-      expect(screen.getByText('Elevation Profile')).toBeInTheDocument()
+      // Check for key elements that should be present when expanded
+      expect(screen.getByText('Gain')).toBeInTheDocument()
+      expect(screen.getByText('Loss')).toBeInTheDocument()
+      expect(screen.getByText('Min')).toBeInTheDocument()
+      expect(screen.getByText('Max')).toBeInTheDocument()
+      expect(screen.getByText('×')).toBeInTheDocument()
     })
 
     it('should render collapse button when expanded', () => {
@@ -48,24 +53,6 @@ describe('ElevationProfile', () => {
         />
       )
       expect(screen.getByText('×')).toBeInTheDocument()
-    })
-
-    it('should render show button when collapsed', async () => {
-      const user = userEvent.setup()
-      render(
-        <ElevationProfile
-          elevationProfile={mockElevationProfile}
-          elevationStats={mockElevationStats}
-        />
-      )
-
-      // Click collapse button
-      const collapseButton = screen.getByText('×')
-      await user.click(collapseButton)
-
-      // Check for show button
-      expect(screen.getByText('Show Elevation Profile')).toBeInTheDocument()
-      expect(screen.queryByText('Elevation Profile')).not.toBeInTheDocument()
     })
   })
 
@@ -82,7 +69,7 @@ describe('ElevationProfile', () => {
       const collapseButton = screen.getByText('×')
       await user.click(collapseButton)
 
-      expect(screen.queryByText('Elevation Profile')).not.toBeInTheDocument()
+      expect(screen.queryByText('Gain')).not.toBeInTheDocument()
       expect(screen.getByText('Show Elevation Profile')).toBeInTheDocument()
     })
 
@@ -103,7 +90,7 @@ describe('ElevationProfile', () => {
       const showButton = screen.getByText('Show Elevation Profile')
       await user.click(showButton)
 
-      expect(screen.getByText('Elevation Profile')).toBeInTheDocument()
+      expect(screen.getByText('Gain')).toBeInTheDocument()
       expect(
         screen.queryByText('Show Elevation Profile')
       ).not.toBeInTheDocument()
@@ -140,7 +127,7 @@ describe('ElevationProfile', () => {
           elevationStats={undefined}
         />
       )
-      expect(screen.queryByText('Elevation Gain')).not.toBeInTheDocument()
+      expect(screen.queryByText('Gain')).not.toBeInTheDocument()
       expect(screen.queryByRole('img')).not.toBeInTheDocument()
     })
   })
@@ -153,7 +140,7 @@ describe('ElevationProfile', () => {
           elevationStats={mockElevationStats}
         />
       )
-      expect(screen.getByText('Elevation Gain')).toBeInTheDocument()
+      expect(screen.getByText('Gain')).toBeInTheDocument()
       expect(screen.getByText('250 m')).toBeInTheDocument()
     })
 
@@ -164,7 +151,7 @@ describe('ElevationProfile', () => {
           elevationStats={mockElevationStats}
         />
       )
-      expect(screen.getByText('Elevation Loss')).toBeInTheDocument()
+      expect(screen.getByText('Loss')).toBeInTheDocument()
       expect(screen.getByText('150 m')).toBeInTheDocument()
     })
 
@@ -175,7 +162,7 @@ describe('ElevationProfile', () => {
           elevationStats={mockElevationStats}
         />
       )
-      expect(screen.getByText('Min Elevation')).toBeInTheDocument()
+      expect(screen.getByText('Min')).toBeInTheDocument()
       expect(screen.getByText('100 m')).toBeInTheDocument()
     })
 
@@ -186,7 +173,7 @@ describe('ElevationProfile', () => {
           elevationStats={mockElevationStats}
         />
       )
-      expect(screen.getByText('Max Elevation')).toBeInTheDocument()
+      expect(screen.getByText('Max')).toBeInTheDocument()
       expect(
         screen.getByText(`${Math.round(mockElevationStats.max)} m`)
       ).toBeInTheDocument()
@@ -205,9 +192,13 @@ describe('ElevationProfile', () => {
           elevationStats={stats}
         />
       )
+      expect(screen.getByText('Gain')).toBeInTheDocument()
       expect(screen.getByText('123 m')).toBeInTheDocument()
+      expect(screen.getByText('Loss')).toBeInTheDocument()
       expect(screen.getByText('79 m')).toBeInTheDocument()
+      expect(screen.getByText('Min')).toBeInTheDocument()
       expect(screen.getByText('100 m')).toBeInTheDocument()
+      expect(screen.getByText('Max')).toBeInTheDocument()
       expect(screen.getByText('299 m')).toBeInTheDocument()
     })
   })
@@ -440,7 +431,9 @@ describe('ElevationProfile', () => {
           elevationStats={largeStats}
         />
       )
+      expect(screen.getByText('Gain')).toBeInTheDocument()
       expect(screen.getByText('5000 m')).toBeInTheDocument()
+      expect(screen.getByText('Max')).toBeInTheDocument()
       expect(screen.getByText('8000 m')).toBeInTheDocument()
     })
 
@@ -469,9 +462,13 @@ describe('ElevationProfile', () => {
           elevationStats={flatStats}
         />
       )
-      // Use getAllByText since multiple stats will show "100 m"
-      const elevationTexts = screen.getAllByText('100 m')
-      expect(elevationTexts.length).toBeGreaterThan(0)
+      // Check for labels and values separately since they're now in different elements
+      expect(screen.getByText('Gain')).toBeInTheDocument()
+      expect(screen.getByText('Loss')).toBeInTheDocument()
+      expect(screen.getByText('Min')).toBeInTheDocument()
+      expect(screen.getByText('Max')).toBeInTheDocument()
+      expect(screen.getAllByText('0 m')).toHaveLength(2) // Both Gain and Loss are 0 m
+      expect(screen.getAllByText('100 m')).toHaveLength(2) // Both Min and Max are 100 m
 
       consoleWarn.mockRestore()
       consoleError.mockRestore()
