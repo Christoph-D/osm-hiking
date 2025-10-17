@@ -4,7 +4,6 @@ import {
   ElevationPoint,
   ElevationStats,
 } from '../types'
-import { calculateTotalDistance } from '../utils/mapHelpers'
 
 export class Route {
   #segments: RouteSegment[]
@@ -26,7 +25,10 @@ export class Route {
     }
     this.#segments = segments
     this.#waypoints = waypoints
-    this.#totalDistance = calculateTotalDistance(segments)
+    this.#totalDistance = segments.reduce(
+      (sum, segment) => sum + segment.distance,
+      0
+    )
     this.#elevationProfile = elevationProfile
     this.#elevationStats = elevationStats
   }
