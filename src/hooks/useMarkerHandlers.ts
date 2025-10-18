@@ -39,6 +39,44 @@ interface UseMarkerHandlersParams {
   } | null
 }
 
+// Helper function to determine reference point for marker boundary constraints
+function getMarkerReferencePoint(
+  route: Route,
+  index: number,
+  loadedBbox: {
+    south: number
+    west: number
+    north: number
+    east: number
+  }
+): { lat: number; lon: number } {
+  if (route.waypoints.length === 0) {
+    // If route is empty, use center of the loaded area
+    return {
+      lat: (loadedBbox.north + loadedBbox.south) / 2,
+      lon: (loadedBbox.east + loadedBbox.west) / 2,
+    }
+  }
+
+  if (index === 0 || index === route.waypoints.length - 1) {
+    // First or last marker: use its neighboring waypoint
+    const neighborIndex = index === 0 ? 1 : route.waypoints.length - 2
+    const neighbor = route.waypoints[neighborIndex]
+    return {
+      lat: neighbor.lat,
+      lon: neighbor.lon,
+    }
+  }
+
+  // Middle marker: use center point between its two neighbors
+  const prevWaypoint = route.waypoints[index - 1]
+  const nextWaypoint = route.waypoints[index + 1]
+  return {
+    lat: (prevWaypoint.lat + nextWaypoint.lat) / 2,
+    lon: (prevWaypoint.lon + nextWaypoint.lon) / 2,
+  }
+}
+
 // Helper function to process marker position and calculate route segments
 function processMarkerPosition(
   lat: number,
@@ -64,15 +102,14 @@ function processMarkerPosition(
   let constrainedLon = lon
 
   if (loadedBbox) {
-    // Calculate center of the loaded bbox
-    const bboxCenterLat = (loadedBbox.north + loadedBbox.south) / 2
-    const bboxCenterLon = (loadedBbox.east + loadedBbox.west) / 2
+    // Get reference point for boundary intersection calculation
+    const referencePoint = getMarkerReferencePoint(route, index, loadedBbox)
 
     // If the target position is outside the loaded bbox, constrain it
     if (!isPointInBbox(lat, lon, loadedBbox)) {
       const constrainedPosition = calculateBoundaryIntersection(
-        bboxCenterLat,
-        bboxCenterLon,
+        referencePoint.lat,
+        referencePoint.lon,
         lat,
         lon,
         loadedBbox
