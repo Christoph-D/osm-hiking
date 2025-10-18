@@ -87,7 +87,6 @@ test.describe('Waypoint Manipulation', () => {
     // Initially no markers should be present
     expect(await getMarkerCount(page)).toBe(0)
 
-    // Load data first to ensure there are hiking paths available
     await loadHikingPaths(page)
 
     // Click on the map to add first waypoint
@@ -105,7 +104,6 @@ test.describe('Waypoint Manipulation', () => {
   test('should create route with blue polyline when adding second waypoint', async ({
     page,
   }) => {
-    // Load data first
     await loadHikingPaths(page)
 
     // Add first waypoint
@@ -139,7 +137,6 @@ test.describe('Waypoint Manipulation', () => {
   test('should update route when dragging a waypoint to new location', async ({
     page,
   }) => {
-    // Load data first
     await loadHikingPaths(page)
 
     const markers = page.locator('.leaflet-marker-icon')
@@ -190,7 +187,6 @@ test.describe('Waypoint Manipulation', () => {
   test('should remove waypoint when double-clicking a marker', async ({
     page,
   }) => {
-    // Load data first
     await loadHikingPaths(page)
 
     const markers = page.locator('.leaflet-marker-icon')
@@ -221,7 +217,6 @@ test.describe('Waypoint Manipulation', () => {
   test('should remove waypoint when right-clicking a marker', async ({
     page,
   }) => {
-    // Load data first
     await loadHikingPaths(page)
 
     const markers = page.locator('.leaflet-marker-icon')
@@ -248,7 +243,6 @@ test.describe('Waypoint Manipulation', () => {
   test('should insert waypoint when clicking on existing route line', async ({
     page,
   }) => {
-    // Load data first
     await loadHikingPaths(page)
 
     const markers = page.locator('.leaflet-marker-icon')
@@ -279,7 +273,6 @@ test.describe('Waypoint Manipulation', () => {
   test('should clear route when removing waypoints down to one', async ({
     page,
   }) => {
-    // Load data first
     await loadHikingPaths(page)
 
     const markers = page.locator('.leaflet-marker-icon')
@@ -312,7 +305,6 @@ test.describe('Waypoint Manipulation', () => {
   test('should clear all markers when removing last waypoint', async ({
     page,
   }) => {
-    // Load data first
     await loadHikingPaths(page)
 
     const markers = page.locator('.leaflet-marker-icon')
@@ -622,5 +614,105 @@ test.describe('Waypoint Manipulation', () => {
 
     expect(Math.abs(finalX - initialX)).toBeLessThanOrEqual(20)
     expect(Math.abs(finalY - initialY)).toBeLessThanOrEqual(20)
+  })
+
+  test('should constrain to loaded region when dragging a marker outside', async ({
+    page,
+  }) => {
+    await loadHikingPaths(page)
+
+    const markers = page.locator('.leaflet-marker-icon')
+
+    // Create 2 waypoints to establish a loaded region
+    await clickMap(page, 400, 300)
+    await expect(markers).toHaveCount(1)
+    await clickMap(page, 450, 350)
+    await expect(markers).toHaveCount(2)
+
+    // Zoom out once to make the edge of loaded region visible
+    const zoomOutButton = page.locator('.leaflet-control-zoom-out')
+    await zoomOutButton.click()
+
+    // Wait for zoom animation to start
+    await page.waitForFunction(() => {
+      const mapPane = document.querySelector('.leaflet-map-pane')
+      return mapPane && mapPane.classList.contains('leaflet-zoom-anim')
+    })
+    // Wait for zoom animation to complete
+    await page.waitForFunction(() => {
+      const mapPane = document.querySelector('.leaflet-map-pane')
+      return mapPane && !mapPane.classList.contains('leaflet-zoom-anim')
+    })
+
+    // Get the first marker to drag
+    const firstMarker = markers.first()
+    const initialBox = await firstMarker.boundingBox()
+    if (!initialBox) {
+      throw new Error('First marker not found')
+    }
+
+    const initialX = initialBox.x + initialBox.width / 2
+    const initialY = initialBox.y + initialBox.height / 2
+
+    // Start dragging the first marker far outside the loaded region
+    await page.mouse.move(initialX, initialY)
+    await page.mouse.down()
+
+    // Drag to a point far outside (right side of screen, well beyond loaded area)
+    await page.mouse.move(initialX + 800, initialY, { steps: 20 })
+
+    // Wait a moment to let the route update during dragging
+    await page.waitForTimeout(200)
+
+    // During dragging, verify the polyline stays mostly within reasonable bounds
+    // The route should update but not go completely outside the loaded region
+    const polylines = page.locator('path.leaflet-interactive[stroke="blue"]')
+    expect(await polylines.count()).toBeGreaterThan(0)
+
+    // Get the map container for coordinate calculations
+    const mapContainer = page.locator('.leaflet-container')
+    const mapBox = await mapContainer.boundingBox()
+    if (!mapBox) {
+      throw new Error('Map container not found')
+    }
+
+    // Verify all polyline coordinates are within the loaded region (with some tolerance)
+    const polylineElements = await polylines.all()
+    for (const polyline of polylineElements) {
+      const bbox = await polyline.boundingBox()
+      if (!bbox) {
+        throw new Error('Polyline has no bounding box')
+      }
+      expect(bbox.x).toBeGreaterThanOrEqual(initialX)
+      // Importantly, less than the drag distance of 800
+      expect(bbox.x + bbox.width).toBeLessThanOrEqual(initialX + 500)
+      // Y coordinates should stay within reasonable bounds
+      expect(bbox.y).toBeGreaterThanOrEqual(initialY - 50)
+      expect(bbox.y + bbox.height).toBeLessThanOrEqual(initialY + 50)
+    }
+
+    // Release the mouse to complete the drag
+    await page.mouse.up()
+
+    // Wait for the route to finalize
+    await page.waitForTimeout(300)
+
+    // After mouseup, verify the marker is constrained to boundary
+    const finalBox = await firstMarker.boundingBox()
+    if (!finalBox) {
+      throw new Error('Marker not found after drag')
+    }
+
+    const finalX = finalBox.x + finalBox.width / 2
+    const finalY = finalBox.y + finalBox.height / 2
+
+    // Much closer to original than drag target
+    expect(Math.abs(initialX - finalX)).toBeLessThan(500)
+    // Also verify Y position didn't change dramatically (we dragged horizontally)
+    expect(Math.abs(initialY - finalY)).toBeLessThan(50)
+
+    // Verify we still have 2 waypoints and a valid route
+    expect(await getMarkerCount(page)).toBe(2)
+    expect(await getPolylineCount(page)).toBeGreaterThan(0)
   })
 })
