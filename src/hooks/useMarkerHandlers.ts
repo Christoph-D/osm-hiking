@@ -10,7 +10,7 @@
  * All handlers automatically recalculate the route when waypoints are modified.
  */
 
-import { useCallback, RefObject } from 'react'
+import { useCallback, useRef, RefObject } from 'react'
 import { LeafletEvent } from 'leaflet'
 import { Router } from '../services/router'
 import { RouteWaypoint } from '../types'
@@ -172,6 +172,7 @@ export function useMarkerHandlers({
 }: UseMarkerHandlersParams) {
   const { setRoute } = useRouteStore()
   const { router } = useRouterStore()
+  const lastCallRef = useRef(0)
   const handleMarkerDragStart = useCallback(() => {
     isDraggingMarkerRef.current = true
   }, [isDraggingMarkerRef])
@@ -179,6 +180,16 @@ export function useMarkerHandlers({
   const handleMarkerDrag = useCallback(
     (index: number, event: LeafletEvent) => {
       if (!router || !route) return
+
+      const now = Date.now()
+      const throttleDelay = 100 // milliseconds
+
+      // Skip processing if not enough time has elapsed since last call
+      if (now - lastCallRef.current < throttleDelay) {
+        return
+      }
+
+      lastCallRef.current = now
 
       const marker = event.target
       const { lat, lng: lon } = marker.getLatLng()
