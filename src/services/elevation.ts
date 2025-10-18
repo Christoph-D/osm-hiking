@@ -1,5 +1,4 @@
 import { ElevationPoint, Waypoint } from '../types'
-import { Route } from './route'
 import { calculateDistance } from '../utils/geoCalculations'
 
 interface ElevationResult {
@@ -182,41 +181,6 @@ export function calculateElevationStats(elevations: number[]): {
   }
 
   return { gain, loss, min, max }
-}
-
-/**
- * Collect all coordinates from route segments, handling segment connections
- * @param route The route containing segments to process
- * @returns Array of all Waypoint coordinates in order
- */
-export function collectRouteCoordinates(route: Route): Waypoint[] {
-  const allCoordinates: Waypoint[] = []
-
-  for (let i = 0; i < route.segments.length; i++) {
-    const segment = route.segments[i]
-    if (i === 0) {
-      // First segment: include all coordinates
-      allCoordinates.push(...segment.coordinates)
-    } else {
-      // Check if this segment connects to the previous one
-      const prevLastCoord = allCoordinates[allCoordinates.length - 1]
-      const currFirstCoord = segment.coordinates[0]
-      const coordsMatch =
-        prevLastCoord &&
-        Math.abs(prevLastCoord.lon - currFirstCoord.lon) < 0.000001 &&
-        Math.abs(prevLastCoord.lat - currFirstCoord.lat) < 0.0000001
-
-      if (coordsMatch) {
-        // Skip the first coordinate (it's the same as the last coordinate of the previous segment)
-        allCoordinates.push(...segment.coordinates.slice(1))
-      } else {
-        // Segments don't connect, include all coordinates
-        allCoordinates.push(...segment.coordinates)
-      }
-    }
-  }
-
-  return allCoordinates
 }
 
 /**
