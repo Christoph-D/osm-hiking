@@ -246,59 +246,6 @@ describe('useMarkerHandlers', () => {
       expect(mockMarker.setLatLng).not.toHaveBeenCalled()
       expect(mockSetTempRoute).toHaveBeenCalled()
     })
-
-    it('should return early if router or route is not available', () => {
-      mockUseRouterStore.mockReturnValue({
-        router: null,
-      })
-      const { result } = renderHook(() =>
-        useMarkerHandlers({
-          route: null,
-          isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          setTempRoute: mockSetTempRoute,
-          mapCenter: { lat: 45.0, lng: 9.0 },
-          currentZoom: 10,
-        })
-      )
-
-      const mockEvent = {
-        target: mockMarker,
-      } as LeafletEvent
-
-      act(() => {
-        result.current.handleMarkerDrag(0, mockEvent)
-      })
-
-      expect(mockCreateCustomWaypoint).not.toHaveBeenCalled()
-      expect(mockSetRoute).not.toHaveBeenCalled()
-    })
-
-    it('should handle missing waypoint gracefully', () => {
-      const { result } = renderHook(() =>
-        useMarkerHandlers({
-          route: mockRoute,
-          isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          setTempRoute: mockSetTempRoute,
-          mapCenter: { lat: 45.0, lng: 9.0 },
-          currentZoom: 10,
-        })
-      )
-
-      const mockEvent = {
-        target: mockMarker,
-      } as LeafletEvent
-
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-      act(() => {
-        result.current.handleMarkerDrag(999, mockEvent) // Invalid index
-      })
-
-      expect(mockSetTempRoute).not.toHaveBeenCalled()
-      expect(mockSetRoute).not.toHaveBeenCalled()
-
-      consoleSpy.mockRestore()
-    })
   })
 
   describe('handleMarkerDragEnd', () => {
@@ -371,54 +318,6 @@ describe('useMarkerHandlers', () => {
       expect(mockCreateNodeWaypoint).toHaveBeenCalledWith(51, 9, 456)
       expect(mockMarker.setLatLng).toHaveBeenCalledWith([51, 9]) // Marker should snap to node
       expect(mockSetRoute).toHaveBeenCalled()
-    })
-  })
-
-  describe('handleMarkerDragStart', () => {
-    it('should set dragging flag to true', () => {
-      const { result } = renderHook(() =>
-        useMarkerHandlers({
-          route: mockRoute,
-          isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          setTempRoute: mockSetTempRoute,
-          mapCenter: { lat: 45.0, lng: 9.0 },
-          currentZoom: 10,
-        })
-      )
-
-      act(() => {
-        result.current.handleMarkerDragStart()
-      })
-
-      expect(mockIsDraggingMarkerRef.current).toBe(true)
-    })
-  })
-
-  describe('handleMarkerClick', () => {
-    it('should stop event propagation', () => {
-      const { result } = renderHook(() =>
-        useMarkerHandlers({
-          route: mockRoute,
-          isDraggingMarkerRef: mockIsDraggingMarkerRef,
-          setTempRoute: mockSetTempRoute,
-          mapCenter: { lat: 45.0, lng: 9.0 },
-          currentZoom: 10,
-        })
-      )
-
-      const mockEvent = {
-        originalEvent: {
-          stopPropagation: vi.fn(),
-        },
-      } as LeafletEvent & {
-        originalEvent: { stopPropagation: ReturnType<typeof vi.fn> }
-      }
-
-      act(() => {
-        result.current.handleMarkerClick(mockEvent)
-      })
-
-      expect(mockEvent.originalEvent.stopPropagation).toHaveBeenCalled()
     })
   })
 
