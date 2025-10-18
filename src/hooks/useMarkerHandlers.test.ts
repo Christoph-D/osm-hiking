@@ -195,6 +195,7 @@ describe('useMarkerHandlers', () => {
           setTempRoute: mockSetTempRoute,
           mapCenter: { lat: 45.0, lng: 9.0 },
           currentZoom: 10,
+          loadedBbox: null,
         })
       )
 
@@ -230,6 +231,7 @@ describe('useMarkerHandlers', () => {
           setTempRoute: mockSetTempRoute,
           mapCenter: { lat: 45.0, lng: 9.0 },
           currentZoom: 10,
+          loadedBbox: null,
         })
       )
 
@@ -266,6 +268,7 @@ describe('useMarkerHandlers', () => {
           setTempRoute: mockSetTempRoute,
           mapCenter: { lat: 45.0, lng: 9.0 },
           currentZoom: 10,
+          loadedBbox: null,
         })
       )
 
@@ -303,6 +306,7 @@ describe('useMarkerHandlers', () => {
           setTempRoute: mockSetTempRoute,
           mapCenter: { lat: 45.0, lng: 9.0 },
           currentZoom: 10,
+          loadedBbox: null,
         })
       )
 
@@ -330,6 +334,7 @@ describe('useMarkerHandlers', () => {
           setTempRoute: mockSetTempRoute,
           mapCenter: { lat: 45.0, lng: 9.0 },
           currentZoom: 10,
+          loadedBbox: null,
         })
       )
 

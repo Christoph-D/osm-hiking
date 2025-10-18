@@ -12,6 +12,9 @@ import {
   createCustomWaypoint,
   createNodeWaypoint,
   determineWaypointType,
+  isPointInBbox,
+  constrainPointToBbox,
+  calculateBoundaryIntersection,
 } from './mapHelpers'
 import { Router } from '../services/router'
 import { NodeWaypoint } from '../types'
@@ -535,6 +538,235 @@ describe('Custom Waypoint Utilities', () => {
         const result = emptyRoute.addWaypoint(testWaypoint, router)
 
         expect(result).toBe(emptyRoute)
+      })
+    })
+  })
+
+  describe('Boundary Constraint Utilities', () => {
+    const testBbox = {
+      south: 45.0,
+      west: 10.0,
+      north: 50.0,
+      east: 15.0,
+    }
+
+    describe('isPointInBbox', () => {
+      it('should return true for point inside bbox', () => {
+        expect(isPointInBbox(47.5, 12.5, testBbox)).toBe(true)
+      })
+
+      it('should return true for point on bbox boundary', () => {
+        expect(isPointInBbox(45.0, 12.5, testBbox)).toBe(true) // South boundary
+        expect(isPointInBbox(50.0, 12.5, testBbox)).toBe(true) // North boundary
+        expect(isPointInBbox(47.5, 10.0, testBbox)).toBe(true) // West boundary
+        expect(isPointInBbox(47.5, 15.0, testBbox)).toBe(true) // East boundary
+      })
+
+      it('should return false for point outside bbox', () => {
+        expect(isPointInBbox(44.9, 12.5, testBbox)).toBe(false) // South of bbox
+        expect(isPointInBbox(50.1, 12.5, testBbox)).toBe(false) // North of bbox
+        expect(isPointInBbox(47.5, 9.9, testBbox)).toBe(false) // West of bbox
+        expect(isPointInBbox(47.5, 15.1, testBbox)).toBe(false) // East of bbox
+      })
+    })
+
+    describe('constrainPointToBbox', () => {
+      it('should return same point for point inside bbox', () => {
+        const result = constrainPointToBbox(47.5, 12.5, testBbox)
+        expect(result).toEqual({ lat: 47.5, lon: 12.5 })
+      })
+
+      it('should clamp point to north boundary', () => {
+        const result = constrainPointToBbox(51.0, 12.5, testBbox)
+        expect(result).toEqual({ lat: 50.0, lon: 12.5 })
+      })
+
+      it('should clamp point to south boundary', () => {
+        const result = constrainPointToBbox(44.0, 12.5, testBbox)
+        expect(result).toEqual({ lat: 45.0, lon: 12.5 })
+      })
+
+      it('should clamp point to east boundary', () => {
+        const result = constrainPointToBbox(47.5, 16.0, testBbox)
+        expect(result).toEqual({ lat: 47.5, lon: 15.0 })
+      })
+
+      it('should clamp point to west boundary', () => {
+        const result = constrainPointToBbox(47.5, 9.0, testBbox)
+        expect(result).toEqual({ lat: 47.5, lon: 10.0 })
+      })
+
+      it('should clamp point diagonally to corner', () => {
+        const result = constrainPointToBbox(52.0, 16.0, testBbox)
+        expect(result).toEqual({ lat: 50.0, lon: 15.0 })
+      })
+    })
+
+    describe('calculateBoundaryIntersection', () => {
+      it('should return same point for point inside bbox', () => {
+        const result = calculateBoundaryIntersection(
+          47.5,
+          12.5,
+          47.7,
+          12.7,
+          testBbox
+        )
+        expect(result).toEqual({ lat: 47.7, lon: 12.7 })
+      })
+
+      it('should find intersection with north boundary', () => {
+        const startLat = 47.5
+        const startLon = 12.5
+        const endLat = 51.0 // North of bbox
+        const endLon = 12.5
+
+        const result = calculateBoundaryIntersection(
+          startLat,
+          startLon,
+          endLat,
+          endLon,
+          testBbox
+        )
+        expect(result).toEqual({ lat: 50.0, lon: 12.5 })
+      })
+
+      it('should find intersection with south boundary', () => {
+        const startLat = 47.5
+        const startLon = 12.5
+        const endLat = 44.0 // South of bbox
+        const endLon = 12.5
+
+        const result = calculateBoundaryIntersection(
+          startLat,
+          startLon,
+          endLat,
+          endLon,
+          testBbox
+        )
+        expect(result).toEqual({ lat: 45.0, lon: 12.5 })
+      })
+
+      it('should find intersection with east boundary', () => {
+        const startLat = 47.5
+        const startLon = 12.5
+        const endLat = 47.5
+        const endLon = 16.0 // East of bbox
+
+        const result = calculateBoundaryIntersection(
+          startLat,
+          startLon,
+          endLat,
+          endLon,
+          testBbox
+        )
+        expect(result).toEqual({ lat: 47.5, lon: 15.0 })
+      })
+
+      it('should find intersection with west boundary', () => {
+        const startLat = 47.5
+        const startLon = 12.5
+        const endLat = 47.5
+        const endLon = 9.0 // West of bbox
+
+        const result = calculateBoundaryIntersection(
+          startLat,
+          startLon,
+          endLat,
+          endLon,
+          testBbox
+        )
+        expect(result).toEqual({ lat: 47.5, lon: 10.0 })
+      })
+
+      it('should find diagonal intersection with north boundary', () => {
+        const startLat = 47.5
+        const startLon = 12.5
+        const endLat = 52.0 // North of bbox
+        const endLon = 14.0 // Still within east-west bounds
+
+        const result = calculateBoundaryIntersection(
+          startLat,
+          startLon,
+          endLat,
+          endLon,
+          testBbox
+        )
+        expect(result.lat).toBeCloseTo(50.0, 5) // North boundary
+
+        // Calculate expected longitude:
+        // t = (50.0 - 47.5) / (52.0 - 47.5) = 2.5 / 4.5 = 0.555...
+        // lon = 12.5 + t * (14.0 - 12.5) = 12.5 + 0.555... * 1.5 = 13.333...
+        expect(result.lon).toBeCloseTo(13.33333, 5) // Proportional longitude
+      })
+
+      it('should find diagonal intersection with east boundary', () => {
+        const startLat = 47.5
+        const startLon = 12.5
+        const endLat = 48.5 // Still within north-south bounds
+        const endLon = 17.0 // East of bbox
+
+        const result = calculateBoundaryIntersection(
+          startLat,
+          startLon,
+          endLat,
+          endLon,
+          testBbox
+        )
+        expect(result.lon).toBeCloseTo(15.0, 5) // East boundary
+
+        // Calculate expected latitude:
+        // t = (15.0 - 12.5) / (17.0 - 12.5) = 2.5 / 4.5 = 0.555...
+        // lat = 47.5 + t * (48.5 - 47.5) = 47.5 + 0.555... * 1.0 = 48.055...
+        expect(result.lat).toBeCloseTo(48.05556, 5) // Proportional latitude
+      })
+
+      it('should handle start point outside bbox', () => {
+        const startLat = 44.0 // South of bbox
+        const startLon = 12.5
+        const endLat = 47.5 // Inside bbox
+        const endLon = 12.5
+
+        const result = calculateBoundaryIntersection(
+          startLat,
+          startLon,
+          endLat,
+          endLon,
+          testBbox
+        )
+        expect(result).toEqual({ lat: 47.5, lon: 12.5 }) // Should return end point since it's inside
+      })
+
+      it('should return constrained start when start and end are same position', () => {
+        const startLat = 44.0 // South of bbox
+        const startLon = 12.5
+        const endLat = 44.0
+        const endLon = 12.5
+
+        const result = calculateBoundaryIntersection(
+          startLat,
+          startLon,
+          endLat,
+          endLon,
+          testBbox
+        )
+        expect(result).toEqual({ lat: 45.0, lon: 12.5 }) // Constrained start position
+      })
+
+      it('should fallback to constraining when no intersection found', () => {
+        const startLat = 47.5
+        const startLon = 12.5
+        const endLat = 100.0 // Far north
+        const endLon = 100.0 // Far east (outside any realistic intersection)
+
+        const result = calculateBoundaryIntersection(
+          startLat,
+          startLon,
+          endLat,
+          endLon,
+          testBbox
+        )
+        expect(result.lat).toBeLessThanOrEqual(testBbox.north)
+        expect(result.lon).toBeLessThanOrEqual(testBbox.east)
       })
     })
   })
