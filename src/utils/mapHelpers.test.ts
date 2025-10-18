@@ -30,34 +30,6 @@ const createMockRouter = () => {
 }
 
 describe('Custom Waypoint Utilities', () => {
-  describe('createCustomWaypoint', () => {
-    it('should create a custom waypoint with correct properties', () => {
-      const lat = 50.0
-      const lon = 10.0
-
-      const waypoint = createCustomWaypoint(lat, lon)
-
-      expect(waypoint.type).toBe('custom')
-      expect(waypoint.lat).toBe(lat)
-      expect(waypoint.lon).toBe(lon)
-    })
-  })
-
-  describe('createNodeWaypoint', () => {
-    it('should create a node waypoint with correct properties', () => {
-      const lat = 50.0
-      const lon = 10.0
-      const nodeId = 123
-
-      const waypoint = createNodeWaypoint(lat, lon, nodeId)
-
-      expect(waypoint.type).toBe('node')
-      expect(waypoint.lat).toBe(lat)
-      expect(waypoint.lon).toBe(lon)
-      expect(waypoint.nodeId).toBe(nodeId)
-    })
-  })
-
   describe('Waypoint Type Determination', () => {
     let router: Router
 

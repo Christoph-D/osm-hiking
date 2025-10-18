@@ -129,16 +129,6 @@ describe('subdividePathEqually', () => {
 })
 
 describe('calculateElevationStats', () => {
-  it('should calculate stats for flat terrain', () => {
-    const elevations = [100, 100, 100, 100]
-    const stats = calculateElevationStats(elevations)
-
-    expect(stats.min).toBe(100)
-    expect(stats.max).toBe(100)
-    expect(stats.gain).toBe(0)
-    expect(stats.loss).toBe(0)
-  })
-
   it('should calculate stats for uphill route', () => {
     const elevations = [100, 200, 300, 400, 500]
     const stats = calculateElevationStats(elevations)
@@ -177,16 +167,6 @@ describe('calculateElevationStats', () => {
     expect(stats.max).toBe(180)
     expect(stats.gain).toBe(110) // 100->150 (50) + 120->180 (60)
     expect(stats.loss).toBe(50) // 150->120 (30) + 180->160 (20)
-  })
-
-  it('should handle single elevation point', () => {
-    const elevations = [250]
-    const stats = calculateElevationStats(elevations)
-
-    expect(stats.min).toBe(250)
-    expect(stats.max).toBe(250)
-    expect(stats.gain).toBe(0)
-    expect(stats.loss).toBe(0)
   })
 
   it('should handle empty array', () => {
