@@ -4,6 +4,7 @@ import {
   ElevationPoint,
   ElevationStats,
   NodeWaypoint,
+  Waypoint,
 } from '../types'
 import { Router } from './router'
 
@@ -273,6 +274,28 @@ export class Route {
     }
 
     return null
+  }
+
+  /**
+   * Collect all coordinates from route segments, handling segment connections
+   * Assumes the last point of segments[i] is always the same as the first point of segments[i+1]
+   * @returns Array of all Waypoint coordinates in order
+   */
+  collectRouteCoordinates(): Waypoint[] {
+    const allCoordinates: Waypoint[] = []
+
+    for (let i = 0; i < this.#segments.length; i++) {
+      const segment = this.#segments[i]
+      if (i === 0) {
+        // First segment: include all coordinates
+        allCoordinates.push(...segment.coordinates)
+      } else {
+        // Skip the first coordinate (it's the same as the last coordinate of the previous segment)
+        allCoordinates.push(...segment.coordinates.slice(1))
+      }
+    }
+
+    return allCoordinates
   }
 
   /**

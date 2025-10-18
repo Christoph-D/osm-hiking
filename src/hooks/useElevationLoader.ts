@@ -19,7 +19,6 @@ import {
   fetchElevations,
   subdividePathEqually,
   calculateElevationStats,
-  collectRouteCoordinates,
   calculateSubdividedDistances,
   buildElevationProfile,
 } from '../services/elevation'
@@ -55,7 +54,7 @@ export function useElevationLoader({
     const fetchElevationData = async () => {
       try {
         // Collect all coordinates from all segments in order
-        const allCoordinates = collectRouteCoordinates(route)
+        const allCoordinates = route.collectRouteCoordinates()
 
         // Subdivide the path into equally spaced points
         const numPoints = 70

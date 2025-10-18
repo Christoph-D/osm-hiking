@@ -37,12 +37,8 @@ export async function exportRouteAsGPX(
   route: Route,
   filename: string = 'hiking-route.gpx'
 ): Promise<void> {
-  // Flatten all segments into a single line
-  const allCoordinates: Waypoint[] = []
-
-  route.segments.forEach((segment) => {
-    allCoordinates.push(...segment.coordinates)
-  })
+  // Collect all coordinates from segments, handling connections properly
+  const allCoordinates = route.collectRouteCoordinates()
 
   // Fetch elevations for all coordinates
   let elevations: number[] | undefined

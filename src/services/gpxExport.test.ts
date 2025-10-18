@@ -75,7 +75,7 @@ describe('exportRouteAsGPX', () => {
     expect(blobContent).toContain('</gpx>')
   })
 
-  it('should include all coordinates from all segments', async () => {
+  it('should include all coordinates from all segments without duplicates', async () => {
     const route = new Route(
       [
         {
@@ -101,15 +101,14 @@ describe('exportRouteAsGPX', () => {
     )
 
     vi.mocked(elevationModule.fetchElevations).mockResolvedValue([
-      100, 150, 150, 200,
+      100, 150, 200,
     ])
 
     await exportRouteAsGPX(route)
 
-    // Verify that fetchElevations was called with all 4 coordinates
+    // Verify that fetchElevations was called with 3 coordinates (duplicate removed)
     expect(elevationModule.fetchElevations).toHaveBeenCalledWith([
       { lat: 50.0, lon: 10.0 },
-      { lat: 50.1, lon: 10.1 },
       { lat: 50.1, lon: 10.1 },
       { lat: 50.2, lon: 10.2 },
     ])
