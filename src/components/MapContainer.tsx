@@ -99,6 +99,7 @@ function RouteLayer() {
     setTempRoute,
     mapCenter,
     currentZoom,
+    loadedBbox,
   })
 
   // Elevation data loader hook

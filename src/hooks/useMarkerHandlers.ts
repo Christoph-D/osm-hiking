@@ -15,7 +15,12 @@ import { LeafletEvent } from 'leaflet'
 import { Router } from '../services/router'
 import { RouteWaypoint } from '../types'
 import { Route } from '../services/route'
-import { createNodeWaypoint, createCustomWaypoint } from '../utils/mapHelpers'
+import {
+  createNodeWaypoint,
+  createCustomWaypoint,
+  isPointInBbox,
+  calculateBoundaryIntersection,
+} from '../utils/mapHelpers'
 import { getSnapToNodeThreshold } from '../constants/waypoints'
 import { useRouteStore } from '../store/useRouteStore'
 import { useRouterStore } from '../store/routerStore'
@@ -26,6 +31,12 @@ interface UseMarkerHandlersParams {
   setTempRoute: (route: Route | null) => void
   mapCenter: { lat: number; lng: number }
   currentZoom: number
+  loadedBbox: {
+    south: number
+    west: number
+    north: number
+    east: number
+  } | null
 }
 
 // Helper function to process marker position and calculate route segments
@@ -36,14 +47,47 @@ function processMarkerPosition(
   route: Route,
   index: number,
   mapCenter: { lat: number; lng: number },
-  currentZoom: number
+  currentZoom: number,
+  loadedBbox: {
+    south: number
+    west: number
+    north: number
+    east: number
+  } | null
 ): { route: Route; index: number } {
   if (!route.waypoints[index]) {
     throw new Error(`No waypoint found at index ${index}`)
   }
 
+  // Apply boundary constraints if we have a loaded bbox
+  let constrainedLat = lat
+  let constrainedLon = lon
+
+  if (loadedBbox) {
+    // Calculate center of the loaded bbox
+    const bboxCenterLat = (loadedBbox.north + loadedBbox.south) / 2
+    const bboxCenterLon = (loadedBbox.east + loadedBbox.west) / 2
+
+    // If the target position is outside the loaded bbox, constrain it
+    if (!isPointInBbox(lat, lon, loadedBbox)) {
+      const constrainedPosition = calculateBoundaryIntersection(
+        bboxCenterLat,
+        bboxCenterLon,
+        lat,
+        lon,
+        loadedBbox
+      )
+      constrainedLat = constrainedPosition.lat
+      constrainedLon = constrainedPosition.lon
+    }
+  }
+
   const snapThreshold = getSnapToNodeThreshold(mapCenter.lat, currentZoom)
-  const nearestResult = router.findNearestNode(lat, lon, snapThreshold)
+  const nearestResult = router.findNearestNode(
+    constrainedLat,
+    constrainedLon,
+    snapThreshold
+  )
 
   let newWaypoint: RouteWaypoint
 
@@ -54,7 +98,7 @@ function processMarkerPosition(
       nearestResult.nodeId
     )
   } else {
-    newWaypoint = createCustomWaypoint(lat, lon)
+    newWaypoint = createCustomWaypoint(constrainedLat, constrainedLon)
   }
 
   // Update the waypoint in the route
@@ -87,6 +131,7 @@ export function useMarkerHandlers({
   setTempRoute,
   mapCenter,
   currentZoom,
+  loadedBbox,
 }: UseMarkerHandlersParams) {
   const { setRoute } = useRouteStore()
   const { router } = useRouterStore()
@@ -109,14 +154,15 @@ export function useMarkerHandlers({
           route,
           index,
           mapCenter,
-          currentZoom
+          currentZoom,
+          loadedBbox
         )
         setTempRoute(routeData.route)
       } catch (error) {
         console.error('Error processing marker drag:', error)
       }
     },
-    [router, route, setTempRoute, mapCenter, currentZoom]
+    [router, route, setTempRoute, mapCenter, currentZoom, loadedBbox]
   )
 
   const handleMarkerDragEnd = useCallback(
@@ -134,7 +180,8 @@ export function useMarkerHandlers({
           route,
           index,
           mapCenter,
-          currentZoom
+          currentZoom,
+          loadedBbox
         )
         const updatedWaypoint = routeData.route.waypoints[routeData.index]
 
@@ -160,6 +207,7 @@ export function useMarkerHandlers({
       setRoute,
       mapCenter,
       currentZoom,
+      loadedBbox,
     ]
   )
 
