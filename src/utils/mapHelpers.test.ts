@@ -131,6 +131,7 @@ describe('Custom Waypoint Utilities', () => {
       // Create segments between waypoints (waypoints.length - 1 segments)
       for (let i = 0; i < waypoints.length - 1; i++) {
         segments.push({
+          id: `segment-${i + 1}`,
           coordinates: [
             { lat: waypoints[i].lat, lon: waypoints[i].lon },
             { lat: waypoints[i + 1].lat, lon: waypoints[i + 1].lon },
@@ -148,6 +149,7 @@ describe('Custom Waypoint Utilities', () => {
         const route = new Route(
           [
             {
+              id: 'segment-1',
               coordinates: [
                 { lat: 50, lon: 10 },
                 { lat: 50.1, lon: 10.1 },
@@ -155,6 +157,7 @@ describe('Custom Waypoint Utilities', () => {
               distance: 1100,
             },
             {
+              id: 'segment-2',
               coordinates: [
                 { lat: 50.1, lon: 10.1 },
                 { lat: 50.2, lon: 10.2 },
@@ -162,6 +165,7 @@ describe('Custom Waypoint Utilities', () => {
               distance: 1200,
             },
             {
+              id: 'segment-3',
               coordinates: [
                 { lat: 50.2, lon: 10.2 },
                 { lat: 50.3, lon: 10.3 },
@@ -169,6 +173,7 @@ describe('Custom Waypoint Utilities', () => {
               distance: 1300,
             },
             {
+              id: 'segment-4',
               coordinates: [
                 { lat: 50.3, lon: 10.3 },
                 { lat: 50.4, lon: 10.4 },
@@ -186,6 +191,7 @@ describe('Custom Waypoint Utilities', () => {
         )
 
         const newSegment1 = {
+          id: 'new-segment-1',
           coordinates: [
             { lat: route.waypoints[0].lat, lon: route.waypoints[0].lon },
             { lat: route.waypoints[1].lat, lon: route.waypoints[1].lon },
@@ -193,6 +199,7 @@ describe('Custom Waypoint Utilities', () => {
           distance: 2000,
         }
         const newSegment2 = {
+          id: 'new-segment-2',
           coordinates: [
             { lat: route.waypoints[1].lat, lon: route.waypoints[1].lon },
             { lat: route.waypoints[2].lat, lon: route.waypoints[2].lon },
@@ -217,6 +224,7 @@ describe('Custom Waypoint Utilities', () => {
       it('should only recalculate segment after dragging first waypoint', () => {
         const route = createMockRoute(4)
         const newSegment = {
+          id: 'new-segment',
           coordinates: [
             { lat: route.waypoints[0].lat, lon: route.waypoints[0].lon },
             { lat: route.waypoints[1].lat, lon: route.waypoints[1].lon },
@@ -239,6 +247,7 @@ describe('Custom Waypoint Utilities', () => {
         const route = new Route(
           [
             {
+              id: 'segment-1',
               coordinates: [
                 { lat: 50, lon: 10 },
                 { lat: 50.1, lon: 10.1 },
@@ -246,6 +255,7 @@ describe('Custom Waypoint Utilities', () => {
               distance: 1100,
             },
             {
+              id: 'segment-2',
               coordinates: [
                 { lat: 50.1, lon: 10.1 },
                 { lat: 50.2, lon: 10.2 },
@@ -253,6 +263,7 @@ describe('Custom Waypoint Utilities', () => {
               distance: 1200,
             },
             {
+              id: 'segment-3',
               coordinates: [
                 { lat: 50.2, lon: 10.2 },
                 { lat: 50.3, lon: 10.3 },
@@ -269,6 +280,7 @@ describe('Custom Waypoint Utilities', () => {
         )
 
         const newSegment = {
+          id: 'new-segment',
           coordinates: [
             { lat: route.waypoints[2].lat, lon: route.waypoints[2].lon },
             { lat: route.waypoints[3].lat, lon: route.waypoints[3].lon },
@@ -302,6 +314,7 @@ describe('Custom Waypoint Utilities', () => {
         const route = new Route(
           [
             {
+              id: 'segment-1',
               coordinates: [
                 { lat: 50, lon: 10 },
                 { lat: 50.1, lon: 10.1 },
@@ -313,6 +326,7 @@ describe('Custom Waypoint Utilities', () => {
         )
 
         const newSegment = {
+          id: 'new-segment',
           coordinates: [
             { lat: route.waypoints[0].lat, lon: route.waypoints[0].lon },
             { lat: route.waypoints[1].lat, lon: route.waypoints[1].lon },
@@ -332,6 +346,7 @@ describe('Custom Waypoint Utilities', () => {
         const route = new Route(
           [
             {
+              id: 'segment-1',
               coordinates: [
                 { lat: 50, lon: 10 },
                 { lat: 51, lon: 11 },
@@ -339,6 +354,7 @@ describe('Custom Waypoint Utilities', () => {
               distance: 1000,
             },
             {
+              id: 'segment-2',
               coordinates: [
                 { lat: 51, lon: 11 },
                 { lat: 52, lon: 12 },
@@ -354,6 +370,7 @@ describe('Custom Waypoint Utilities', () => {
         )
 
         const newSegment = {
+          id: 'new-segment',
           coordinates: [
             { lat: 51, lon: 11 },
             { lat: 52, lon: 12 },
@@ -372,6 +389,7 @@ describe('Custom Waypoint Utilities', () => {
         const route = new Route(
           [
             {
+              id: 'segment-1',
               coordinates: [
                 { lat: 50, lon: 10 },
                 { lat: 51, lon: 11 },
@@ -379,6 +397,7 @@ describe('Custom Waypoint Utilities', () => {
               distance: 1000,
             },
             {
+              id: 'segment-2',
               coordinates: [
                 { lat: 51, lon: 11 },
                 { lat: 52, lon: 12 },
@@ -394,6 +413,7 @@ describe('Custom Waypoint Utilities', () => {
         )
 
         const newSegment = {
+          id: 'new-segment',
           coordinates: [
             { lat: 51, lon: 11 },
             { lat: 52, lon: 12 },
@@ -414,10 +434,12 @@ describe('Custom Waypoint Utilities', () => {
       it('should preserve waypoints and recalculate total distance', () => {
         const route = createMockRoute(4)
         const newSegment1 = {
+          id: 'new-segment-1',
           coordinates: [route.waypoints[0], route.waypoints[1]],
           distance: 2000,
         }
         const newSegment2 = {
+          id: 'new-segment-2',
           coordinates: [route.waypoints[1], route.waypoints[2]],
           distance: 2500,
         }
@@ -456,6 +478,7 @@ describe('Custom Waypoint Utilities', () => {
         const route = new Route(
           [
             {
+              id: 'segment-1',
               coordinates: [
                 { lat: 50.0, lon: 10.0 },
                 { lat: 51.0, lon: 11.0 },
@@ -491,6 +514,7 @@ describe('Custom Waypoint Utilities', () => {
         const routeWithMiddleSegment = new Route(
           [
             {
+              id: 'segment-1',
               coordinates: [
                 { lat: 50.0, lon: 10.0 },
                 { lat: 51.0, lon: 11.0 }, // This is where our new waypoint should match

@@ -86,7 +86,7 @@ describe('useMarkerHandlers', () => {
 
   // Create mock route with required data
   const mockRoute = new Route(
-    [{ coordinates: [{ lat: 51, lon: 9 }], distance: 0 }], // segments
+    [{ id: 'test-segment-1', coordinates: [{ lat: 51, lon: 9 }], distance: 0 }], // segments
     [
       { type: 'custom', lat: 50, lon: 8 },
       { type: 'node', nodeId: 123, lat: 51, lon: 9 },

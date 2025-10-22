@@ -15,13 +15,13 @@ export function RouteSegments({ route, tempRoute }: RouteSegmentsProps) {
 
   return (
     <>
-      {activeRoute.segments.map((segment, i) => {
+      {activeRoute.segments.map((segment) => {
         const positions = segment.coordinates.map(
           (waypoint) => [waypoint.lat, waypoint.lon] as [number, number]
         )
         return (
           <Polyline
-            key={i}
+            key={segment.id}
             positions={positions}
             color="blue"
             weight={4}

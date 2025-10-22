@@ -6,6 +6,7 @@ import {
   NodeWaypoint,
   Waypoint,
 } from '../types'
+import { generateSegmentId } from '../utils/mapHelpers'
 import { Router } from './router'
 
 /**
@@ -160,7 +161,7 @@ export class Route {
       // Create temporary route with dummy segments
       const tempSegments: RouteSegment[] = [
         ...this.#segments.slice(0, insertIndex),
-        { coordinates: [], distance: 0 }, // Dummy segment for the inserted waypoint
+        { id: generateSegmentId(), coordinates: [], distance: 0 }, // Dummy segment for the inserted waypoint
         ...this.#segments.slice(insertIndex),
       ]
 

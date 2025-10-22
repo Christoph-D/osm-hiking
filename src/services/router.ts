@@ -2,6 +2,7 @@ import { aStar } from 'ngraph.path'
 import { RoutingGraph } from './graphBuilder'
 import { distance } from '@turf/turf'
 import { RouteSegment, Waypoint, GraphNode } from '../types'
+import { generateSegmentId } from '../utils/mapHelpers'
 
 export class Router {
   private graph: RoutingGraph
@@ -106,6 +107,7 @@ export class Router {
     }
 
     return {
+      id: generateSegmentId(),
       coordinates,
       distance: totalDistance,
     }
@@ -124,6 +126,7 @@ export class Router {
     )
 
     return {
+      id: generateSegmentId(),
       coordinates,
       distance: totalDistance,
     }

@@ -221,6 +221,7 @@ describe('useRouteStore', () => {
       // Create segments (waypoints.length - 1)
       const segments: RouteSegment[] = [
         {
+          id: 'segment-1',
           coordinates: [
             { lat: 50.0, lon: 10.0 },
             { lat: 50.1, lon: 10.1 },
@@ -228,6 +229,7 @@ describe('useRouteStore', () => {
           distance: 100,
         },
         {
+          id: 'segment-2',
           coordinates: [
             { lat: 50.1, lon: 10.1 },
             { lat: 50.2, lon: 10.2 },
@@ -235,6 +237,7 @@ describe('useRouteStore', () => {
           distance: 100,
         },
         {
+          id: 'segment-3',
           coordinates: [
             { lat: 50.2, lon: 10.2 },
             { lat: 50.3, lon: 10.3 },
@@ -262,6 +265,7 @@ describe('useRouteStore', () => {
       const routeWaypoint1 = createTestWaypoint(50.0, 10.0)
       const routeWaypoint2 = createTestWaypoint(50.1, 10.1)
       const segment1: RouteSegment = {
+        id: 'segment-lifecycle-1',
         coordinates: [
           { lat: 50.0, lon: 10.0 },
           { lat: 50.1, lon: 10.1 },

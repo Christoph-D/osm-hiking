@@ -22,6 +22,7 @@ export interface GraphNode {
 }
 
 export interface RouteSegment {
+  id: string
   coordinates: Waypoint[]
   distance: number
 }

@@ -15,6 +15,16 @@ import { RouteWaypoint, NodeWaypoint, CustomWaypoint, Waypoint } from '../types'
 import { Router } from '../services/router'
 import { getCustomWaypointThreshold } from '../constants/waypoints'
 
+let nextSegmentId = 0
+
+/**
+ * Generates a unique ID for a route segment
+ */
+export function generateSegmentId(): string {
+  const id = nextSegmentId++
+  return `segment-${id}`
+}
+
 /**
  * Gets the current bounding box from the map
  */

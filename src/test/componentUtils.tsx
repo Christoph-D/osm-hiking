@@ -76,6 +76,7 @@ export function createMockRoute(
 
   const defaultSegments = [
     {
+      id: 'test-segment-1',
       coordinates: [
         { lat: 50.0, lon: 10.0 },
         { lat: 50.001, lon: 10.001 },
@@ -133,6 +134,7 @@ function createMockSegmentsForWaypoints(
     const currentWaypoint = waypoints[i]
     const nextWaypoint = waypoints[i + 1]
     segments.push({
+      id: `test-segment-${i + 1}`,
       coordinates: [
         { lat: currentWaypoint.lat, lon: currentWaypoint.lon },
         { lat: nextWaypoint.lat, lon: nextWaypoint.lon },
